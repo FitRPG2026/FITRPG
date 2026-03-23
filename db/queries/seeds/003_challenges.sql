@@ -1,0 +1,6 @@
+CALL proc_create_challenge('7-Day Logging Streak', 'Log at least one meal or workout for seven consecutive days.', 'streak_days', 7.00, 40, '2026-03-10 00:00:00+00', '2026-03-31 23:59:59+00', '2026-03-10 00:00:00+00');
+CALL proc_create_challenge('Three Strength Sessions', 'Complete three strength workouts during the challenge window.', 'strength_sessions', 3.00, 80, '2026-03-10 00:00:00+00', '2026-03-31 23:59:59+00', '2026-03-10 00:00:00+00');
+CALL proc_create_challenge('10K Run Distance', 'Accumulate ten kilometers of running workouts.', 'distance_m', 10000.00, 60, '2026-03-12 00:00:00+00', '2026-03-31 23:59:59+00', '2026-03-12 00:00:00+00');
+CALL proc_create_challenge('Colorful Plate Week', 'Eat five meals with vegetables or fruit across one week.', 'healthy_meals', 5.00, 50, '2026-03-14 00:00:00+00', '2026-03-28 23:59:59+00', '2026-03-14 00:00:00+00');
+CALL proc_create_challenge('Weekend Warrior', 'Log two workouts over the weekend.', 'weekend_workouts', 2.00, 50, '2026-03-20 00:00:00+00', '2026-03-22 23:59:59+00', '2026-03-20 00:00:00+00');
+CALL proc_create_challenge('Hydration Habit', 'Hit your hydration target on five separate days.', 'hydration_days', 5.00, 30, '2026-03-01 00:00:00+00', NULL, '2026-03-01 00:00:00+00');

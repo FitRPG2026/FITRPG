@@ -1,0 +1,6 @@
+CALL proc_create_achievement('FIRST_MEAL', 'First Meal Logged', 'Log your first meal in the app.', 'meal_count', 1.00, 20, 'https://cdn.fitrpg.dev/icons/first_meal.svg', '2026-03-01 00:00:00+00');
+CALL proc_create_achievement('FIRST_WORKOUT', 'First Workout Logged', 'Log your first workout in the app.', 'workout_count', 1.00, 25, 'https://cdn.fitrpg.dev/icons/first_workout.svg', '2026-03-01 00:00:00+00');
+CALL proc_create_achievement('STREAK_7', 'Seven Day Streak', 'Stay active for seven consecutive days.', 'streak_days', 7.00, 35, 'https://cdn.fitrpg.dev/icons/streak_7.svg', '2026-03-01 00:00:00+00');
+CALL proc_create_achievement('MEAL_LOGGER_10', 'Meal Logger', 'Log ten meals.', 'meal_count', 10.00, 45, 'https://cdn.fitrpg.dev/icons/meal_logger_10.svg', '2026-03-01 00:00:00+00');
+CALL proc_create_achievement('RUNNER_10K', '10K Runner', 'Reach ten kilometers of running distance.', 'distance_m', 10000.00, 25, 'https://cdn.fitrpg.dev/icons/runner_10k.svg', '2026-03-01 00:00:00+00');
+CALL proc_create_achievement('STRENGTH_5', 'Strength Builder', 'Complete five strength workouts.', 'strength_sessions', 5.00, 30, 'https://cdn.fitrpg.dev/icons/strength_5.svg', '2026-03-01 00:00:00+00');
