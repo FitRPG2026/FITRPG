@@ -1,5 +1,21 @@
+DO $$
+DECLARE
+    v_anna_user_id BIGINT;
+    v_bartek_user_id BIGINT;
+    v_clara_user_id BIGINT;
+    v_diego_user_id BIGINT;
+    v_emilia_user_id BIGINT;
+    v_filip_user_id BIGINT;
+BEGIN
+    SELECT id INTO v_anna_user_id FROM users WHERE email = 'anna.nowak@fitrpg.dev';
+    SELECT id INTO v_bartek_user_id FROM users WHERE email = 'bartek.kowalski@fitrpg.dev';
+    SELECT id INTO v_clara_user_id FROM users WHERE email = 'clara.zielinska@fitrpg.dev';
+    SELECT id INTO v_diego_user_id FROM users WHERE email = 'diego.santos@fitrpg.dev';
+    SELECT id INTO v_emilia_user_id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev';
+    SELECT id INTO v_filip_user_id FROM users WHERE email = 'filip.mazur@fitrpg.dev';
+
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    p_user_id => v_anna_user_id,
     p_workout_type => 'strength',
     p_title => 'Upper Body Strength',
     p_performed_at => '2026-03-20 18:00:00+00',
@@ -19,7 +35,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    p_user_id => v_anna_user_id,
     p_workout_type => 'mobility',
     p_title => 'Morning Mobility Flow',
     p_performed_at => '2026-03-21 06:40:00+00',
@@ -34,7 +50,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'bartek.kowalski@fitrpg.dev'),
+    p_user_id => v_bartek_user_id,
     p_workout_type => 'cardio',
     p_title => 'Lunch Break Walk',
     p_performed_at => '2026-03-20 12:15:00+00',
@@ -51,7 +67,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'clara.zielinska@fitrpg.dev'),
+    p_user_id => v_clara_user_id,
     p_workout_type => 'cardio',
     p_title => '5K Tempo Run',
     p_performed_at => '2026-03-21 16:50:00+00',
@@ -70,7 +86,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'clara.zielinska@fitrpg.dev'),
+    p_user_id => v_clara_user_id,
     p_workout_type => 'mobility',
     p_title => 'Recovery Stretch',
     p_performed_at => '2026-03-22 08:10:00+00',
@@ -85,7 +101,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'diego.santos@fitrpg.dev'),
+    p_user_id => v_diego_user_id,
     p_workout_type => 'strength',
     p_title => 'Beginner Gym Session',
     p_performed_at => '2026-03-16 18:10:00+00',
@@ -104,7 +120,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev'),
+    p_user_id => v_emilia_user_id,
     p_workout_type => 'cardio',
     p_title => 'Saturday Bike Ride',
     p_performed_at => '2026-03-22 10:30:00+00',
@@ -121,7 +137,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev'),
+    p_user_id => v_emilia_user_id,
     p_workout_type => 'mobility',
     p_title => 'Pilates Core Session',
     p_performed_at => '2026-03-22 17:20:00+00',
@@ -136,7 +152,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'filip.mazur@fitrpg.dev'),
+    p_user_id => v_filip_user_id,
     p_workout_type => 'strength',
     p_title => 'Leg Day',
     p_performed_at => '2026-03-22 12:50:00+00',
@@ -156,7 +172,7 @@ CALL proc_log_workout(
 );
 
 CALL proc_log_workout(
-    p_user_id => (SELECT id FROM users WHERE email = 'filip.mazur@fitrpg.dev'),
+    p_user_id => v_filip_user_id,
     p_workout_type => 'sport',
     p_title => 'Basketball Scrimmage',
     p_performed_at => '2026-03-22 18:30:00+00',
@@ -167,3 +183,5 @@ CALL proc_log_workout(
         {"exercise_name":"Full-court scrimmage","exercise_order":1,"duration_sec":3180,"distance_m":4600.00,"calories_burned":430.00,"notes":"Tracked by smartwatch estimate."}
     ]$$::jsonb
 );
+END;
+$$;

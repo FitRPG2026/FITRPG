@@ -6,7 +6,6 @@ This file explains the stored procedures used by FITRPG progression and seed flo
 
 - `p_...` means procedure input parameter.
 - `v_...` means local variable inside PL/pgSQL.
-- Procedures with `OUT` parameters return a result row to the caller. In normal app usage you can ignore it unless you need the generated id.
 - User level is not stored in SQL. Backend derives it from `user_progress.total_exp`.
 
 ## Procedure Ownership

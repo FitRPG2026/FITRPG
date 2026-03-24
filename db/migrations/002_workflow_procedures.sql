@@ -158,8 +158,7 @@ CREATE OR REPLACE PROCEDURE proc_create_challenge(
     IN p_reward_exp INTEGER DEFAULT 0,
     IN p_start_date TIMESTAMPTZ DEFAULT NULL,
     IN p_end_date TIMESTAMPTZ DEFAULT NULL,
-    IN p_created_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_challenge_id BIGINT
+    IN p_created_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
@@ -183,8 +182,7 @@ BEGIN
         p_start_date,
         p_end_date,
         p_created_at
-    )
-    RETURNING id INTO p_challenge_id;
+    );
 END;
 $$;
 
@@ -196,8 +194,7 @@ CREATE OR REPLACE PROCEDURE proc_create_achievement(
     IN p_target_value NUMERIC(10,2) DEFAULT NULL,
     IN p_reward_exp INTEGER DEFAULT 0,
     IN p_icon_url TEXT DEFAULT NULL,
-    IN p_created_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_achievement_id BIGINT
+    IN p_created_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
@@ -229,8 +226,7 @@ BEGIN
         achievement_type = EXCLUDED.achievement_type,
         target_value = EXCLUDED.target_value,
         reward_exp = EXCLUDED.reward_exp,
-        icon_url = EXCLUDED.icon_url
-    RETURNING id INTO p_achievement_id;
+        icon_url = EXCLUDED.icon_url;
 END;
 $$;
 
@@ -251,13 +247,13 @@ CREATE OR REPLACE PROCEDURE proc_log_meal(
     IN p_grant_exp BOOLEAN DEFAULT FALSE,
     IN p_exp_amount INTEGER DEFAULT NULL,
     IN p_exp_reason TEXT DEFAULT NULL,
-    IN p_exp_created_at TIMESTAMPTZ DEFAULT NULL,
-    OUT p_meal_id BIGINT
+    IN p_exp_created_at TIMESTAMPTZ DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_items JSONB := COALESCE(p_items, '[]'::jsonb);
+    v_meal_id BIGINT;
 BEGIN
     PERFORM 1
     FROM users
@@ -303,7 +299,7 @@ BEGIN
         p_total_carbs_g,
         p_total_fat_g
     )
-    RETURNING id INTO p_meal_id;
+    RETURNING id INTO v_meal_id;
 
     IF jsonb_array_length(v_items) > 0 THEN
         INSERT INTO meal_items (
@@ -320,7 +316,7 @@ BEGIN
             created_at
         )
         SELECT
-            p_meal_id,
+            v_meal_id,
             item.item_name,
             item.quantity,
             item.unit,
@@ -359,7 +355,7 @@ BEGIN
                 COALESCE(SUM(carbs_g), 0)::NUMERIC(8,2) AS total_carbs_g,
                 COALESCE(SUM(fat_g), 0)::NUMERIC(8,2) AS total_fat_g
             FROM meal_items
-            WHERE meal_id = p_meal_id
+            WHERE meal_id = v_meal_id
             GROUP BY meal_id
         ) AS agg
         WHERE meals.id = agg.meal_id;
@@ -378,7 +374,7 @@ BEGIN
         CALL proc_grant_exp(
             p_user_id,
             'meal',
-            p_meal_id,
+            v_meal_id,
             p_exp_amount,
             COALESCE(p_exp_reason, 'Meal logged'),
             COALESCE(p_exp_created_at, p_eaten_at),
@@ -401,13 +397,13 @@ CREATE OR REPLACE PROCEDURE proc_log_workout(
     IN p_grant_exp BOOLEAN DEFAULT FALSE,
     IN p_exp_amount INTEGER DEFAULT NULL,
     IN p_exp_reason TEXT DEFAULT NULL,
-    IN p_exp_created_at TIMESTAMPTZ DEFAULT NULL,
-    OUT p_workout_id BIGINT
+    IN p_exp_created_at TIMESTAMPTZ DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_exercises JSONB := COALESCE(p_exercises, '[]'::jsonb);
+    v_workout_id BIGINT;
 BEGIN
     PERFORM 1
     FROM users
@@ -445,7 +441,7 @@ BEGIN
         p_health_score,
         p_notes
     )
-    RETURNING id INTO p_workout_id;
+    RETURNING id INTO v_workout_id;
 
     IF jsonb_array_length(v_exercises) > 0 THEN
         INSERT INTO workout_exercises (
@@ -462,7 +458,7 @@ BEGIN
             created_at
         )
         SELECT
-            p_workout_id,
+            v_workout_id,
             exercise.exercise_name,
             exercise.exercise_order,
             exercise.sets,
@@ -496,7 +492,7 @@ BEGIN
                     workout_id,
                     COALESCE(SUM(calories_burned), 0)::NUMERIC(8,2) AS total_calories_burned
                 FROM workout_exercises
-                WHERE workout_id = p_workout_id
+                WHERE workout_id = v_workout_id
                 GROUP BY workout_id
             ) AS agg
             WHERE workouts.id = agg.workout_id;
@@ -516,7 +512,7 @@ BEGIN
         CALL proc_grant_exp(
             p_user_id,
             'workout',
-            p_workout_id,
+            v_workout_id,
             p_exp_amount,
             COALESCE(p_exp_reason, 'Workout logged'),
             COALESCE(p_exp_created_at, p_performed_at),
@@ -529,8 +525,7 @@ $$;
 CREATE OR REPLACE PROCEDURE proc_join_challenge(
     IN p_user_id BIGINT,
     IN p_challenge_id BIGINT,
-    IN p_joined_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_user_challenge_id BIGINT
+    IN p_joined_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
@@ -573,16 +568,7 @@ BEGIN
         p_challenge_id,
         p_joined_at
     )
-    ON CONFLICT (user_id, challenge_id) DO NOTHING
-    RETURNING id INTO p_user_challenge_id;
-
-    IF p_user_challenge_id IS NULL THEN
-        SELECT id
-        INTO p_user_challenge_id
-        FROM user_challenges
-        WHERE user_id = p_user_id
-          AND challenge_id = p_challenge_id;
-    END IF;
+    ON CONFLICT (user_id, challenge_id) DO NOTHING;
 END;
 $$;
 
@@ -591,12 +577,12 @@ CREATE OR REPLACE PROCEDURE proc_update_challenge_progress(
     IN p_challenge_id BIGINT,
     IN p_progress_delta NUMERIC(10,2) DEFAULT NULL,
     IN p_progress_value NUMERIC(10,2) DEFAULT NULL,
-    IN p_progress_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_user_challenge_id BIGINT
+    IN p_progress_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
+    v_user_challenge_id BIGINT;
     v_current_progress NUMERIC(10,2);
     v_goal_value NUMERIC(10,2);
     v_status TEXT;
@@ -614,16 +600,17 @@ BEGIN
     CALL proc_join_challenge(
         p_user_id,
         p_challenge_id,
-        p_progress_at,
-        p_user_challenge_id
+        p_progress_at
     );
 
     SELECT
+        uc.id,
         uc.progress_value,
         uc.status,
         uc.completed_at,
         c.goal_value
     INTO
+        v_user_challenge_id,
         v_current_progress,
         v_status,
         v_completed_at,
@@ -798,12 +785,12 @@ CREATE OR REPLACE PROCEDURE proc_update_achievement_progress(
     IN p_achievement_id BIGINT,
     IN p_progress_delta NUMERIC(10,2) DEFAULT NULL,
     IN p_progress_value NUMERIC(10,2) DEFAULT NULL,
-    IN p_progress_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_user_achievement_id BIGINT
+    IN p_progress_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
+    v_user_achievement_id BIGINT;
     v_current_progress NUMERIC(10,2);
     v_target_value NUMERIC(10,2);
     v_unlocked_at TIMESTAMPTZ;
@@ -843,11 +830,11 @@ BEGIN
         p_achievement_id
     )
     ON CONFLICT (user_id, achievement_id) DO NOTHING
-    RETURNING id INTO p_user_achievement_id;
+    RETURNING id INTO v_user_achievement_id;
 
-    IF p_user_achievement_id IS NULL THEN
+    IF v_user_achievement_id IS NULL THEN
         SELECT id
-        INTO p_user_achievement_id
+        INTO v_user_achievement_id
         FROM user_achievements
         WHERE user_id = p_user_id
           AND achievement_id = p_achievement_id;
@@ -865,7 +852,7 @@ BEGIN
         v_target_value
     FROM user_achievements ua
     JOIN achievements a ON a.id = ua.achievement_id
-    WHERE ua.id = p_user_achievement_id
+    WHERE ua.id = v_user_achievement_id
     FOR UPDATE;
 
     v_new_progress := COALESCE(p_progress_value, v_current_progress + p_progress_delta);
@@ -883,7 +870,7 @@ BEGIN
             ELSE NULL
         END,
         claimed_at = claimed_at
-    WHERE id = p_user_achievement_id;
+    WHERE id = v_user_achievement_id;
 
     UPDATE user_progress
     SET

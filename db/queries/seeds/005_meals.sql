@@ -1,5 +1,21 @@
+DO $$
+DECLARE
+    v_anna_user_id BIGINT;
+    v_bartek_user_id BIGINT;
+    v_clara_user_id BIGINT;
+    v_diego_user_id BIGINT;
+    v_emilia_user_id BIGINT;
+    v_filip_user_id BIGINT;
+BEGIN
+    SELECT id INTO v_anna_user_id FROM users WHERE email = 'anna.nowak@fitrpg.dev';
+    SELECT id INTO v_bartek_user_id FROM users WHERE email = 'bartek.kowalski@fitrpg.dev';
+    SELECT id INTO v_clara_user_id FROM users WHERE email = 'clara.zielinska@fitrpg.dev';
+    SELECT id INTO v_diego_user_id FROM users WHERE email = 'diego.santos@fitrpg.dev';
+    SELECT id INTO v_emilia_user_id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev';
+    SELECT id INTO v_filip_user_id FROM users WHERE email = 'filip.mazur@fitrpg.dev';
+
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    p_user_id => v_anna_user_id,
     p_meal_type => 'breakfast',
     p_eaten_at => '2026-03-20 07:35:00+00',
     p_title => 'High Protein Oats',
@@ -19,7 +35,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    p_user_id => v_anna_user_id,
     p_meal_type => 'lunch',
     p_eaten_at => '2026-03-20 13:10:00+00',
     p_title => 'Chicken Power Bowl',
@@ -40,7 +56,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    p_user_id => v_anna_user_id,
     p_meal_type => 'snack',
     p_eaten_at => '2026-03-21 16:20:00+00',
     p_title => 'Greek Yogurt Snack',
@@ -54,7 +70,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'bartek.kowalski@fitrpg.dev'),
+    p_user_id => v_bartek_user_id,
     p_meal_type => 'breakfast',
     p_eaten_at => '2026-03-19 06:55:00+00',
     p_title => 'Office Breakfast Wrap',
@@ -74,7 +90,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'bartek.kowalski@fitrpg.dev'),
+    p_user_id => v_bartek_user_id,
     p_meal_type => 'dinner',
     p_eaten_at => '2026-03-20 19:15:00+00',
     p_title => 'Salmon Rice Plate',
@@ -90,7 +106,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'clara.zielinska@fitrpg.dev'),
+    p_user_id => v_clara_user_id,
     p_meal_type => 'snack',
     p_eaten_at => '2026-03-21 17:45:00+00',
     p_title => 'Post Run Smoothie',
@@ -110,7 +126,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'clara.zielinska@fitrpg.dev'),
+    p_user_id => v_clara_user_id,
     p_meal_type => 'dinner',
     p_eaten_at => '2026-03-21 20:15:00+00',
     p_title => 'Veggie Pasta Dinner',
@@ -125,7 +141,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'diego.santos@fitrpg.dev'),
+    p_user_id => v_diego_user_id,
     p_meal_type => 'lunch',
     p_eaten_at => '2026-03-15 12:30:00+00',
     p_title => 'Quick Convenience Lunch',
@@ -143,7 +159,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev'),
+    p_user_id => v_emilia_user_id,
     p_meal_type => 'breakfast',
     p_eaten_at => '2026-03-22 09:10:00+00',
     p_title => 'Weekend Pancakes',
@@ -160,7 +176,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev'),
+    p_user_id => v_emilia_user_id,
     p_meal_type => 'lunch',
     p_eaten_at => '2026-03-22 13:05:00+00',
     p_title => 'Mediterranean Salad',
@@ -181,7 +197,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'emilia.wisniewska@fitrpg.dev'),
+    p_user_id => v_emilia_user_id,
     p_meal_type => 'snack',
     p_eaten_at => '2026-03-22 16:05:00+00',
     p_title => 'Apple Peanut Snack',
@@ -193,7 +209,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'filip.mazur@fitrpg.dev'),
+    p_user_id => v_filip_user_id,
     p_meal_type => 'snack',
     p_eaten_at => '2026-03-22 14:40:00+00',
     p_title => 'Protein Shake',
@@ -211,7 +227,7 @@ CALL proc_log_meal(
 );
 
 CALL proc_log_meal(
-    p_user_id => (SELECT id FROM users WHERE email = 'filip.mazur@fitrpg.dev'),
+    p_user_id => v_filip_user_id,
     p_meal_type => 'dinner',
     p_eaten_at => '2026-03-22 20:45:00+00',
     p_title => 'Sushi Dinner',
@@ -225,3 +241,5 @@ CALL proc_log_meal(
         {"item_name":"Miso soup","quantity":1.00,"unit":"bowl","grams":240.00,"calories":70.00,"protein_g":5.00,"carbs_g":8.00,"fat_g":2.50,"health_score":8}
     ]$$::jsonb
 );
+END;
+$$;

@@ -5,7 +5,7 @@ This folder contains the shared database SQL for the project.
 ## Structure
 
 - `migrations/` stores ordered SQL files used to create or change database structure.
-- `queries/` stores optional manual SQL, helper scripts, or analysis queries.
+- `queries/` stores optional manual SQL, helper scripts, analysis queries, and convenience wrappers like `queries/seed_all.sql`.
 - `queries/seeds/` stores ordered sample data for local development, demos, and manual testing.
 - `proceduresREADME.md` documents progression procedures and example `CALL` usage for developers.
 
@@ -17,6 +17,7 @@ This folder contains the shared database SQL for the project.
 - Use `queries/` only for SQL that is not part of the canonical schema history.
 - Keep seed data out of `migrations/` unless the rows are required canonical application data.
 - Prefer split seed files in dependency order, with an optional `seed_all.sql` wrapper for convenience.
+- Treat `queries/seeds/` as the source of truth. `queries/seed_all.sql` is a flattened convenience script for local manual execution.
 - Prefer procedure-driven writes for sample data and multi-table app flows.
 
 ## Initial Schema

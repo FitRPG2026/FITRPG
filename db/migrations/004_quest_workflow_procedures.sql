@@ -10,8 +10,7 @@ CREATE OR REPLACE PROCEDURE proc_create_quest(
     IN p_sequence_order INTEGER DEFAULT NULL,
     IN p_target_value NUMERIC(10,2) DEFAULT NULL,
     IN p_reward_exp INTEGER DEFAULT 0,
-    IN p_created_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_quest_id BIGINT
+    IN p_created_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
@@ -49,20 +48,19 @@ BEGIN
         quest_series_code = EXCLUDED.quest_series_code,
         sequence_order = EXCLUDED.sequence_order,
         target_value = EXCLUDED.target_value,
-        reward_exp = EXCLUDED.reward_exp
-    RETURNING id INTO p_quest_id;
+        reward_exp = EXCLUDED.reward_exp;
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE proc_start_quest(
     IN p_user_id BIGINT,
     IN p_quest_id BIGINT,
-    IN p_started_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_user_quest_id BIGINT
+    IN p_started_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
+    v_user_quest_id BIGINT;
     v_progression_mode TEXT;
     v_quest_series_code VARCHAR(50);
     v_sequence_order INTEGER;
@@ -127,11 +125,11 @@ BEGIN
         p_started_at
     )
     ON CONFLICT (user_id, quest_id) DO NOTHING
-    RETURNING id INTO p_user_quest_id;
+    RETURNING id INTO v_user_quest_id;
 
-    IF p_user_quest_id IS NULL THEN
+    IF v_user_quest_id IS NULL THEN
         SELECT id
-        INTO p_user_quest_id
+        INTO v_user_quest_id
         FROM user_quests
         WHERE user_id = p_user_id
           AND quest_id = p_quest_id;
@@ -153,12 +151,12 @@ CREATE OR REPLACE PROCEDURE proc_update_quest_progress(
     IN p_quest_id BIGINT,
     IN p_progress_delta NUMERIC(10,2) DEFAULT NULL,
     IN p_progress_value NUMERIC(10,2) DEFAULT NULL,
-    IN p_progress_at TIMESTAMPTZ DEFAULT NOW(),
-    OUT p_user_quest_id BIGINT
+    IN p_progress_at TIMESTAMPTZ DEFAULT NOW()
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
+    v_user_quest_id BIGINT;
     v_current_progress NUMERIC(10,2);
     v_target_value NUMERIC(10,2);
     v_status TEXT;
@@ -176,23 +174,24 @@ BEGIN
     CALL proc_start_quest(
         p_user_id,
         p_quest_id,
-        p_progress_at,
-        p_user_quest_id
+        p_progress_at
     );
 
     SELECT
+        uq.id,
         uq.progress_value,
         uq.status,
         uq.completed_at,
         q.target_value
     INTO
+        v_user_quest_id,
         v_current_progress,
         v_status,
         v_completed_at,
         v_target_value
     FROM user_quests uq
     JOIN quests q ON q.id = uq.quest_id
-    WHERE uq.id = p_user_quest_id
+    WHERE uq.id = v_user_quest_id
     FOR UPDATE;
 
     IF v_status = 'claimed' THEN
@@ -223,7 +222,7 @@ BEGIN
             ELSE NULL
         END,
         last_progress_at = p_progress_at
-    WHERE id = p_user_quest_id;
+    WHERE id = v_user_quest_id;
 
     UPDATE user_progress
     SET
