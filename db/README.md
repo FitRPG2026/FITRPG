@@ -6,6 +6,7 @@ This folder contains the shared database SQL for the project.
 
 - `migrations/` stores ordered SQL files used to create or change database structure.
 - `queries/` stores optional manual SQL, helper scripts, analysis queries, and convenience wrappers like `queries/seed_all.sql`.
+- `queries/seed_inspect.sql` is a manual verification helper for reviewing the currently seeded dataset.
 - `queries/seeds/` stores ordered sample data for local development, demos, and manual testing.
 - `proceduresREADME.md` documents progression procedures and example `CALL` usage for developers.
 
