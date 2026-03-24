@@ -109,6 +109,7 @@ Defined in `migrations/002_workflow_procedures.sql`.
 What it does:
 - recomputes `total_exp` from `exp_events`
 - recomputes `last_activity_at` from meals, workouts, and exp events
+- preserves any newer `user_progress.last_activity_at` already written by other workflow procedures
 - lets caller set `current_streak_days` and `longest_streak_days`
 
 Example:

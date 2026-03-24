@@ -1012,7 +1012,11 @@ BEGIN
         total_exp = v_total_exp,
         current_streak_days = COALESCE(p_current_streak_days, current_streak_days),
         longest_streak_days = COALESCE(p_longest_streak_days, longest_streak_days),
-        last_activity_at = v_last_activity_at,
+        last_activity_at = CASE
+            WHEN v_last_activity_at IS NULL THEN last_activity_at
+            WHEN last_activity_at IS NULL THEN v_last_activity_at
+            ELSE GREATEST(last_activity_at, v_last_activity_at)
+        END,
         updated_at = NOW()
     WHERE user_id = p_user_id;
 END;

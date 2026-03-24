@@ -21,9 +21,11 @@ This folder contains the shared database SQL for the project.
 - Treat `queries/seeds/` as the source of truth. `queries/seed_all.sql` is a flattened convenience script for local manual execution.
 - Prefer procedure-driven writes for sample data and multi-table app flows.
 
-## Initial Schema
+## Current Schema
 
-The current application schema lives in `migrations/001_initial_schema.sql`.
+The current application schema is the ordered migration set in `migrations/`.
+At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_procedures.sql`,
+`003_quests_schema.sql`, and `004_quest_workflow_procedures.sql` applied in filename order.
 
 ### Main Table Groups
 
