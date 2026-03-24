@@ -191,7 +191,8 @@ BEGIN
         v_target_value
     FROM user_quests uq
     JOIN quests q ON q.id = uq.quest_id
-    WHERE uq.id = v_user_quest_id
+    WHERE uq.user_id = p_user_id
+      AND uq.quest_id = p_quest_id
     FOR UPDATE;
 
     IF v_status = 'claimed' THEN

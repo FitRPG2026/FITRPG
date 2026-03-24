@@ -1,4 +1,4 @@
-DO $$
+DO $seed$
 DECLARE
     v_anna_user_id BIGINT;
     v_bartek_user_id BIGINT;
@@ -21,7 +21,7 @@ CALL proc_log_meal(
     p_title => 'High Protein Oats',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/high_protein_oats.jpg',
     p_notes => 'Added berries after training.',
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_ai_confidence => 0.962,
     p_items => $$[
         {"item_name":"Oats","quantity":80.00,"unit":"g","grams":80.00,"calories":311.00,"protein_g":10.00,"carbs_g":53.00,"fat_g":5.50,"health_score":9},
@@ -41,7 +41,7 @@ CALL proc_log_meal(
     p_title => 'Chicken Power Bowl',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/chicken_power_bowl.jpg',
     p_notes => 'Meal-prepped bowl with rice and avocado.',
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_ai_confidence => 0.911,
     p_items => $$[
         {"item_name":"Chicken breast","quantity":160.00,"unit":"g","grams":160.00,"calories":264.00,"protein_g":49.00,"carbs_g":0.00,"fat_g":5.80,"health_score":9},
@@ -61,7 +61,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-21 16:20:00+00',
     p_title => 'Greek Yogurt Snack',
     p_notes => 'Fast snack between meetings.',
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_items => $$[
         {"item_name":"Greek yogurt","quantity":170.00,"unit":"g","grams":170.00,"calories":146.00,"protein_g":17.00,"carbs_g":6.00,"fat_g":5.00,"health_score":8},
         {"item_name":"Honey","quantity":15.00,"unit":"g","grams":15.00,"calories":46.00,"protein_g":0.00,"carbs_g":12.00,"fat_g":0.00,"health_score":6},
@@ -75,7 +75,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-19 06:55:00+00',
     p_title => 'Office Breakfast Wrap',
     p_notes => 'Grabbed on the way to work.',
-    p_health_score => 6,
+    p_health_score => 6::SMALLINT,
     p_ai_confidence => 0.702,
     p_items => $$[
         {"item_name":"Tortilla wrap","quantity":1.00,"unit":"pcs","grams":70.00,"calories":220.00,"protein_g":6.00,"carbs_g":36.00,"fat_g":5.00,"health_score":6},
@@ -96,7 +96,7 @@ CALL proc_log_meal(
     p_title => 'Salmon Rice Plate',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/salmon_rice_plate.jpg',
     p_notes => 'Restaurant dinner, estimate adjusted manually.',
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_ai_confidence => 0.834,
     p_items => $$[
         {"item_name":"Salmon fillet","quantity":170.00,"unit":"g","grams":170.00,"calories":354.00,"protein_g":34.00,"carbs_g":0.00,"fat_g":22.00,"health_score":9},
@@ -112,7 +112,7 @@ CALL proc_log_meal(
     p_title => 'Post Run Smoothie',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/post_run_smoothie.jpg',
     p_notes => 'Recovery smoothie after tempo run.',
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_ai_confidence => 0.955,
     p_items => $$[
         {"item_name":"Banana","quantity":1.00,"unit":"pcs","grams":120.00,"calories":105.00,"protein_g":1.30,"carbs_g":27.00,"fat_g":0.40,"health_score":8},
@@ -131,7 +131,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-21 20:15:00+00',
     p_title => 'Veggie Pasta Dinner',
     p_notes => 'Homemade whole-grain pasta.',
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_items => $$[
         {"item_name":"Whole-grain pasta","quantity":110.00,"unit":"g","grams":110.00,"calories":380.00,"protein_g":15.00,"carbs_g":72.00,"fat_g":2.00,"health_score":8},
         {"item_name":"Tomato sauce","quantity":140.00,"unit":"g","grams":140.00,"calories":72.00,"protein_g":2.00,"carbs_g":12.00,"fat_g":1.50,"health_score":8},
@@ -146,7 +146,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-15 12:30:00+00',
     p_title => 'Quick Convenience Lunch',
     p_notes => 'Logged to restart tracking habit.',
-    p_health_score => 4,
+    p_health_score => 4::SMALLINT,
     p_items => $$[
         {"item_name":"Ham sandwich","quantity":1.00,"unit":"pcs","grams":210.00,"calories":430.00,"protein_g":17.00,"carbs_g":42.00,"fat_g":17.00,"health_score":4},
         {"item_name":"Potato chips","quantity":45.00,"unit":"g","grams":45.00,"calories":239.00,"protein_g":3.00,"carbs_g":27.00,"fat_g":14.00,"health_score":2},
@@ -165,7 +165,7 @@ CALL proc_log_meal(
     p_title => 'Weekend Pancakes',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/weekend_pancakes.jpg',
     p_notes => 'Shared breakfast, estimated half portion.',
-    p_health_score => 6,
+    p_health_score => 6::SMALLINT,
     p_ai_confidence => 0.821,
     p_items => $$[
         {"item_name":"Pancakes","quantity":3.00,"unit":"pcs","grams":210.00,"calories":366.00,"protein_g":9.00,"carbs_g":52.00,"fat_g":11.00,"health_score":6},
@@ -182,7 +182,7 @@ CALL proc_log_meal(
     p_title => 'Mediterranean Salad',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/mediterranean_salad.jpg',
     p_notes => 'Mostly manual corrections after scan.',
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_ai_confidence => 0.943,
     p_items => $$[
         {"item_name":"Mixed greens","quantity":70.00,"unit":"g","grams":70.00,"calories":18.00,"protein_g":1.50,"carbs_g":2.00,"fat_g":0.20,"health_score":10},
@@ -201,7 +201,7 @@ CALL proc_log_meal(
     p_meal_type => 'snack',
     p_eaten_at => '2026-03-22 16:05:00+00',
     p_title => 'Apple Peanut Snack',
-    p_health_score => 7,
+    p_health_score => 7::SMALLINT,
     p_items => $$[
         {"item_name":"Apple","quantity":1.00,"unit":"pcs","grams":180.00,"calories":95.00,"protein_g":0.50,"carbs_g":25.00,"fat_g":0.30,"health_score":9},
         {"item_name":"Peanut butter","quantity":25.00,"unit":"g","grams":25.00,"calories":148.00,"protein_g":6.00,"carbs_g":4.00,"fat_g":12.60,"health_score":6}
@@ -214,7 +214,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-22 14:40:00+00',
     p_title => 'Protein Shake',
     p_notes => 'Post leg day shake.',
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_items => $$[
         {"item_name":"Whey protein","quantity":35.00,"unit":"g","grams":35.00,"calories":140.00,"protein_g":28.00,"carbs_g":4.00,"fat_g":2.50,"health_score":8},
         {"item_name":"Banana","quantity":1.00,"unit":"pcs","grams":120.00,"calories":105.00,"protein_g":1.30,"carbs_g":27.00,"fat_g":0.40,"health_score":8},
@@ -233,7 +233,7 @@ CALL proc_log_meal(
     p_title => 'Sushi Dinner',
     p_photo_url => 'https://cdn.fitrpg.dev/meals/sushi_dinner.jpg',
     p_notes => 'Dinner after basketball with friends.',
-    p_health_score => 7,
+    p_health_score => 7::SMALLINT,
     p_ai_confidence => 0.776,
     p_items => $$[
         {"item_name":"Salmon nigiri","quantity":6.00,"unit":"pcs","grams":210.00,"calories":290.00,"protein_g":18.00,"carbs_g":33.00,"fat_g":8.00,"health_score":8},
@@ -242,4 +242,4 @@ CALL proc_log_meal(
     ]$$::jsonb
 );
 END;
-$$;
+$seed$;

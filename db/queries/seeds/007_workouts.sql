@@ -1,4 +1,4 @@
-DO $$
+DO $seed$
 DECLARE
     v_anna_user_id BIGINT;
     v_bartek_user_id BIGINT;
@@ -20,7 +20,7 @@ CALL proc_log_workout(
     p_title => 'Upper Body Strength',
     p_performed_at => '2026-03-20 18:00:00+00',
     p_duration_min => 58,
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_notes => 'Focused on progressive overload.',
     p_exercises => $$[
         {"exercise_name":"Bench Press","exercise_order":1,"sets":4,"reps":8,"weight_kg":42.50,"calories_burned":120.00,"notes":"Last set close to failure."},
@@ -40,7 +40,7 @@ CALL proc_log_workout(
     p_title => 'Morning Mobility Flow',
     p_performed_at => '2026-03-21 06:40:00+00',
     p_duration_min => 22,
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_notes => 'Short recovery-focused session.',
     p_exercises => $$[
         {"exercise_name":"Hip Openers","exercise_order":1,"sets":2,"reps":12,"duration_sec":420,"calories_burned":18.00},
@@ -55,7 +55,7 @@ CALL proc_log_workout(
     p_title => 'Lunch Break Walk',
     p_performed_at => '2026-03-20 12:15:00+00',
     p_duration_min => 35,
-    p_health_score => 7,
+    p_health_score => 7::SMALLINT,
     p_notes => 'Walked around the office district.',
     p_exercises => $$[
         {"exercise_name":"Outdoor brisk walk","exercise_order":1,"duration_sec":2100,"distance_m":3200.00,"calories_burned":180.00,"notes":"Mostly flat route."}
@@ -72,7 +72,7 @@ CALL proc_log_workout(
     p_title => '5K Tempo Run',
     p_performed_at => '2026-03-21 16:50:00+00',
     p_duration_min => 31,
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_notes => 'Sustained race-pace effort.',
     p_exercises => $$[
         {"exercise_name":"Warm-up jog","exercise_order":1,"duration_sec":480,"distance_m":1200.00,"calories_burned":70.00},
@@ -91,7 +91,7 @@ CALL proc_log_workout(
     p_title => 'Recovery Stretch',
     p_performed_at => '2026-03-22 08:10:00+00',
     p_duration_min => 18,
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_notes => 'Mobility and foam rolling.',
     p_exercises => $$[
         {"exercise_name":"Foam rolling","exercise_order":1,"duration_sec":420,"calories_burned":18.00},
@@ -106,7 +106,7 @@ CALL proc_log_workout(
     p_title => 'Beginner Gym Session',
     p_performed_at => '2026-03-16 18:10:00+00',
     p_duration_min => 42,
-    p_health_score => 6,
+    p_health_score => 6::SMALLINT,
     p_notes => 'First gym visit in a while.',
     p_exercises => $$[
         {"exercise_name":"Leg Press","exercise_order":1,"sets":3,"reps":12,"weight_kg":80.00,"calories_burned":92.00,"notes":"Conservative weight selection."},
@@ -125,7 +125,7 @@ CALL proc_log_workout(
     p_title => 'Saturday Bike Ride',
     p_performed_at => '2026-03-22 10:30:00+00',
     p_duration_min => 74,
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_notes => 'Long outdoor ride with friends.',
     p_exercises => $$[
         {"exercise_name":"Outdoor cycling","exercise_order":1,"duration_sec":4440,"distance_m":24000.00,"calories_burned":520.00,"notes":"Rolling terrain and moderate wind."}
@@ -142,7 +142,7 @@ CALL proc_log_workout(
     p_title => 'Pilates Core Session',
     p_performed_at => '2026-03-22 17:20:00+00',
     p_duration_min => 41,
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_notes => 'Studio pilates class.',
     p_exercises => $$[
         {"exercise_name":"Hundred","exercise_order":1,"sets":1,"reps":100,"duration_sec":180,"calories_burned":28.00},
@@ -157,7 +157,7 @@ CALL proc_log_workout(
     p_title => 'Leg Day',
     p_performed_at => '2026-03-22 12:50:00+00',
     p_duration_min => 67,
-    p_health_score => 9,
+    p_health_score => 9::SMALLINT,
     p_notes => 'Heavy lower-body workout.',
     p_exercises => $$[
         {"exercise_name":"Back Squat","exercise_order":1,"sets":5,"reps":5,"weight_kg":120.00,"calories_burned":170.00,"notes":"Top set felt strong."},
@@ -177,11 +177,11 @@ CALL proc_log_workout(
     p_title => 'Basketball Scrimmage',
     p_performed_at => '2026-03-22 18:30:00+00',
     p_duration_min => 53,
-    p_health_score => 8,
+    p_health_score => 8::SMALLINT,
     p_notes => 'Competitive full-court game.',
     p_exercises => $$[
         {"exercise_name":"Full-court scrimmage","exercise_order":1,"duration_sec":3180,"distance_m":4600.00,"calories_burned":430.00,"notes":"Tracked by smartwatch estimate."}
     ]$$::jsonb
 );
 END;
-$$;
+$seed$;

@@ -617,7 +617,8 @@ BEGIN
         v_goal_value
     FROM user_challenges uc
     JOIN challenges c ON c.id = uc.challenge_id
-    WHERE uc.id = p_user_challenge_id
+    WHERE uc.user_id = p_user_id
+      AND uc.challenge_id = p_challenge_id
     FOR UPDATE;
 
     IF v_status = 'claimed' THEN
@@ -647,7 +648,7 @@ BEGIN
             WHEN v_goal_value IS NOT NULL AND v_new_progress >= v_goal_value THEN p_progress_at
             ELSE NULL
         END
-    WHERE id = p_user_challenge_id;
+    WHERE id = v_user_challenge_id;
 
     UPDATE user_progress
     SET
