@@ -188,17 +188,28 @@ What it does:
 
 #### `proc_create_achievement`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/005_achievement_join_workflow.sql`.
 
 What it does:
 - creates or updates an achievement definition by `code`
+- requires `target_value` to be provided and greater than zero
+
+#### `proc_join_achievement`
+
+Defined in `migrations/005_achievement_join_workflow.sql`.
+
+What it does:
+- creates the user's `user_achievements` row explicitly
+- stores `joined_at`
+- rejects joins for achievements without a valid `target_value`
 
 #### `proc_update_achievement_progress`
 
 What it does:
-- creates `user_achievements` row if missing
+- requires an existing `user_achievements` row
 - updates progress
 - sets `unlocked_at` when target is reached
+- rejects progress for achievements without a valid `target_value`
 
 #### `proc_claim_achievement_reward`
 
@@ -207,6 +218,24 @@ What it does:
 - grants reward EXP through `proc_grant_exp`
 
 Example:
+
+```sql
+CALL proc_join_achievement(
+    (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    (SELECT id FROM achievements WHERE code = 'FIRST_WORKOUT'),
+    '2026-03-20 19:01:00+00'
+);
+```
+
+```sql
+CALL proc_update_achievement_progress(
+    (SELECT id FROM users WHERE email = 'anna.nowak@fitrpg.dev'),
+    (SELECT id FROM achievements WHERE code = 'FIRST_WORKOUT'),
+    NULL,
+    1.00,
+    '2026-03-20 19:02:00+00'
+);
+```
 
 ```sql
 CALL proc_claim_achievement_reward(
@@ -323,6 +352,7 @@ Seed flow order:
 2. mark logins and upsert profiles
 3. create definitions: challenges, achievements, quests
 4. log meals and workouts
-5. update challenge, achievement, and quest progress
-6. grant manual or streak EXP
-7. refresh user progress
+5. join achievements where tracking should exist
+6. update challenge, achievement, and quest progress
+7. grant manual or streak EXP
+8. refresh user progress

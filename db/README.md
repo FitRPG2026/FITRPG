@@ -25,7 +25,8 @@ This folder contains the shared database SQL for the project.
 
 The current application schema is the ordered migration set in `migrations/`.
 At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_procedures.sql`,
-`003_quests_schema.sql`, and `004_quest_workflow_procedures.sql` applied in filename order.
+`003_quests_schema.sql`, `004_quest_workflow_procedures.sql`, and
+`005_achievement_join_workflow.sql` applied in filename order.
 
 ### Main Table Groups
 
@@ -90,6 +91,8 @@ At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_pr
   `streak_days`, `program_step`.
 - `claimed_at`
   Timestamp for reward claim if unlocking and claiming are treated as separate actions.
+- `joined_at`
+  Timestamp for when a user starts tracking an achievement before it is unlocked or claimed.
 
 ### Why Some Data Is Repeated
 
@@ -146,10 +149,12 @@ This is intentional. Parent tables are optimized for quick reads of the full obj
 #### User Unlocks an Achievement
 
 1. Insert definition into `achievements` once.
-2. Insert or update the user's row in `user_achievements`.
-3. Set `unlocked_at` when the condition is met.
-4. If claim is separate, set `claimed_at` later.
-5. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
+2. Ensure the achievement definition has a non-null positive `target_value`.
+3. Insert the user's row in `user_achievements` through explicit join or tracking.
+4. Update progress after the user has joined the achievement.
+5. Set `unlocked_at` when the condition is met.
+6. If claim is separate, set `claimed_at` later.
+7. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
 
 ### Current Modeling Decisions
 
