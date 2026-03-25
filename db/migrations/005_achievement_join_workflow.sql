@@ -178,6 +178,10 @@ BEGIN
         RAISE EXCEPTION 'Achievement % has no valid target_value', p_achievement_id;
     END IF;
 
+    IF v_claimed_at IS NOT NULL THEN
+        RETURN;
+    END IF;
+
     v_new_progress := COALESCE(p_progress_value, v_current_progress + p_progress_delta);
 
     IF v_new_progress < 0 THEN

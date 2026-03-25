@@ -106,6 +106,11 @@ CALL proc_grant_exp(
 
 Defined in `migrations/002_workflow_procedures.sql`.
 
+Use it as:
+- a maintenance / repair helper for `user_progress`
+- a seed helper for syncing sample users after manual data setup
+- not as part of the main application workflow procedures
+
 What it does:
 - recomputes `total_exp` from `exp_events`
 - recomputes `last_activity_at` from meals, workouts, and exp events
@@ -209,6 +214,7 @@ What it does:
 - requires an existing `user_achievements` row
 - updates progress
 - sets `unlocked_at` when target is reached
+- ignores further progress updates after the reward was already claimed
 - rejects progress for achievements without a valid `target_value`
 
 #### `proc_claim_achievement_reward`
