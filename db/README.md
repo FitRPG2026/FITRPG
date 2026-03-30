@@ -5,7 +5,10 @@ This folder contains the shared database SQL for the project.
 ## Structure
 
 - `migrations/` stores ordered SQL files used to create or change database structure.
-- `queries/` stores optional manual SQL, helper scripts, or analysis queries.
+- `queries/` stores optional manual SQL, helper scripts, analysis queries, and convenience wrappers like `queries/seed_all.sql`.
+- `queries/seed_inspect.sql` is a manual verification helper for reviewing the currently seeded dataset.
+- `queries/seeds/` stores ordered sample data for local development, demos, and manual testing.
+- `proceduresREADME.md` documents progression procedures and example `CALL` usage for developers.
 
 ## Convention
 
@@ -13,10 +16,17 @@ This folder contains the shared database SQL for the project.
 - Treat migrations as history. After a migration is shared, add a new file instead of rewriting the old one.
 - Keep each migration focused on one clear change set.
 - Use `queries/` only for SQL that is not part of the canonical schema history.
+- Keep seed data out of `migrations/` unless the rows are required canonical application data.
+- Prefer split seed files in dependency order, with an optional `seed_all.sql` wrapper for convenience.
+- Treat `queries/seeds/` as the source of truth. `queries/seed_all.sql` is a flattened convenience script for local manual execution.
+- Prefer procedure-driven writes for sample data and multi-table app flows.
 
-## Initial Schema
+## Current Schema
 
-The current application schema lives in `migrations/001_initial_schema.sql`.
+The current application schema is the ordered migration set in `migrations/`.
+At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_procedures.sql`,
+`003_quests_schema.sql`, `004_quest_workflow_procedures.sql`, and
+`005_achievement_join_workflow.sql` applied in filename order.
 
 ### Main Table Groups
 
@@ -29,7 +39,10 @@ The current application schema lives in `migrations/001_initial_schema.sql`.
 - `exp_events`, `user_progress`
   Experience history and the user's current progression state.
 - `challenges`, `user_challenges`
-  Challenge definitions and each user's progress in them.
+  Time-bounded global challenge definitions and each user's progress in them.
+- `quests`, `user_quests`
+  Long-lived quest definitions and each user's persistent progress in them.
+  Quests can be standalone or part of a linear quest line.
 - `achievements`, `user_achievements`
   Achievement definitions and each user's unlock progress.
 
@@ -42,7 +55,7 @@ The current application schema lives in `migrations/001_initial_schema.sql`.
 - One workout can have many `workout_exercises`.
 - One user can have many `exp_events`.
 - One user has one `user_progress` row.
-- Challenge and achievement tables are split into:
+- Challenge, quest, and achievement tables are split into:
   definition table + per-user join/progress table.
 
 ### Less Obvious Columns
@@ -66,11 +79,20 @@ The current application schema lives in `migrations/001_initial_schema.sql`.
 - `source_type` and `source_id` in `exp_events`
   Polymorphic reference to where EXP came from, for example a workout, challenge, achievement, or meal-related action.
 - Recommended `exp_events.source_type` values
-  `workout`, `meal`, `challenge`, `achievement`, `manual`, and optionally `streak` if streak rewards are handled as separate EXP events.
+  `workout`, `meal`, `challenge`, `quest`, `achievement`, `manual`, and optionally `streak` if streak rewards are handled as separate EXP events.
 - `progress_value`
   Current progress toward a challenge or achievement target.
+- `progression_mode`, `quest_series_code`, `sequence_order`
+  Quest progression metadata. Use `standalone` for independent quests, or `linear` plus a shared `quest_series_code` and increasing `sequence_order` for ordered quest lines.
+- `quest_type`
+  Controlled quest progress category. Recommended values:
+  `onboarding`, `meal_count`, `healthy_meals`, `workout_count`, `strength_sessions`,
+  `cardio_sessions`, `mobility_sessions`, `distance_m`, `duration_min`,
+  `streak_days`, `program_step`.
 - `claimed_at`
   Timestamp for reward claim if unlocking and claiming are treated as separate actions.
+- `joined_at`
+  Timestamp for when a user starts tracking an achievement before it is unlocked or claimed.
 
 ### Why Some Data Is Repeated
 
@@ -117,19 +139,32 @@ This is intentional. Parent tables are optimized for quick reads of the full obj
 3. When completed, set `completed_at` and optionally `claimed_at`.
 4. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
 
+#### User Progresses a Quest
+
+1. Insert definition into `quests` once.
+2. Insert or update the user's row in `user_quests`.
+3. When completed, set `completed_at` and optionally `claimed_at`.
+4. If the reward includes EXP, insert into `exp_events` with source type `quest` and update `user_progress`.
+
 #### User Unlocks an Achievement
 
 1. Insert definition into `achievements` once.
-2. Insert or update the user's row in `user_achievements`.
-3. Set `unlocked_at` when the condition is met.
-4. If claim is separate, set `claimed_at` later.
-5. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
+2. Ensure the achievement definition has a non-null positive `target_value`.
+3. Insert the user's row in `user_achievements` through explicit join or tracking.
+4. Update progress after the user has joined the achievement.
+5. Set `unlocked_at` when the condition is met.
+6. If claim is separate, set `claimed_at` later.
+7. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
 
 ### Current Modeling Decisions
 
 - `user_profiles` is optional, so a user account can exist before profile completion.
 - The schema does not currently use `foods`, `products`, or `exercises` reference tables.
 - Meal and workout detail tables store direct logged values instead of referencing external dictionaries.
+- Challenges are intended for global daily/weekly or otherwise time-bounded events.
+- Quests are intended for durable objectives that do not expire on a schedule.
+- Linear quests should share one `quest_series_code` and use `sequence_order` to define progression order.
+- Standalone quests should leave `quest_series_code` and `sequence_order` as `NULL`.
 - Email uniqueness is case-insensitive through a unique index on `LOWER(email)`.
 - Username uniqueness is also case-insensitive through a unique index on `LOWER(username)`.
 - `exp_events.source_type` is now constrained in SQL to the allowed event source list.
