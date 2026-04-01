@@ -7,8 +7,16 @@ app = FastAPI(
     description='API aplikacji FITRPG'
 )
 
+origins = [
+    "http://localhost:4200",
+]
+
 app.add_middleware(
-    CORSMiddleware
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
 )
 
 app.include_router(router, prefix='api')
