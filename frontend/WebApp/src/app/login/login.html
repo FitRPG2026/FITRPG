@@ -1,0 +1,37 @@
+<div class="page">
+  <div class="card">
+    <div class="brand">
+      <div class="brand-dot"><span>F</span></div>
+      <span class="brand-name">FitRPG</span>
+    </div>
+
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to your account to continue.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" placeholder="you@example.com" [(ngModel)]="email" />
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" placeholder="••••••••" [(ngModel)]="password" />
+      <span class="forgot">Forgot password?</span>
+    </div>
+
+    <button class="btn-primary" (click)="onLogin()" [disabled]="isLoading">
+      {{ isLoading ? 'Logowanie...' : 'Zaloguj się' }}
+    </button>
+
+    <p *ngIf="errorMessage" style="color: #E24B4A; font-size: 13px; margin-top: 8px; text-align: center;">
+      {{ errorMessage }}
+    </p>
+
+    <p *ngIf="isLoading" style="font-size: 13px; margin-top: 8px; text-align: center; color: #1D9E75;">
+      Logowanie...
+    </p>
+
+
+    <p class="footer-text">Don't have an account? <a (click)="goToRegister()">Sign up</a></p>
+  </div>
+</div>
