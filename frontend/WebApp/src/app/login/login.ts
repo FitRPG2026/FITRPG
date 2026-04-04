@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
+import { delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,7 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private router: Router) { }
 
   goToRegister() {
     this.router.navigate(['/register']);
@@ -26,21 +27,11 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.post('http://localhost:8000/api/login', {
-      email: this.email,
-      password: this.password
-    }).subscribe({
+    // TODO: zastąpić prawdziwym backendem
+    of({ access_token: 'mock-token-123' }).pipe(delay(1000)).subscribe({
       next: (response: any) => {
         localStorage.setItem('token', response.access_token);
         this.router.navigate(['/dashboard']);
-      },
-      error: (err: any) => {
-        this.isLoading = false;
-        if (err.status === 401) {
-          this.errorMessage = 'Nieprawidłowy email lub hasło.';
-        } else {
-          this.errorMessage = 'Błąd serwera. Spróbuj ponownie.';
-        }
       }
     });
   }
