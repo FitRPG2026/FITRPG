@@ -7,8 +7,6 @@ export interface UserProfile {
   level: number;
   xp: number;
   xpToNext: number;
-  class: string;
-  avatar: string;
   streak: number;
   joinDate: string;
 }
@@ -61,8 +59,6 @@ export class MockDataService {
       level: 12,
       xp: 3420,
       xpToNext: 5000,
-      class: 'Wojownik Kondycji',
-      avatar: '🧙',
       streak: 7,
       joinDate: '2024-01-15'
     }).pipe(delay(600));

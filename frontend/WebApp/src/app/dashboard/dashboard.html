@@ -28,10 +28,9 @@
     </nav>
 
     <div class="sidebar-profile" *ngIf="!loadingProfile && profile">
-      <div class="profile-avatar">{{ profile.avatar }}</div>
       <div class="profile-info">
         <div class="profile-name">{{ profile.name }}</div>
-        <div class="profile-class">{{ profile.class }}</div>
+        <div class="profile-level">Poziom {{ profile.level }}</div>
       </div>
       <button class="logout-btn" (click)="logout()" title="Wyloguj">🚪</button>
     </div>
@@ -79,16 +78,6 @@
             <div class="card-label">Dziś ukończono</div>
             <div class="card-value-big">{{ completedQuests.length }}<span class="card-denom">/{{ quests.length }}</span></div>
             <div class="card-sub">questów</div>
-          </div>
-        </div>
-
-        <!-- Class card -->
-        <div class="hero-card class-card">
-          <div *ngIf="loadingProfile" class="card-skeleton"></div>
-          <div *ngIf="!loadingProfile && profile">
-            <div class="card-label">Klasa</div>
-            <div class="card-avatar-big">{{ profile.avatar }}</div>
-            <div class="card-sub">{{ profile.class }}</div>
           </div>
         </div>
       </div>
@@ -284,10 +273,9 @@
 
         <!-- Profile summary -->
         <div class="profile-summary-card">
-          <div class="summary-avatar">{{ profile.avatar }}</div>
           <div class="summary-info">
             <div class="summary-name">{{ profile.name }}</div>
-            <div class="summary-class">{{ profile.class }} • Poziom {{ profile.level }}</div>
+            <div class="summary-level">Poziom {{ profile.level }}</div>
             <div class="summary-joined">Dołączył: {{ profile.joinDate }}</div>
           </div>
           <div class="summary-xp">
