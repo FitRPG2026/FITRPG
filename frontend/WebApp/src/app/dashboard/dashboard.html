@@ -1,0 +1,324 @@
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">⚔️</span>
+      <span class="logo-text">FitRPG</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'quests'" (click)="setTab('quests')">
+        <span class="nav-icon">📜</span>
+        <span class="nav-label">Questy</span>
+        <span class="nav-badge" *ngIf="pendingQuests.length > 0">{{ pendingQuests.length }}</span>
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Osiągnięcia</span>
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'stats'" (click)="setTab('stats')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Statystyki</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-profile" *ngIf="!loadingProfile && profile">
+      <div class="profile-info">
+        <div class="profile-name">{{ profile.name }}</div>
+        <div class="profile-level">Poziom {{ profile.level }}</div>
+      </div>
+      <button class="logout-btn" (click)="logout()" title="Wyloguj">🚪</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- ═══════════════ TAB: DASHBOARD ═══════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'dashboard'">
+      <div class="page-header">
+        <h1>Witaj z powrotem, <span class="accent" *ngIf="profile">{{ profile.name.split(' ')[0] }}</span><span class="skeleton-inline" *ngIf="loadingProfile"></span> ⚔️</h1>
+        <p class="page-subtitle">Twoja przygoda trwa. Dziś kolejny dzień walki.</p>
+      </div>
+
+      <!-- HERO CARDS ROW -->
+      <div class="cards-row">
+        <!-- Level card -->
+        <div class="hero-card level-card">
+          <div *ngIf="loadingProfile" class="card-skeleton"></div>
+          <div *ngIf="!loadingProfile && profile">
+            <div class="card-label">Poziom</div>
+            <div class="card-value-big">{{ profile.level }}</div>
+            <div class="xp-bar-wrap">
+              <div class="xp-bar" [style.width.%]="xpPercent"></div>
+            </div>
+            <div class="xp-text">{{ profile.xp | number }} / {{ profile.xpToNext | number }} XP</div>
+          </div>
+        </div>
+
+        <!-- Streak card -->
+        <div class="hero-card streak-card">
+          <div *ngIf="loadingProfile" class="card-skeleton"></div>
+          <div *ngIf="!loadingProfile && profile">
+            <div class="card-label">Passa</div>
+            <div class="card-value-big flame">🔥 {{ profile.streak }}</div>
+            <div class="card-sub">dni z rzędu</div>
+          </div>
+        </div>
+
+        <!-- Quests today -->
+        <div class="hero-card quests-card">
+          <div *ngIf="loadingQuests" class="card-skeleton"></div>
+          <div *ngIf="!loadingQuests">
+            <div class="card-label">Dziś ukończono</div>
+            <div class="card-value-big">{{ completedQuests.length }}<span class="card-denom">/{{ quests.length }}</span></div>
+            <div class="card-sub">questów</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM SECTION -->
+      <div class="bottom-row">
+
+        <!-- Weekly Activity Chart -->
+        <div class="panel activity-panel">
+          <div class="panel-header">
+            <h2>Aktywność tygodniowa</h2>
+          </div>
+          <div *ngIf="loadingActivity" class="panel-skeleton"></div>
+          <div *ngIf="!loadingActivity" class="activity-chart">
+            <div class="bar-group" *ngFor="let day of weeklyActivity">
+              <div class="bar-track">
+                <div class="bar-fill"
+                     [style.height.%]="getActivityBarHeight(day)"
+                     [class.bar-empty]="day.xp === 0">
+                </div>
+              </div>
+              <div class="bar-xp" *ngIf="day.xp > 0">{{ day.xp }}</div>
+              <div class="bar-xp bar-xp-empty" *ngIf="day.xp === 0">—</div>
+              <div class="bar-day">{{ day.day }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="panel stats-panel">
+          <div class="panel-header">
+            <h2>Atrybuty</h2>
+          </div>
+          <div *ngIf="loadingStats" class="panel-skeleton"></div>
+          <div *ngIf="!loadingStats" class="stats-list">
+            <div class="stat-row" *ngFor="let stat of stats">
+              <div class="stat-icon">{{ stat.icon }}</div>
+              <div class="stat-info">
+                <div class="stat-name">{{ stat.name }}</div>
+                <div class="stat-bar-wrap">
+                  <div class="stat-bar-fill" [style.width.%]="getStatPercent(stat)" [style.background]="stat.color"></div>
+                </div>
+              </div>
+              <div class="stat-value" [style.color]="stat.color">{{ stat.value }}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════ TAB: QUESTY ═══════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'quests'">
+      <div class="page-header">
+        <h1>📜 Questy</h1>
+        <p class="page-subtitle">Wykonuj zadania, zdobywaj XP i rozwijaj swojego bohatera.</p>
+      </div>
+
+      <!-- Error toast -->
+      <div class="error-toast" *ngIf="saveErrorMessage">⚠️ {{ saveErrorMessage }}</div>
+
+      <!-- Loading -->
+      <div *ngIf="loadingQuests" class="loading-state">
+        <div class="spinner"></div>
+        <p>Ładowanie questów...</p>
+      </div>
+
+      <div *ngIf="!loadingQuests">
+        <!-- Pending quests -->
+        <div class="section-label">Do wykonania ({{ pendingQuests.length }})</div>
+        <div class="quests-table-wrap">
+          <table class="quests-table">
+            <thead>
+            <tr>
+              <th>Quest</th>
+              <th>Kategoria</th>
+              <th>Termin</th>
+              <th>XP</th>
+              <th>Akcja</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let quest of pendingQuests" class="quest-row">
+              <td>
+                <div class="quest-title">{{ quest.title }}</div>
+                <div class="quest-desc">{{ quest.description }}</div>
+              </td>
+              <td>
+                  <span class="category-badge" [style.background]="getCategoryColor(quest.category)">
+                    {{ quest.category }}
+                  </span>
+              </td>
+              <td class="quest-due">{{ quest.dueDate }}</td>
+              <td class="quest-xp">+{{ quest.xp }} XP</td>
+              <td>
+                <button
+                  class="complete-btn"
+                  [class.loading]="savingQuestId === quest.id"
+                  [class.success]="saveSuccessId === quest.id"
+                  [disabled]="savingQuestId !== null"
+                  (click)="completeQuest(quest)">
+                  <span *ngIf="savingQuestId === quest.id" class="btn-spinner"></span>
+                  <span *ngIf="savingQuestId !== quest.id && saveSuccessId !== quest.id">Zapisz ✓</span>
+                  <span *ngIf="saveSuccessId === quest.id">Ukończono! 🎉</span>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="pendingQuests.length === 0">
+              <td colspan="5" class="empty-row">🎉 Wszystkie questy ukończone na dziś!</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Completed quests -->
+        <div class="section-label completed-label">Ukończone ({{ completedQuests.length }})</div>
+        <div class="quests-table-wrap">
+          <table class="quests-table completed-table">
+            <thead>
+            <tr>
+              <th>Quest</th>
+              <th>Kategoria</th>
+              <th>XP</th>
+              <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let quest of completedQuests" class="quest-row quest-done">
+              <td>
+                <div class="quest-title">{{ quest.title }}</div>
+              </td>
+              <td>
+                  <span class="category-badge" [style.background]="getCategoryColor(quest.category)">
+                    {{ quest.category }}
+                  </span>
+              </td>
+              <td class="quest-xp">+{{ quest.xp }} XP</td>
+              <td><span class="done-badge">✅ Ukończono</span></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TAB: OSIĄGNIĘCIA ═══════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'achievements'">
+      <div class="page-header">
+        <h1>🏆 Osiągnięcia</h1>
+        <p class="page-subtitle">Twoja historia chwały. Zdobyto {{ unlockedAchievements.length }} z {{ achievements.length }}.</p>
+      </div>
+
+      <div *ngIf="loadingAchievements" class="loading-state">
+        <div class="spinner"></div>
+        <p>Ładowanie osiągnięć...</p>
+      </div>
+
+      <div *ngIf="!loadingAchievements">
+        <div class="section-label">Odblokowane</div>
+        <div class="achievements-grid">
+          <div class="achievement-card unlocked" *ngFor="let ach of unlockedAchievements">
+            <div class="ach-icon">{{ ach.icon }}</div>
+            <div class="ach-title">{{ ach.title }}</div>
+            <div class="ach-desc">{{ ach.description }}</div>
+            <div class="ach-date">{{ ach.unlockedAt }}</div>
+          </div>
+        </div>
+
+        <div class="section-label locked-label">Zablokowane</div>
+        <div class="achievements-grid">
+          <div class="achievement-card locked" *ngFor="let ach of lockedAchievements">
+            <div class="ach-icon locked-icon">🔒</div>
+            <div class="ach-title locked-text">{{ ach.title }}</div>
+            <div class="ach-desc locked-text">{{ ach.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TAB: STATYSTYKI ═══════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'stats'">
+      <div class="page-header">
+        <h1>📊 Statystyki</h1>
+        <p class="page-subtitle">Twoje atrybuty i postępy.</p>
+      </div>
+
+      <div *ngIf="loadingStats || loadingProfile" class="loading-state">
+        <div class="spinner"></div>
+        <p>Ładowanie statystyk...</p>
+      </div>
+
+      <div *ngIf="!loadingStats && !loadingProfile && profile" class="stats-page">
+
+        <!-- Profile summary -->
+        <div class="profile-summary-card">
+          <div class="summary-info">
+            <div class="summary-name">{{ profile.name }}</div>
+            <div class="summary-level">Poziom {{ profile.level }}</div>
+            <div class="summary-joined">Dołączył: {{ profile.joinDate }}</div>
+          </div>
+          <div class="summary-xp">
+            <div class="summary-xp-label">Postęp do Poz. {{ profile.level + 1 }}</div>
+            <div class="summary-xp-bar-wrap">
+              <div class="summary-xp-bar" [style.width.%]="xpPercent"></div>
+            </div>
+            <div class="summary-xp-text">{{ xpPercent }}% — {{ profile.xp | number }}/{{ profile.xpToNext | number }} XP</div>
+          </div>
+        </div>
+
+        <!-- Attribute bars - big version -->
+        <div class="panel">
+          <div class="panel-header"><h2>Atrybuty bohatera</h2></div>
+          <div class="stats-big-list">
+            <div class="stat-big-row" *ngFor="let stat of stats">
+              <div class="stat-big-header">
+                <span class="stat-big-icon">{{ stat.icon }}</span>
+                <span class="stat-big-name">{{ stat.name }}</span>
+                <span class="stat-big-value" [style.color]="stat.color">{{ stat.value }}/{{ stat.max }}</span>
+              </div>
+              <div class="stat-big-bar-wrap">
+                <div class="stat-big-bar-fill" [style.width.%]="getStatPercent(stat)" [style.background]="stat.color"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save profile button -->
+        <div class="save-section">
+          <button class="save-profile-btn"
+                  [class.saving]="savingProfile"
+                  [class.saved]="profileSaveSuccess"
+                  [disabled]="savingProfile"
+                  (click)="saveProfile()">
+            <span *ngIf="savingProfile" class="btn-spinner white"></span>
+            <span *ngIf="!savingProfile && !profileSaveSuccess">💾 Zapisz profil</span>
+            <span *ngIf="profileSaveSuccess">✅ Zapisano pomyślnie!</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
