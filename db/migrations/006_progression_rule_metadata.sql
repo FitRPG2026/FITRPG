@@ -244,7 +244,7 @@ END;
 $$;
 
 DROP PROCEDURE IF EXISTS proc_create_challenge(
-    VARCHAR(100),
+    VARCHAR,
     TEXT,
     TEXT,
     NUMERIC,
@@ -300,8 +300,8 @@ END;
 $$;
 
 DROP PROCEDURE IF EXISTS proc_create_achievement(
-    VARCHAR(50),
-    VARCHAR(100),
+    VARCHAR,
+    VARCHAR,
     TEXT,
     TEXT,
     NUMERIC,
@@ -371,12 +371,12 @@ END;
 $$;
 
 DROP PROCEDURE IF EXISTS proc_create_quest(
-    VARCHAR(50),
-    VARCHAR(100),
+    VARCHAR,
+    VARCHAR,
     TEXT,
     TEXT,
     TEXT,
-    VARCHAR(50),
+    VARCHAR,
     INTEGER,
     NUMERIC,
     INTEGER,

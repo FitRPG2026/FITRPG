@@ -89,7 +89,7 @@ CREATE INDEX IF NOT EXISTS workout_exercises_code_idx
 DROP PROCEDURE IF EXISTS proc_log_workout(
     BIGINT,
     TEXT,
-    VARCHAR(100),
+    VARCHAR,
     TIMESTAMPTZ,
     INTEGER,
     NUMERIC,
