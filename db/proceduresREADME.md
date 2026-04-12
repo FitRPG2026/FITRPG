@@ -131,23 +131,28 @@ CALL proc_refresh_user_progress(
 
 #### `proc_create_challenge`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/006_progression_rule_metadata.sql`.
 
 What it does:
 - inserts a challenge definition
+- stores backend rule metadata:
+  `p_mechanic_type`, `p_event_trigger`, and `p_conditions`
 
 Example:
 
 ```sql
 CALL proc_create_challenge(
-    '7-Day Logging Streak',
-    'Log at least one meal or workout for seven consecutive days.',
-    'streak_days',
-    7.00,
-    40,
-    '2026-03-10 00:00:00+00',
-    '2026-03-31 23:59:59+00',
-    '2026-03-10 00:00:00+00'
+    p_title => '100-Minute Cardio Week',
+    p_description => 'Complete one hundred minutes of cardio workouts during the week.',
+    p_challenge_type => 'duration_min',
+    p_goal_value => 100.00,
+    p_reward_exp => 70,
+    p_start_date => '2026-03-16 00:00:00+00',
+    p_end_date => '2026-03-22 23:59:59+00',
+    p_created_at => '2026-03-16 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"workout_type":"cardio","progress_field":"duration_min"}'::jsonb
 );
 ```
 
@@ -163,6 +168,7 @@ What it does:
 - creates membership if needed through `proc_join_challenge`
 - updates `progress_value`
 - marks challenge `completed` when `goal_value` is reached
+- stores `last_progress_at`
 
 Example:
 
@@ -193,11 +199,13 @@ What it does:
 
 #### `proc_create_achievement`
 
-Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/005_achievement_join_workflow.sql`.
+Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/005_achievement_join_workflow.sql` and `migrations/006_progression_rule_metadata.sql`.
 
 What it does:
 - creates or updates an achievement definition by `code`
 - requires `target_value` to be provided and greater than zero
+- stores backend rule metadata:
+  `p_mechanic_type`, `p_event_trigger`, and `p_conditions`
 
 #### `proc_join_achievement`
 
@@ -214,6 +222,7 @@ What it does:
 - requires an existing `user_achievements` row
 - updates progress
 - sets `unlocked_at` when target is reached
+- stores `last_progress_at`
 - ignores further progress updates after the reward was already claimed
 - rejects progress for achievements without a valid `target_value`
 
@@ -287,30 +296,85 @@ CALL proc_log_meal(
 
 #### `proc_log_workout`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/007_workout_activity_taxonomy.sql`.
 
 What it does:
 - inserts into `workouts`
 - inserts `workout_exercises` from `jsonb`
+- stores UI activity taxonomy in `activity_category`, `activity_code`, and `activity_name`
+- stores exercise taxonomy from JSONB fields `exercise_group` and `exercise_code`
 - optionally derives `calories_burned` from exercises
 - optionally grants workout EXP
 
 Notes:
 - `p_exercises` must be a JSON array.
 - If `p_grant_exp = TRUE`, `p_exp_amount` is required.
+- `p_activity_category` should be `gym`, `sport`, `general`, or `other`.
+- Use normalized ASCII `activity_code` / `exercise_code` values for challenge conditions, for example `basketball`, `football`, `lat_pulldown`.
+- Gym `exercise_group` values are constrained to:
+  `chest`, `back`, `legs`, `glutes`, `shoulders`, `biceps`, `triceps`, `calves`,
+  `core`, `cardio_conditioning`, `calisthenics`, or `other`.
+
+Example:
+
+```sql
+CALL proc_log_workout(
+    p_user_id => (SELECT id FROM users WHERE email = 'filip.mazur@fitrpg.dev'),
+    p_workout_type => 'sport',
+    p_title => 'Basketball Scrimmage',
+    p_performed_at => '2026-03-22 18:30:00+00',
+    p_duration_min => 53,
+    p_exercises => $$[
+        {"exercise_name":"Full-court scrimmage","exercise_order":1,"duration_sec":3180,"distance_m":4600.00}
+    ]$$::jsonb,
+    p_activity_category => 'sport',
+    p_activity_code => 'basketball',
+    p_activity_name => 'Basketball'
+);
+```
 
 ### Quests
 
 All quest procedures are defined in `migrations/004_quest_workflow_procedures.sql`.
+`proc_create_quest` is overridden by `migrations/006_progression_rule_metadata.sql`.
 
 #### `proc_create_quest`
 
 What it does:
 - creates or updates a quest definition by `code`
+- stores backend rule metadata:
+  `p_mechanic_type`, `p_event_trigger`, and `p_conditions`
 
 Important fields:
 - `p_progression_mode`: `standalone` or `linear`
 - `p_quest_series_code` and `p_sequence_order` are required for `linear`
+
+### Progression Rule Metadata
+
+Challenge-like definitions use the same event-driven rule shape:
+
+- `mechanic_type = 'threshold'`
+  A one-off condition, for example one meal with `health_score >= 9`.
+- `mechanic_type = 'accumulation'`
+  A counter or sum, for example `100` cardio minutes or `3` basketball sessions.
+- `mechanic_type = 'streak'`
+  Consecutive-day logic, for example login or activity streaks.
+
+The backend should call its challenge engine only after relevant app events:
+
+```text
+check_challenges(user_id, event_type='meal_logged', event_data={...})
+```
+
+The engine should query definitions by `event_trigger`, evaluate JSONB `conditions`, then call the relevant progress procedure. Example condition payloads:
+
+```json
+{"min_health_score": 8}
+{"activity_category": "sport", "activity_code": "basketball", "progress_delta": 1}
+{"required_activity_codes": ["football", "handball"], "distinct_activity_codes": true}
+{"activity_category": "gym", "min_exercise_count": 2}
+{"streak_field": "current_login_streak_days"}
+```
 
 #### `proc_start_quest`
 

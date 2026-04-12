@@ -1,4 +1,4 @@
--- Convenience all-in-one seed script for local manual execution.
+﻿-- Convenience all-in-one seed script for local manual execution.
 -- Canonical seed files live in db/queries/seeds/.
 
 -- >>> BEGIN seeds/001_users.sql
@@ -58,23 +58,331 @@ $$;
 
 -- >>> BEGIN seeds/003_challenges.sql
 
-CALL proc_create_challenge('7-Day Logging Streak', 'Log at least one meal or workout for seven consecutive days.', 'streak_days', 7.00, 40, '2026-03-10 00:00:00+00', '2026-03-31 23:59:59+00', '2026-03-10 00:00:00+00');
-CALL proc_create_challenge('Three Strength Sessions', 'Complete three strength workouts during the challenge window.', 'strength_sessions', 3.00, 80, '2026-03-10 00:00:00+00', '2026-03-31 23:59:59+00', '2026-03-10 00:00:00+00');
-CALL proc_create_challenge('10K Run Distance', 'Accumulate ten kilometers of running workouts.', 'distance_m', 10000.00, 60, '2026-03-12 00:00:00+00', '2026-03-31 23:59:59+00', '2026-03-12 00:00:00+00');
-CALL proc_create_challenge('Colorful Plate Week', 'Eat five meals with vegetables or fruit across one week.', 'healthy_meals', 5.00, 50, '2026-03-14 00:00:00+00', '2026-03-28 23:59:59+00', '2026-03-14 00:00:00+00');
-CALL proc_create_challenge('Weekend Warrior', 'Log two workouts over the weekend.', 'weekend_workouts', 2.00, 50, '2026-03-20 00:00:00+00', '2026-03-22 23:59:59+00', '2026-03-20 00:00:00+00');
-CALL proc_create_challenge('Hydration Habit', 'Hit your hydration target on five separate days.', 'hydration_days', 5.00, 30, '2026-03-01 00:00:00+00', NULL, '2026-03-01 00:00:00+00');
+CALL proc_create_challenge(
+    p_title => '7-Day Logging Streak',
+    p_description => 'Log at least one meal or workout for seven consecutive days.',
+    p_challenge_type => 'streak_days',
+    p_goal_value => 7.00,
+    p_reward_exp => 40,
+    p_start_date => '2026-03-10 00:00:00+00',
+    p_end_date => '2026-03-31 23:59:59+00',
+    p_created_at => '2026-03-10 00:00:00+00',
+    p_mechanic_type => 'streak',
+    p_event_trigger => 'activity_logged',
+    p_conditions => '{"requires_daily_activity": true}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Three Strength Sessions',
+    p_description => 'Complete three strength workouts during the challenge window.',
+    p_challenge_type => 'strength_sessions',
+    p_goal_value => 3.00,
+    p_reward_exp => 80,
+    p_start_date => '2026-03-10 00:00:00+00',
+    p_end_date => '2026-03-31 23:59:59+00',
+    p_created_at => '2026-03-10 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "gym", "workout_type": "strength", "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => '10K Run Distance',
+    p_description => 'Accumulate ten kilometers of running workouts.',
+    p_challenge_type => 'distance_m',
+    p_goal_value => 10000.00,
+    p_reward_exp => 60,
+    p_start_date => '2026-03-12 00:00:00+00',
+    p_end_date => '2026-03-31 23:59:59+00',
+    p_created_at => '2026-03-12 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "general", "activity_code": "running", "workout_type": "cardio", "progress_field": "distance_m"}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Colorful Plate Week',
+    p_description => 'Eat five meals with vegetables or fruit across one week.',
+    p_challenge_type => 'healthy_meals',
+    p_goal_value => 5.00,
+    p_reward_exp => 50,
+    p_start_date => '2026-03-14 00:00:00+00',
+    p_end_date => '2026-03-28 23:59:59+00',
+    p_created_at => '2026-03-14 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'meal_logged',
+    p_conditions => '{"min_health_score": 8, "requires_fruit_or_vegetables": true, "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Weekend Warrior',
+    p_description => 'Log two workouts over the weekend.',
+    p_challenge_type => 'weekend_workouts',
+    p_goal_value => 2.00,
+    p_reward_exp => 50,
+    p_start_date => '2026-03-20 00:00:00+00',
+    p_end_date => '2026-03-22 23:59:59+00',
+    p_created_at => '2026-03-20 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"day_of_week": ["saturday", "sunday"], "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Hydration Habit',
+    p_description => 'Hit your hydration target on five separate days.',
+    p_challenge_type => 'hydration_days',
+    p_goal_value => 5.00,
+    p_reward_exp => 30,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'hydration_logged',
+    p_conditions => '{"daily_target_required": true, "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Green Master',
+    p_description => 'Log one meal with a high health score and vegetables.',
+    p_challenge_type => 'healthy_meals',
+    p_goal_value => 1.00,
+    p_reward_exp => 35,
+    p_start_date => '2026-03-20 00:00:00+00',
+    p_end_date => '2026-03-27 23:59:59+00',
+    p_created_at => '2026-03-20 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'meal_logged',
+    p_conditions => '{"min_health_score": 9, "requires_vegetables": true}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => '100-Minute Cardio Week',
+    p_description => 'Complete one hundred minutes of cardio workouts during the week.',
+    p_challenge_type => 'duration_min',
+    p_goal_value => 100.00,
+    p_reward_exp => 70,
+    p_start_date => '2026-03-16 00:00:00+00',
+    p_end_date => '2026-03-22 23:59:59+00',
+    p_created_at => '2026-03-16 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"workout_type": "cardio", "progress_field": "duration_min"}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Three Login Streak',
+    p_description => 'Log in three days in a row.',
+    p_challenge_type => 'login_streak_days',
+    p_goal_value => 3.00,
+    p_reward_exp => 20,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'streak',
+    p_event_trigger => 'login',
+    p_conditions => '{"streak_field": "current_login_streak_days"}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Gym Group Tour',
+    p_description => 'Log exercises from each main gym exercise group.',
+    p_challenge_type => 'exercise_group_coverage',
+    p_goal_value => 11.00,
+    p_reward_exp => 120,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "gym", "distinct_exercise_groups": ["chest", "back", "legs", "glutes", "shoulders", "biceps", "triceps", "calves", "core", "cardio_conditioning", "calisthenics"]}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Team Sport Pair',
+    p_description => 'Log both football and handball during the challenge window.',
+    p_challenge_type => 'sport_combo',
+    p_goal_value => 2.00,
+    p_reward_exp => 60,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "sport", "required_activity_codes": ["football", "handball"], "distinct_activity_codes": true}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Basketball Regular',
+    p_description => 'Log basketball three times.',
+    p_challenge_type => 'sport_sessions',
+    p_goal_value => 3.00,
+    p_reward_exp => 45,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "sport", "activity_code": "basketball", "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Sport Explorer',
+    p_description => 'Log three sessions for each tracked sport activity.',
+    p_challenge_type => 'sport_collection',
+    p_goal_value => 3.00,
+    p_reward_exp => 100,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "sport", "per_activity_code_target": 3}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Training Plus Gym Day',
+    p_description => 'Log a general workout and a gym workout on the same day.',
+    p_challenge_type => 'same_day_combo',
+    p_goal_value => 1.00,
+    p_reward_exp => 50,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'activity_logged',
+    p_conditions => '{"same_day_activity_categories": ["general", "gym"]}'::jsonb
+);
+
+CALL proc_create_challenge(
+    p_title => 'Back-to-Back Training',
+    p_description => 'Log training on two consecutive days.',
+    p_challenge_type => 'training_streak_days',
+    p_goal_value => 2.00,
+    p_reward_exp => 35,
+    p_start_date => '2026-03-01 00:00:00+00',
+    p_end_date => NULL,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'streak',
+    p_event_trigger => 'activity_logged',
+    p_conditions => '{"requires_daily_workout": true}'::jsonb
+);
 
 -- <<< END seeds/003_challenges.sql
 
 -- >>> BEGIN seeds/004_achievements.sql
 
-CALL proc_create_achievement('FIRST_MEAL', 'First Meal Logged', 'Log your first meal in the app.', 'meal_count', 1.00, 20, 'https://cdn.fitrpg.dev/icons/first_meal.svg', '2026-03-01 00:00:00+00');
-CALL proc_create_achievement('FIRST_WORKOUT', 'First Workout Logged', 'Log your first workout in the app.', 'workout_count', 1.00, 25, 'https://cdn.fitrpg.dev/icons/first_workout.svg', '2026-03-01 00:00:00+00');
-CALL proc_create_achievement('STREAK_7', 'Seven Day Streak', 'Stay active for seven consecutive days.', 'streak_days', 7.00, 35, 'https://cdn.fitrpg.dev/icons/streak_7.svg', '2026-03-01 00:00:00+00');
-CALL proc_create_achievement('MEAL_LOGGER_10', 'Meal Logger', 'Log ten meals.', 'meal_count', 10.00, 45, 'https://cdn.fitrpg.dev/icons/meal_logger_10.svg', '2026-03-01 00:00:00+00');
-CALL proc_create_achievement('RUNNER_10K', '10K Runner', 'Reach ten kilometers of running distance.', 'distance_m', 10000.00, 25, 'https://cdn.fitrpg.dev/icons/runner_10k.svg', '2026-03-01 00:00:00+00');
-CALL proc_create_achievement('STRENGTH_5', 'Strength Builder', 'Complete five strength workouts.', 'strength_sessions', 5.00, 30, 'https://cdn.fitrpg.dev/icons/strength_5.svg', '2026-03-01 00:00:00+00');
+CALL proc_create_achievement(
+    p_code => 'FIRST_MEAL',
+    p_title => 'First Meal Logged',
+    p_description => 'Log your first meal in the app.',
+    p_achievement_type => 'meal_count',
+    p_target_value => 1.00,
+    p_reward_exp => 20,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/first_meal.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'meal_logged',
+    p_conditions => '{}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'FIRST_WORKOUT',
+    p_title => 'First Workout Logged',
+    p_description => 'Log your first workout in the app.',
+    p_achievement_type => 'workout_count',
+    p_target_value => 1.00,
+    p_reward_exp => 25,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/first_workout.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'STREAK_7',
+    p_title => 'Seven Day Streak',
+    p_description => 'Stay active for seven consecutive days.',
+    p_achievement_type => 'streak_days',
+    p_target_value => 7.00,
+    p_reward_exp => 35,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/streak_7.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'streak',
+    p_event_trigger => 'activity_logged',
+    p_conditions => '{"streak_field": "current_streak_days"}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'MEAL_LOGGER_10',
+    p_title => 'Meal Logger',
+    p_description => 'Log ten meals.',
+    p_achievement_type => 'meal_count',
+    p_target_value => 10.00,
+    p_reward_exp => 45,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/meal_logger_10.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'meal_logged',
+    p_conditions => '{"progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'RUNNER_10K',
+    p_title => '10K Runner',
+    p_description => 'Reach ten kilometers of running distance.',
+    p_achievement_type => 'distance_m',
+    p_target_value => 10000.00,
+    p_reward_exp => 25,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/runner_10k.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "general", "activity_code": "running", "workout_type": "cardio", "progress_field": "distance_m"}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'STRENGTH_5',
+    p_title => 'Strength Builder',
+    p_description => 'Complete five strength workouts.',
+    p_achievement_type => 'strength_sessions',
+    p_target_value => 5.00,
+    p_reward_exp => 30,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/strength_5.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "gym", "workout_type": "strength", "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'SPORT_SAMPLER',
+    p_title => 'Sport Sampler',
+    p_description => 'Log three different sport activities.',
+    p_achievement_type => 'sport_collection',
+    p_target_value => 3.00,
+    p_reward_exp => 40,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/sport_sampler.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "sport", "distinct_activity_codes": true}'::jsonb
+);
+
+CALL proc_create_achievement(
+    p_code => 'EXERCISE_DETAIL_2',
+    p_title => 'Detailed Session',
+    p_description => 'Log a gym workout with at least two exercises.',
+    p_achievement_type => 'exercise_count',
+    p_target_value => 1.00,
+    p_reward_exp => 25,
+    p_icon_url => 'https://cdn.fitrpg.dev/icons/exercise_detail_2.svg',
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "gym", "min_exercise_count": 2}'::jsonb
+);
 
 -- <<< END seeds/004_achievements.sql
 
@@ -330,11 +638,85 @@ $seed$;
 
 -- >>> BEGIN seeds/006_quests.sql
 
-CALL proc_create_quest('ONBOARD_PROFILE', 'Profile Apprentice', 'Complete your first profile setup.', 'onboarding', 'standalone', NULL, NULL, 1.00, 15, '2026-03-01 00:00:00+00');
-CALL proc_create_quest('FIRST_3_MEALS', 'Meal Habit Starter', 'Log your first three meals.', 'meal_count', 'standalone', NULL, NULL, 3.00, 20, '2026-03-01 00:00:00+00');
-CALL proc_create_quest('CORE_RESET', 'Core Reset', 'Finish four mobility-focused sessions.', 'mobility_sessions', 'standalone', NULL, NULL, 4.00, 20, '2026-03-01 00:00:00+00');
-CALL proc_create_quest('RUN_FOUNDATIONS_01', 'Run Foundations I', 'Finish the first run foundation step.', 'program_step', 'linear', 'RUN_FOUNDATIONS', 1, 1.00, 15, '2026-03-01 00:00:00+00');
-CALL proc_create_quest('RUN_FOUNDATIONS_02', 'Run Foundations II', 'Finish the second run foundation step.', 'program_step', 'linear', 'RUN_FOUNDATIONS', 2, 1.00, 20, '2026-03-01 00:00:00+00');
+CALL proc_create_quest(
+    p_code => 'ONBOARD_PROFILE',
+    p_title => 'Profile Apprentice',
+    p_description => 'Complete your first profile setup.',
+    p_quest_type => 'onboarding',
+    p_progression_mode => 'standalone',
+    p_quest_series_code => NULL,
+    p_sequence_order => NULL,
+    p_target_value => 1.00,
+    p_reward_exp => 15,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'profile_completed',
+    p_conditions => '{}'::jsonb
+);
+
+CALL proc_create_quest(
+    p_code => 'FIRST_3_MEALS',
+    p_title => 'Meal Habit Starter',
+    p_description => 'Log your first three meals.',
+    p_quest_type => 'meal_count',
+    p_progression_mode => 'standalone',
+    p_quest_series_code => NULL,
+    p_sequence_order => NULL,
+    p_target_value => 3.00,
+    p_reward_exp => 20,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'meal_logged',
+    p_conditions => '{"progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_quest(
+    p_code => 'CORE_RESET',
+    p_title => 'Core Reset',
+    p_description => 'Finish four mobility-focused sessions.',
+    p_quest_type => 'mobility_sessions',
+    p_progression_mode => 'standalone',
+    p_quest_series_code => NULL,
+    p_sequence_order => NULL,
+    p_target_value => 4.00,
+    p_reward_exp => 20,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'accumulation',
+    p_event_trigger => 'workout_logged',
+    p_conditions => '{"activity_category": "general", "workout_type": "mobility", "progress_delta": 1}'::jsonb
+);
+
+CALL proc_create_quest(
+    p_code => 'RUN_FOUNDATIONS_01',
+    p_title => 'Run Foundations I',
+    p_description => 'Finish the first run foundation step.',
+    p_quest_type => 'program_step',
+    p_progression_mode => 'linear',
+    p_quest_series_code => 'RUN_FOUNDATIONS',
+    p_sequence_order => 1,
+    p_target_value => 1.00,
+    p_reward_exp => 15,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'quest_step_completed',
+    p_conditions => '{"program_code": "run_foundations", "step": 1}'::jsonb
+);
+
+CALL proc_create_quest(
+    p_code => 'RUN_FOUNDATIONS_02',
+    p_title => 'Run Foundations II',
+    p_description => 'Finish the second run foundation step.',
+    p_quest_type => 'program_step',
+    p_progression_mode => 'linear',
+    p_quest_series_code => 'RUN_FOUNDATIONS',
+    p_sequence_order => 2,
+    p_target_value => 1.00,
+    p_reward_exp => 20,
+    p_created_at => '2026-03-01 00:00:00+00',
+    p_mechanic_type => 'threshold',
+    p_event_trigger => 'quest_step_completed',
+    p_conditions => '{"program_code": "run_foundations", "step": 2}'::jsonb
+);
 
 -- <<< END seeds/006_quests.sql
 
@@ -365,15 +747,18 @@ CALL proc_log_workout(
     p_health_score => 9::SMALLINT,
     p_notes => 'Focused on progressive overload.',
     p_exercises => $$[
-        {"exercise_name":"Bench Press","exercise_order":1,"sets":4,"reps":8,"weight_kg":42.50,"calories_burned":120.00,"notes":"Last set close to failure."},
-        {"exercise_name":"One-Arm Dumbbell Row","exercise_order":2,"sets":4,"reps":10,"weight_kg":20.00,"calories_burned":95.00},
-        {"exercise_name":"Seated Shoulder Press","exercise_order":3,"sets":3,"reps":10,"weight_kg":14.00,"calories_burned":82.00},
-        {"exercise_name":"Plank","exercise_order":4,"sets":3,"duration_sec":180,"calories_burned":28.00,"notes":"Three sixty-second holds."}
+        {"exercise_name":"Bench Press","exercise_order":1,"exercise_group":"chest","sets":4,"reps":8,"weight_kg":42.50,"calories_burned":120.00,"notes":"Last set close to failure."},
+        {"exercise_name":"One-Arm Dumbbell Row","exercise_order":2,"exercise_group":"back","sets":4,"reps":10,"weight_kg":20.00,"calories_burned":95.00},
+        {"exercise_name":"Seated Shoulder Press","exercise_order":3,"exercise_group":"shoulders","sets":3,"reps":10,"weight_kg":14.00,"calories_burned":82.00},
+        {"exercise_name":"Plank","exercise_order":4,"exercise_group":"core","sets":3,"duration_sec":180,"calories_burned":28.00,"notes":"Three sixty-second holds."}
     ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 40,
     p_exp_reason => 'Completed a strength workout.',
-    p_exp_created_at => '2026-03-20 19:01:00+00'
+    p_exp_created_at => '2026-03-20 19:01:00+00',
+    p_activity_category => 'gym',
+    p_activity_code => 'upper_body_strength',
+    p_activity_name => 'Upper Body Strength'
 );
 
 CALL proc_log_workout(
@@ -388,7 +773,10 @@ CALL proc_log_workout(
         {"exercise_name":"Hip Openers","exercise_order":1,"sets":2,"reps":12,"duration_sec":420,"calories_burned":18.00},
         {"exercise_name":"Thoracic Rotations","exercise_order":2,"sets":2,"reps":10,"duration_sec":360,"calories_burned":14.00},
         {"exercise_name":"Hamstring Stretch","exercise_order":3,"sets":2,"duration_sec":300,"calories_burned":12.00,"notes":"Held both sides equally."}
-    ]$$::jsonb
+    ]$$::jsonb,
+    p_activity_category => 'general',
+    p_activity_code => 'mobility',
+    p_activity_name => 'Morning Mobility Flow'
 );
 
 CALL proc_log_workout(
@@ -405,7 +793,10 @@ CALL proc_log_workout(
     p_grant_exp => TRUE,
     p_exp_amount => 20,
     p_exp_reason => 'Completed lunchtime walk.',
-    p_exp_created_at => '2026-03-20 12:56:00+00'
+    p_exp_created_at => '2026-03-20 12:56:00+00',
+    p_activity_category => 'general',
+    p_activity_code => 'walking',
+    p_activity_name => 'Outdoor brisk walk'
 );
 
 CALL proc_log_workout(
@@ -424,7 +815,10 @@ CALL proc_log_workout(
     p_grant_exp => TRUE,
     p_exp_amount => 45,
     p_exp_reason => 'Completed tempo run.',
-    p_exp_created_at => '2026-03-21 17:31:00+00'
+    p_exp_created_at => '2026-03-21 17:31:00+00',
+    p_activity_category => 'general',
+    p_activity_code => 'running',
+    p_activity_name => '5K Tempo Run'
 );
 
 CALL proc_log_workout(
@@ -439,7 +833,10 @@ CALL proc_log_workout(
         {"exercise_name":"Foam rolling","exercise_order":1,"duration_sec":420,"calories_burned":18.00},
         {"exercise_name":"Calf stretch","exercise_order":2,"sets":2,"duration_sec":240,"calories_burned":8.00},
         {"exercise_name":"Glute mobility","exercise_order":3,"sets":2,"reps":10,"duration_sec":300,"calories_burned":12.00}
-    ]$$::jsonb
+    ]$$::jsonb,
+    p_activity_category => 'general',
+    p_activity_code => 'stretching',
+    p_activity_name => 'Recovery Stretch'
 );
 
 CALL proc_log_workout(
@@ -451,14 +848,17 @@ CALL proc_log_workout(
     p_health_score => 6::SMALLINT,
     p_notes => 'First gym visit in a while.',
     p_exercises => $$[
-        {"exercise_name":"Leg Press","exercise_order":1,"sets":3,"reps":12,"weight_kg":80.00,"calories_burned":92.00,"notes":"Conservative weight selection."},
-        {"exercise_name":"Lat Pulldown","exercise_order":2,"sets":3,"reps":10,"weight_kg":35.00,"calories_burned":70.00},
-        {"exercise_name":"Bike warm-up","exercise_order":3,"duration_sec":600,"distance_m":3800.00,"calories_burned":45.00}
+        {"exercise_name":"Leg Press","exercise_order":1,"exercise_group":"legs","sets":3,"reps":12,"weight_kg":80.00,"calories_burned":92.00,"notes":"Conservative weight selection."},
+        {"exercise_name":"Lat Pulldown","exercise_order":2,"exercise_group":"back","sets":3,"reps":10,"weight_kg":35.00,"calories_burned":70.00},
+        {"exercise_name":"Bike warm-up","exercise_order":3,"exercise_group":"cardio_conditioning","duration_sec":600,"distance_m":3800.00,"calories_burned":45.00}
     ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 25,
     p_exp_reason => 'Completed return-to-gym session.',
-    p_exp_created_at => '2026-03-16 19:01:00+00'
+    p_exp_created_at => '2026-03-16 19:01:00+00',
+    p_activity_category => 'gym',
+    p_activity_code => 'beginner_gym',
+    p_activity_name => 'Beginner Gym Session'
 );
 
 CALL proc_log_workout(
@@ -475,7 +875,10 @@ CALL proc_log_workout(
     p_grant_exp => TRUE,
     p_exp_amount => 35,
     p_exp_reason => 'Completed long bike ride.',
-    p_exp_created_at => '2026-03-22 11:56:00+00'
+    p_exp_created_at => '2026-03-22 11:56:00+00',
+    p_activity_category => 'sport',
+    p_activity_code => 'cycling',
+    p_activity_name => 'Outdoor cycling'
 );
 
 CALL proc_log_workout(
@@ -490,7 +893,10 @@ CALL proc_log_workout(
         {"exercise_name":"Hundred","exercise_order":1,"sets":1,"reps":100,"duration_sec":180,"calories_burned":28.00},
         {"exercise_name":"Roll-Up","exercise_order":2,"sets":3,"reps":8,"duration_sec":240,"calories_burned":26.00},
         {"exercise_name":"Single-Leg Stretch","exercise_order":3,"sets":3,"reps":12,"duration_sec":360,"calories_burned":32.00}
-    ]$$::jsonb
+    ]$$::jsonb,
+    p_activity_category => 'general',
+    p_activity_code => 'pilates',
+    p_activity_name => 'Pilates'
 );
 
 CALL proc_log_workout(
@@ -502,15 +908,18 @@ CALL proc_log_workout(
     p_health_score => 9::SMALLINT,
     p_notes => 'Heavy lower-body workout.',
     p_exercises => $$[
-        {"exercise_name":"Back Squat","exercise_order":1,"sets":5,"reps":5,"weight_kg":120.00,"calories_burned":170.00,"notes":"Top set felt strong."},
-        {"exercise_name":"Romanian Deadlift","exercise_order":2,"sets":4,"reps":8,"weight_kg":90.00,"calories_burned":130.00},
-        {"exercise_name":"Walking Lunges","exercise_order":3,"sets":3,"reps":12,"weight_kg":22.00,"calories_burned":95.00,"notes":"Per leg."},
-        {"exercise_name":"Sled Push","exercise_order":4,"sets":4,"weight_kg":140.00,"duration_sec":300,"distance_m":120.00,"calories_burned":75.00,"notes":"Heavy finishers."}
+        {"exercise_name":"Back Squat","exercise_order":1,"exercise_group":"legs","sets":5,"reps":5,"weight_kg":120.00,"calories_burned":170.00,"notes":"Top set felt strong."},
+        {"exercise_name":"Romanian Deadlift","exercise_order":2,"exercise_group":"glutes","sets":4,"reps":8,"weight_kg":90.00,"calories_burned":130.00},
+        {"exercise_name":"Walking Lunges","exercise_order":3,"exercise_group":"legs","sets":3,"reps":12,"weight_kg":22.00,"calories_burned":95.00,"notes":"Per leg."},
+        {"exercise_name":"Sled Push","exercise_order":4,"exercise_group":"cardio_conditioning","sets":4,"weight_kg":140.00,"duration_sec":300,"distance_m":120.00,"calories_burned":75.00,"notes":"Heavy finishers."}
     ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 50,
     p_exp_reason => 'Completed heavy strength session.',
-    p_exp_created_at => '2026-03-22 14:11:00+00'
+    p_exp_created_at => '2026-03-22 14:11:00+00',
+    p_activity_category => 'gym',
+    p_activity_code => 'leg_day',
+    p_activity_name => 'Leg Day'
 );
 
 CALL proc_log_workout(
@@ -523,7 +932,10 @@ CALL proc_log_workout(
     p_notes => 'Competitive full-court game.',
     p_exercises => $$[
         {"exercise_name":"Full-court scrimmage","exercise_order":1,"duration_sec":3180,"distance_m":4600.00,"calories_burned":430.00,"notes":"Tracked by smartwatch estimate."}
-    ]$$::jsonb
+    ]$$::jsonb,
+    p_activity_category => 'sport',
+    p_activity_code => 'basketball',
+    p_activity_name => 'Basketball'
 );
 END;
 $seed$;

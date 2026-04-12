@@ -25,8 +25,9 @@ This folder contains the shared database SQL for the project.
 
 The current application schema is the ordered migration set in `migrations/`.
 At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_procedures.sql`,
-`003_quests_schema.sql`, `004_quest_workflow_procedures.sql`, and
-`005_achievement_join_workflow.sql` applied in filename order.
+`003_quests_schema.sql`, `004_quest_workflow_procedures.sql`,
+`005_achievement_join_workflow.sql`, `006_progression_rule_metadata.sql`, and
+`007_workout_activity_taxonomy.sql` applied in filename order.
 
 ### Main Table Groups
 
@@ -74,6 +75,14 @@ At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_pr
   `quantity` + `unit` represent user-friendly input like `2 pcs` or `250 ml`, while `grams` gives a normalized amount for calculations.
 - `workout_type`
   Controlled workout category: `strength`, `cardio`, `mobility`, `sport`, or `other`.
+- `activity_category`, `activity_code`, `activity_name`
+  UI-level workout taxonomy. `activity_category` is `gym`, `sport`, `general`, or `other`;
+  `activity_code` is the backend-friendly normalized activity key such as `basketball`;
+  `activity_name` is the display label from the user-facing activity list.
+- `exercise_group`, `exercise_code`
+  Optional exercise-level taxonomy for gym details. `exercise_group` supports the gym groups used by challenge logic:
+  `chest`, `back`, `legs`, `glutes`, `shoulders`, `biceps`, `triceps`, `calves`,
+  `core`, `cardio_conditioning`, `calisthenics`, or `other`.
 - `exercise_order`
   Keeps exercise display order inside one workout.
 - `source_type` and `source_id` in `exp_events`
@@ -82,6 +91,16 @@ At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_pr
   `workout`, `meal`, `challenge`, `quest`, `achievement`, `manual`, and optionally `streak` if streak rewards are handled as separate EXP events.
 - `progress_value`
   Current progress toward a challenge or achievement target.
+- `mechanic_type`
+  Progress mechanic for challenges, achievements, and quests:
+  `threshold` for one-off checks, `accumulation` for counters or sums, and `streak` for consecutive-day logic.
+- `event_trigger`
+  Event that should wake the backend progression engine, for example `meal_logged`, `workout_logged`,
+  `activity_logged`, `login`, `profile_completed`, or `quest_step_completed`.
+- `conditions`
+  JSONB rule payload for backend evaluation. Use it for filters and rule details such as
+  `{"activity_category":"sport","activity_code":"basketball"}`,
+  `{"min_health_score":8}`, or `{"required_activity_codes":["football","handball"]}`.
 - `progression_mode`, `quest_series_code`, `sequence_order`
   Quest progression metadata. Use `standalone` for independent quests, or `linear` plus a shared `quest_series_code` and increasing `sequence_order` for ordered quest lines.
 - `quest_type`
@@ -93,6 +112,10 @@ At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_pr
   Timestamp for reward claim if unlocking and claiming are treated as separate actions.
 - `joined_at`
   Timestamp for when a user starts tracking an achievement before it is unlocked or claimed.
+- `last_progress_at`
+  Timestamp for the latest challenge, achievement, or quest progress update.
+- `last_login_date`, `current_login_streak_days`, `longest_login_streak_days`
+  Login streak state stored on `user_auth` so the backend can emit a `login` challenge event without scanning all login history.
 
 ### Why Some Data Is Repeated
 
@@ -128,16 +151,19 @@ This is intentional. Parent tables are optimized for quick reads of the full obj
 #### User Logs a Workout
 
 1. Insert one row into `workouts`.
-2. Optionally insert many rows into `workout_exercises`.
-3. If the workout grants EXP, insert into `exp_events`.
-4. Update `user_progress`.
+2. Store the UI taxonomy in `activity_category`, `activity_code`, and `activity_name`.
+3. Optionally insert many rows into `workout_exercises`, including `exercise_group` and `exercise_code` when the category is `gym`.
+4. If the workout grants EXP, insert into `exp_events`.
+5. Update `user_progress`.
 
 #### User Progresses a Challenge
 
 1. Insert definition into `challenges` once.
-2. Insert or update the user's row in `user_challenges`.
-3. When completed, set `completed_at` and optionally `claimed_at`.
-4. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
+2. Backend receives an event and fetches only active definitions matching `event_trigger`.
+3. Backend evaluates `conditions` from JSONB against the event payload.
+4. Insert or update the user's row in `user_challenges`.
+5. When completed, set `completed_at` and optionally `claimed_at`.
+6. If the reward includes EXP, insert into `exp_events` and update `user_progress`.
 
 #### User Progresses a Quest
 
@@ -161,6 +187,10 @@ This is intentional. Parent tables are optimized for quick reads of the full obj
 - `user_profiles` is optional, so a user account can exist before profile completion.
 - The schema does not currently use `foods`, `products`, or `exercises` reference tables.
 - Meal and workout detail tables store direct logged values instead of referencing external dictionaries.
+- Workout activity lists from the UI should map to `activity_category`, `activity_code`, and `activity_name`.
+  The current top-level categories are `gym`, `sport`, `general`, and fallback `other`.
+- Challenge-like definitions are event-driven. Do not scan every challenge on every request; filter by `event_trigger`, then evaluate JSONB `conditions` in backend code.
+- `conditions` is intentionally flexible, but the top-level progression shape is not flexible: use `mechanic_type` for `threshold`, `accumulation`, or `streak`.
 - Challenges are intended for global daily/weekly or otherwise time-bounded events.
 - Quests are intended for durable objectives that do not expire on a schedule.
 - Linear quests should share one `quest_series_code` and use `sequence_order` to define progression order.
