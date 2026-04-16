@@ -122,6 +122,119 @@ then the remaining files run against the created `fitrpg` database:
 - `last_login_date`, `current_login_streak_days`, `longest_login_streak_days`
   Login streak state stored on `user_auth` so the backend can emit a `login` challenge event without scanning all login history.
 
+### Controlled Values And Constraints
+
+These are the values currently enforced by SQL `CHECK` constraints. Use them in backend validation and UI option lists.
+
+#### Quests
+
+- `quest_type`
+  `onboarding`, `meal_count`, `healthy_meals`, `workout_count`, `strength_sessions`,
+  `cardio_sessions`, `mobility_sessions`, `distance_m`, `duration_min`,
+  `streak_days`, `program_step`.
+- `progression_mode`
+  `standalone`, `linear`.
+- `mechanic_type`
+  `threshold`, `accumulation`, `streak`.
+- `event_trigger`
+  `manual`, `login`, `profile_completed`, `meal_logged`, `workout_logged`,
+  `activity_logged`, `hydration_logged`, `quest_step_completed`, `progress_recomputed`.
+- `conditions`
+  Must be a JSON object.
+- `target_value`
+  Must be `NULL` or greater than `0`.
+- `reward_exp`
+  Must be greater than or equal to `0`.
+- `sequence_order`
+  Must be `NULL` or greater than `0`.
+- Linear quest shape
+  If `progression_mode = 'standalone'`, `quest_series_code` and `sequence_order` must be `NULL`.
+  If `progression_mode = 'linear'`, `quest_series_code` and `sequence_order` must not be `NULL`.
+
+#### Challenges
+
+- `mechanic_type`
+  `threshold`, `accumulation`, `streak`.
+- `event_trigger`
+  `manual`, `login`, `profile_completed`, `meal_logged`, `workout_logged`,
+  `activity_logged`, `hydration_logged`, `quest_step_completed`, `progress_recomputed`.
+- `challenge_type`
+  No enum constraint. Use it only as a loose label/grouping field; backend processing should rely on `mechanic_type`, `event_trigger`, and `conditions`.
+- `conditions`
+  Must be a JSON object.
+- `goal_value`
+  Must be `NULL` or greater than `0`.
+- `reward_exp`
+  Must be greater than or equal to `0`.
+- Date range
+  `end_date` must be greater than or equal to `start_date`, unless one of them is `NULL`.
+
+#### Achievements
+
+- `mechanic_type`
+  `threshold`, `accumulation`, `streak`.
+- `event_trigger`
+  `manual`, `login`, `profile_completed`, `meal_logged`, `workout_logged`,
+  `activity_logged`, `hydration_logged`, `quest_step_completed`, `progress_recomputed`.
+- `achievement_type`
+  No enum constraint. Use it only as a loose label/grouping field; backend processing should rely on `mechanic_type`, `event_trigger`, and `conditions`.
+- `conditions`
+  Must be a JSON object.
+- `target_value`
+  Must be `NULL` or greater than `0`.
+- `reward_exp`
+  Must be greater than or equal to `0`.
+- `code`
+  Must not be blank and is unique.
+- `title`
+  Must not be blank.
+
+#### Meals
+
+- `meal_type`
+  `breakfast`, `lunch`, `dinner`, `snack`, `other`.
+- `health_score`
+  Must be `NULL` or between `1` and `10`.
+- `ai_confidence`
+  Must be `NULL` or between `0` and `1`.
+
+#### Workouts
+
+- `workout_type`
+  `strength`, `cardio`, `mobility`, `sport`, `other`.
+- `activity_category`
+  `gym`, `sport`, `general`, `other`.
+- `duration_min`
+  Must be `NULL` or greater than `0`.
+- `health_score`
+  Must be `NULL` or between `1` and `10`.
+- `activity_code`
+  Must not be blank if provided.
+- `activity_name`
+  Must not be blank if provided.
+
+#### Gym Workout Exercises
+
+- `exercise_group`
+  `chest`, `back`, `legs`, `glutes`, `shoulders`, `biceps`, `triceps`, `calves`,
+  `core`, `cardio_conditioning`, `calisthenics`, `other`.
+- `exercise_name`
+  Must not be blank.
+- `exercise_order`
+  Must be `NULL` or greater than `0`.
+- `sets`
+  Must be `NULL` or greater than `0`.
+- `reps`
+  Must be `NULL` or greater than `0`.
+- `weight_kg`
+  Must be `NULL` or greater than or equal to `0`.
+- `duration_sec`
+  Must be `NULL` or greater than `0`.
+- `distance_m`
+  Must be `NULL` or greater than or equal to `0`.
+- `exercise_code`
+  Must not be blank if provided.
+
 ### Why Some Data Is Repeated
 
 - `workouts` stores workout-level data.
