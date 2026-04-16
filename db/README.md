@@ -13,7 +13,7 @@ This folder contains the shared database SQL for the project.
 ## Convention
 
 - Name migration files in execution order, for example `000_init.sql`, `001_...sql`, `002_...sql`.
-- Treat migrations as history. After a migration is shared, add a new file instead of rewriting the old one.
+- Treat migrations as history after the schema is shared outside this dev branch. While the app is still pre-release, this branch may squash migrations back into the baseline.
 - Keep each migration focused on one clear change set.
 - Use `queries/` only for SQL that is not part of the canonical schema history.
 - Keep seed data out of `migrations/` unless the rows are required canonical application data.
@@ -23,12 +23,14 @@ This folder contains the shared database SQL for the project.
 
 ## Current Schema
 
-The current application schema is the ordered migration set in `migrations/`.
-At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_procedures.sql`,
-`003_quests_schema.sql`, `004_quest_workflow_procedures.sql`,
-`005_achievement_join_workflow.sql`, `006_progression_rule_metadata.sql`, and
-`007_workout_activity_taxonomy.sql`, and `008_progression_state_payload.sql`
-applied in filename order.
+The current application schema is squashed into the ordered migration set in `migrations/`.
+At the moment, a fresh database needs `000_init.sql` run against the default `postgres` database,
+then the remaining files run against the created `fitrpg` database:
+
+- `001_core_schema.sql`
+- `002_progression_schema.sql`
+- `003_workflow_procedures.sql`
+- `004_seed_support_or_views.sql`
 
 ### Main Table Groups
 

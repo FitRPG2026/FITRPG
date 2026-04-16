@@ -1,3 +1,5 @@
+﻿-- Core account, activity, EXP, and workout logging schema.
+
 CREATE TABLE users (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     email VARCHAR(254) NOT NULL,
@@ -5,7 +7,7 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT users_status_check 
+    CONSTRAINT users_status_check
         CHECK (status IN ('active', 'inactive', 'banned'))
 );
 
@@ -17,9 +19,18 @@ CREATE TABLE user_auth (
     password_hash TEXT NOT NULL,
     password_updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_login_at TIMESTAMPTZ,
+    last_login_date DATE,
+    current_login_streak_days INTEGER NOT NULL DEFAULT 0,
+    longest_login_streak_days INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT user_auth_password_hash_not_blank
-        CHECK (char_length(trim(password_hash)) > 0)
+        CHECK (char_length(trim(password_hash)) > 0),
+
+    CONSTRAINT user_auth_login_streak_check
+        CHECK (
+            current_login_streak_days >= 0
+            AND longest_login_streak_days >= current_login_streak_days
+        )
 );
 
 CREATE TABLE user_profiles (
@@ -78,6 +89,9 @@ CREATE TABLE meals (
         CHECK (meal_type IS NULL OR meal_type IN ('breakfast', 'lunch', 'dinner', 'snack', 'other'))
 );
 
+CREATE INDEX meals_user_eaten_at_idx
+    ON meals(user_id, eaten_at DESC);
+
 CREATE TABLE workouts (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -87,6 +101,9 @@ CREATE TABLE workouts (
     duration_min INTEGER,
     health_score SMALLINT,
     notes TEXT,
+    activity_category TEXT,
+    activity_code VARCHAR(80),
+    activity_name VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -97,8 +114,26 @@ CREATE TABLE workouts (
         CHECK (health_score IS NULL OR health_score BETWEEN 1 AND 10),
 
     CONSTRAINT workouts_type_check
-        CHECK (workout_type IS NULL OR workout_type IN ('strength', 'cardio', 'mobility', 'sport', 'other'))
+        CHECK (workout_type IS NULL OR workout_type IN ('strength', 'cardio', 'mobility', 'sport', 'other')),
+
+    CONSTRAINT workouts_activity_category_check
+        CHECK (activity_category IS NULL OR activity_category IN ('gym', 'sport', 'general', 'other')),
+
+    CONSTRAINT workouts_activity_code_not_blank
+        CHECK (activity_code IS NULL OR char_length(trim(activity_code)) > 0),
+
+    CONSTRAINT workouts_activity_name_not_blank
+        CHECK (activity_name IS NULL OR char_length(trim(activity_name)) > 0)
 );
+
+CREATE INDEX workouts_user_performed_at_idx
+    ON workouts(user_id, performed_at DESC);
+
+CREATE INDEX workouts_activity_category_idx
+    ON workouts(activity_category);
+
+CREATE INDEX workouts_activity_code_idx
+    ON workouts(activity_code);
 
 CREATE TABLE gym_workout_exercises (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -111,6 +146,8 @@ CREATE TABLE gym_workout_exercises (
     duration_sec INTEGER,
     distance_m NUMERIC(10,2),
     notes TEXT,
+    exercise_group TEXT,
+    exercise_code VARCHAR(80),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT gym_workout_exercises_name_not_blank
@@ -132,13 +169,38 @@ CREATE TABLE gym_workout_exercises (
         CHECK (duration_sec IS NULL OR duration_sec > 0),
 
     CONSTRAINT gym_workout_exercises_distance_check
-        CHECK (distance_m IS NULL OR distance_m >= 0)
+        CHECK (distance_m IS NULL OR distance_m >= 0),
+
+    CONSTRAINT gym_workout_exercises_group_check
+        CHECK (
+            exercise_group IS NULL OR exercise_group IN (
+                'chest',
+                'back',
+                'legs',
+                'glutes',
+                'shoulders',
+                'biceps',
+                'triceps',
+                'calves',
+                'core',
+                'cardio_conditioning',
+                'calisthenics',
+                'other'
+            )
+        ),
+
+    CONSTRAINT gym_workout_exercises_code_not_blank
+        CHECK (exercise_code IS NULL OR char_length(trim(exercise_code)) > 0)
 );
 
-CREATE INDEX gym_workout_exercises_workout_id_idx ON gym_workout_exercises(workout_id);
-CREATE INDEX meals_user_eaten_at_idx ON meals(user_id, eaten_at DESC);
-CREATE INDEX workouts_user_performed_at_idx ON workouts(user_id, performed_at DESC);
+CREATE INDEX gym_workout_exercises_workout_id_idx
+    ON gym_workout_exercises(workout_id);
 
+CREATE INDEX gym_workout_exercises_group_idx
+    ON gym_workout_exercises(exercise_group);
+
+CREATE INDEX gym_workout_exercises_code_idx
+    ON gym_workout_exercises(exercise_code);
 
 CREATE TABLE exp_events (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -153,15 +215,15 @@ CREATE TABLE exp_events (
         CHECK (exp_amount <> 0),
 
     CONSTRAINT exp_events_source_type_check
-        CHECK (source_type IN ('workout', 'meal', 'challenge', 'achievement', 'manual', 'streak'))
+        CHECK (source_type IN ('workout', 'meal', 'challenge', 'achievement', 'quest', 'manual', 'streak'))
 );
 
-CREATE INDEX exp_events_user_created_at_idx ON exp_events(user_id, created_at DESC);
+CREATE INDEX exp_events_user_created_at_idx
+    ON exp_events(user_id, created_at DESC);
 
 CREATE TABLE user_progress (
     user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     total_exp INTEGER NOT NULL DEFAULT 0,
-    level INTEGER NOT NULL DEFAULT 1,
     current_streak_days INTEGER NOT NULL DEFAULT 0,
     longest_streak_days INTEGER NOT NULL DEFAULT 0,
     last_activity_at TIMESTAMPTZ,
@@ -170,115 +232,12 @@ CREATE TABLE user_progress (
     CONSTRAINT user_progress_total_exp_check
         CHECK (total_exp >= 0),
 
-    CONSTRAINT user_progress_level_check
-        CHECK (level >= 1),
-
     CONSTRAINT user_progress_current_streak_check
         CHECK (current_streak_days >= 0),
 
     CONSTRAINT user_progress_longest_streak_check
         CHECK (longest_streak_days >= 0)
 );
-
-CREATE TABLE challenges (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    challenge_type TEXT,
-    goal_value NUMERIC(10,2),
-    reward_exp INTEGER NOT NULL DEFAULT 0,
-    start_date TIMESTAMPTZ,
-    end_date TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    CONSTRAINT challenges_title_not_blank
-        CHECK (char_length(trim(title)) > 0),
-
-    CONSTRAINT challenges_goal_value_check
-        CHECK (goal_value IS NULL OR goal_value > 0),
-
-    CONSTRAINT challenges_reward_exp_check
-        CHECK (reward_exp >= 0),
-
-    CONSTRAINT challenges_date_range_check
-        CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date)
-);
-
-CREATE TABLE user_challenges (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    challenge_id BIGINT NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
-    progress_value NUMERIC(10,2) NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'active',
-    joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    claimed_at TIMESTAMPTZ,
-
-    CONSTRAINT user_challenges_progress_check
-        CHECK (progress_value >= 0),
-
-    CONSTRAINT user_challenges_status_check
-        CHECK (status IN ('active', 'completed', 'claimed', 'failed')),
-
-    CONSTRAINT user_challenges_completed_after_joined_check
-        CHECK (completed_at IS NULL OR completed_at >= joined_at),
-
-    CONSTRAINT user_challenges_claimed_after_completed_check
-        CHECK (claimed_at IS NULL OR completed_at IS NULL OR claimed_at >= completed_at),
-
-    CONSTRAINT user_challenges_unique
-        UNIQUE (user_id, challenge_id)
-);
-
-CREATE INDEX user_challenges_user_id_idx ON user_challenges(user_id);
-CREATE INDEX user_challenges_challenge_id_idx ON user_challenges(challenge_id);
-CREATE INDEX user_challenges_user_status_idx ON user_challenges(user_id, status);
-
-CREATE TABLE achievements (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    code VARCHAR(50) NOT NULL UNIQUE,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    achievement_type TEXT,
-    target_value NUMERIC(10,2),
-    reward_exp INTEGER NOT NULL DEFAULT 0,
-    icon_url TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    CONSTRAINT achievements_code_not_blank
-        CHECK (char_length(trim(code)) > 0),
-
-    CONSTRAINT achievements_title_not_blank
-        CHECK (char_length(trim(title)) > 0),
-
-    CONSTRAINT achievements_target_value_check
-        CHECK (target_value IS NULL OR target_value > 0),
-
-    CONSTRAINT achievements_reward_exp_check
-        CHECK (reward_exp >= 0)
-);
-
-CREATE TABLE user_achievements (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    achievement_id BIGINT NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
-    progress_value NUMERIC(10,2) NOT NULL DEFAULT 0,
-    unlocked_at TIMESTAMPTZ,
-    claimed_at TIMESTAMPTZ,
-
-    CONSTRAINT user_achievements_progress_check
-        CHECK (progress_value >= 0),
-
-    CONSTRAINT user_achievements_claimed_after_unlocked_check
-        CHECK (claimed_at IS NULL OR unlocked_at IS NULL OR claimed_at >= unlocked_at),
-
-    CONSTRAINT user_achievements_unique
-        UNIQUE (user_id, achievement_id)
-);
-
-CREATE INDEX user_achievements_user_id_idx ON user_achievements(user_id);
-CREATE INDEX user_achievements_achievement_id_idx ON user_achievements(achievement_id);
-CREATE INDEX user_achievements_user_unlocked_idx ON user_achievements(user_id, unlocked_at DESC);
 
 CREATE OR REPLACE FUNCTION create_user_progress_after_user_insert()
 RETURNS TRIGGER AS $$
@@ -294,30 +253,3 @@ CREATE TRIGGER trg_create_user_progress
 AFTER INSERT ON users
 FOR EACH ROW
 EXECUTE FUNCTION create_user_progress_after_user_insert();
-
-CREATE OR REPLACE PROCEDURE proc_register_user(
-    IN p_email VARCHAR(254),
-    IN p_password_hash TEXT,
-    IN p_status TEXT DEFAULT 'active'
-)
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_user_id BIGINT;
-BEGIN
-    IF p_email IS NULL OR char_length(trim(p_email)) = 0 THEN
-        RAISE EXCEPTION 'Email cannot be blank';
-    END IF;
-
-    IF p_password_hash IS NULL OR char_length(trim(p_password_hash)) = 0 THEN
-        RAISE EXCEPTION 'Password hash cannot be blank';
-    END IF;
-
-    INSERT INTO users (email, status)
-    VALUES (trim(p_email), p_status)
-    RETURNING id INTO v_user_id;
-
-    INSERT INTO user_auth (user_id, password_hash)
-    VALUES (v_user_id, trim(p_password_hash));
-END;
-$$;

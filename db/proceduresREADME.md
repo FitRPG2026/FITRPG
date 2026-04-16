@@ -14,7 +14,7 @@ This file explains the stored procedures used by FITRPG progression and seed flo
 
 #### `proc_register_user`
 
-Defined in `migrations/001_initial_schema.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - inserts into `users`
@@ -33,7 +33,7 @@ CALL proc_register_user(
 
 #### `proc_mark_login`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - updates `user_auth.last_login_at`
@@ -49,7 +49,7 @@ CALL proc_mark_login(
 
 #### `proc_upsert_user_profile`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - inserts a profile if none exists
@@ -75,7 +75,7 @@ CALL proc_upsert_user_profile(
 
 #### `proc_grant_exp`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - inserts into `exp_events`
@@ -104,7 +104,7 @@ CALL proc_grant_exp(
 
 #### `proc_refresh_user_progress`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/004_seed_support_or_views.sql`.
 
 Use it as:
 - a maintenance / repair helper for `user_progress`
@@ -131,7 +131,7 @@ CALL proc_refresh_user_progress(
 
 #### `proc_create_challenge`
 
-Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/006_progression_rule_metadata.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - inserts a challenge definition
@@ -200,7 +200,7 @@ What it does:
 
 #### `proc_create_achievement`
 
-Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/005_achievement_join_workflow.sql` and `migrations/006_progression_rule_metadata.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - creates or updates an achievement definition by `code`
@@ -210,7 +210,7 @@ What it does:
 
 #### `proc_join_achievement`
 
-Defined in `migrations/005_achievement_join_workflow.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - creates the user's `user_achievements` row explicitly
@@ -266,7 +266,7 @@ CALL proc_claim_achievement_reward(
 
 #### `proc_log_meal`
 
-Defined in `migrations/002_workflow_procedures.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - inserts into `meals`
@@ -294,7 +294,7 @@ CALL proc_log_meal(
 
 #### `proc_log_workout`
 
-Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/007_workout_activity_taxonomy.sql`.
+Defined in `migrations/003_workflow_procedures.sql`.
 
 What it does:
 - inserts into `workouts`
@@ -330,8 +330,7 @@ CALL proc_log_workout(
 
 ### Quests
 
-All quest procedures are defined in `migrations/004_quest_workflow_procedures.sql`.
-`proc_create_quest` is overridden by `migrations/006_progression_rule_metadata.sql`.
+All quest procedures are defined in `migrations/003_workflow_procedures.sql`.
 
 #### `proc_create_quest`
 
