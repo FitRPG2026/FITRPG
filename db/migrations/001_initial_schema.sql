@@ -65,10 +65,6 @@ CREATE TABLE meals (
     notes TEXT,
     health_score SMALLINT,
     ai_confidence NUMERIC(4,3),
-    total_calories NUMERIC(8,2),
-    total_protein_g NUMERIC(8,2),
-    total_carbs_g NUMERIC(8,2),
-    total_fat_g NUMERIC(8,2),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -78,59 +74,8 @@ CREATE TABLE meals (
     CONSTRAINT meals_ai_confidence_check
         CHECK (ai_confidence IS NULL OR ai_confidence BETWEEN 0 AND 1),
 
-    CONSTRAINT meals_total_calories_check
-        CHECK (total_calories IS NULL OR total_calories >= 0),
-
-    CONSTRAINT meals_total_protein_check
-        CHECK (total_protein_g IS NULL OR total_protein_g >= 0),
-
-    CONSTRAINT meals_total_carbs_check
-        CHECK (total_carbs_g IS NULL OR total_carbs_g >= 0),
-
-    CONSTRAINT meals_total_fat_check
-        CHECK (total_fat_g IS NULL OR total_fat_g >= 0),
-
     CONSTRAINT meals_type_check
         CHECK (meal_type IS NULL OR meal_type IN ('breakfast', 'lunch', 'dinner', 'snack', 'other'))
-);
-
-CREATE TABLE meal_items (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    meal_id BIGINT NOT NULL REFERENCES meals(id) ON DELETE CASCADE,
-    item_name VARCHAR(100) NOT NULL,
-    quantity NUMERIC(8,2),
-    unit VARCHAR(20),
-    grams NUMERIC(8,2),
-    calories NUMERIC(8,2),
-    protein_g NUMERIC(8,2),
-    carbs_g NUMERIC(8,2),
-    fat_g NUMERIC(8,2),
-    health_score SMALLINT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    CONSTRAINT meal_items_item_name_not_blank
-        CHECK (char_length(trim(item_name)) > 0),
-
-    CONSTRAINT meal_items_quantity_check
-        CHECK (quantity IS NULL OR quantity > 0),
-
-    CONSTRAINT meal_items_grams_check
-        CHECK (grams IS NULL OR grams > 0),
-
-    CONSTRAINT meal_items_calories_check
-        CHECK (calories IS NULL OR calories >= 0),
-
-    CONSTRAINT meal_items_protein_check
-        CHECK (protein_g IS NULL OR protein_g >= 0),
-
-    CONSTRAINT meal_items_carbs_check
-        CHECK (carbs_g IS NULL OR carbs_g >= 0),
-
-    CONSTRAINT meal_items_fat_check
-        CHECK (fat_g IS NULL OR fat_g >= 0),
-
-    CONSTRAINT meal_items_health_score_check
-        CHECK (health_score IS NULL OR health_score BETWEEN 1 AND 10)
 );
 
 CREATE TABLE workouts (
@@ -140,7 +85,6 @@ CREATE TABLE workouts (
     title VARCHAR(100),
     performed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     duration_min INTEGER,
-    calories_burned NUMERIC(8,2),
     health_score SMALLINT,
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -149,9 +93,6 @@ CREATE TABLE workouts (
     CONSTRAINT workouts_duration_check
         CHECK (duration_min IS NULL OR duration_min > 0),
 
-    CONSTRAINT workouts_calories_burned_check
-        CHECK (calories_burned IS NULL OR calories_burned >= 0),
-
     CONSTRAINT workouts_health_score_check
         CHECK (health_score IS NULL OR health_score BETWEEN 1 AND 10),
 
@@ -159,7 +100,7 @@ CREATE TABLE workouts (
         CHECK (workout_type IS NULL OR workout_type IN ('strength', 'cardio', 'mobility', 'sport', 'other'))
 );
 
-CREATE TABLE workout_exercises (
+CREATE TABLE gym_workout_exercises (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     workout_id BIGINT NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
     exercise_name VARCHAR(100) NOT NULL,
@@ -169,37 +110,32 @@ CREATE TABLE workout_exercises (
     weight_kg NUMERIC(8,2),
     duration_sec INTEGER,
     distance_m NUMERIC(10,2),
-    calories_burned NUMERIC(8,2),
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT workout_exercises_name_not_blank
+    CONSTRAINT gym_workout_exercises_name_not_blank
         CHECK (char_length(trim(exercise_name)) > 0),
 
-    CONSTRAINT workout_exercises_order_check
+    CONSTRAINT gym_workout_exercises_order_check
         CHECK (exercise_order IS NULL OR exercise_order > 0),
 
-    CONSTRAINT workout_exercises_sets_check
+    CONSTRAINT gym_workout_exercises_sets_check
         CHECK (sets IS NULL OR sets > 0),
 
-    CONSTRAINT workout_exercises_reps_check
+    CONSTRAINT gym_workout_exercises_reps_check
         CHECK (reps IS NULL OR reps > 0),
 
-    CONSTRAINT workout_exercises_weight_check
+    CONSTRAINT gym_workout_exercises_weight_check
         CHECK (weight_kg IS NULL OR weight_kg >= 0),
 
-    CONSTRAINT workout_exercises_duration_check
+    CONSTRAINT gym_workout_exercises_duration_check
         CHECK (duration_sec IS NULL OR duration_sec > 0),
 
-    CONSTRAINT workout_exercises_distance_check
-        CHECK (distance_m IS NULL OR distance_m >= 0),
-
-    CONSTRAINT workout_exercises_calories_check
-        CHECK (calories_burned IS NULL OR calories_burned >= 0)
+    CONSTRAINT gym_workout_exercises_distance_check
+        CHECK (distance_m IS NULL OR distance_m >= 0)
 );
 
-CREATE INDEX meal_items_meal_id_idx ON meal_items(meal_id);
-CREATE INDEX workout_exercises_workout_id_idx ON workout_exercises(workout_id);
+CREATE INDEX gym_workout_exercises_workout_id_idx ON gym_workout_exercises(workout_id);
 CREATE INDEX meals_user_eaten_at_idx ON meals(user_id, eaten_at DESC);
 CREATE INDEX workouts_user_performed_at_idx ON workouts(user_id, performed_at DESC);
 

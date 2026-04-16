@@ -34,10 +34,10 @@ applied in filename order.
 
 - `users`, `user_auth`, `user_profiles`
   Core account data, login data, and optional profile / health data.
-- `meals`, `meal_items`
-  A meal log plus its detailed ingredients or detected items.
-- `workouts`, `workout_exercises`
-  A workout log plus optional exercise-level breakdown.
+- `meals`
+  A meal log with user, timestamp, type, optional photo/notes, and score.
+- `workouts`, `gym_workout_exercises`
+  A workout log for gym and non-gym activities plus optional exercise-level breakdown for gym workouts only.
 - `exp_events`, `user_progress`
   Experience history and the user's current progression state.
 - `challenges`, `user_challenges`
@@ -53,8 +53,8 @@ applied in filename order.
 - One `users` row can have one `user_auth` row.
 - One `users` row can have zero or one `user_profiles` row.
 - One user can have many meals and many workouts.
-- One meal can have many `meal_items`.
-- One workout can have many `workout_exercises`.
+- Meal nutrition/calorie item breakdown is not stored in the database.
+- One gym workout can have many `gym_workout_exercises`.
 - One user can have many `exp_events`.
 - One user has one `user_progress` row.
 - Challenge, quest, and achievement tables are split into:
@@ -72,8 +72,6 @@ applied in filename order.
   Manual or AI-generated score on a `1-10` scale for meals or workouts.
 - `meal_type`
   Controlled meal category: `breakfast`, `lunch`, `dinner`, `snack`, or `other`.
-- `quantity`, `unit`, `grams`
-  `quantity` + `unit` represent user-friendly input like `2 pcs` or `250 ml`, while `grams` gives a normalized amount for calculations.
 - `workout_type`
   Controlled workout category: `strength`, `cardio`, `mobility`, `sport`, or `other`.
 - `activity_category`, `activity_code`, `activity_name`
@@ -124,12 +122,11 @@ applied in filename order.
 
 ### Why Some Data Is Repeated
 
-- `meals` stores total macros for the full meal.
-- `meal_items` stores item-level data for the meal breakdown.
 - `workouts` stores workout-level data.
-- `workout_exercises` stores exercise-level details.
+- `gym_workout_exercises` stores exercise-level details only for workouts where `activity_category = 'gym'`.
 
-This is intentional. Parent tables are optimized for quick reads of the full object, while child tables keep the detailed breakdown shown in the UI.
+This is intentional. Meals keep only the AI/user score and metadata needed by progression.
+Workout details are split because non-gym activities only need the workout row, while gym sessions can have concrete exercises.
 
 ### Action Flows
 
@@ -148,16 +145,15 @@ This is intentional. Parent tables are optimized for quick reads of the full obj
 #### User Logs a Meal
 
 1. Insert one row into `meals`.
-2. Insert one or more rows into `meal_items`.
-3. Recalculate and persist `meals.total_calories`, `total_protein_g`, `total_carbs_g`, `total_fat_g`.
-4. If the meal grants EXP, insert into `exp_events`.
-5. Update `user_progress`.
+2. Store `health_score` and optional AI confidence/photo metadata.
+3. If the meal grants EXP, insert into `exp_events`.
+4. Update `user_progress`.
 
 #### User Logs a Workout
 
 1. Insert one row into `workouts`.
 2. Store the UI taxonomy in `activity_category`, `activity_code`, and `activity_name`.
-3. Optionally insert many rows into `workout_exercises`, including `exercise_group` and `exercise_code` when the category is `gym`.
+3. If `activity_category = 'gym'`, optionally insert many rows into `gym_workout_exercises`, including `exercise_group` and `exercise_code`.
 4. If the workout grants EXP, insert into `exp_events`.
 5. Update `user_progress`.
 
@@ -191,7 +187,8 @@ This is intentional. Parent tables are optimized for quick reads of the full obj
 
 - `user_profiles` is optional, so a user account can exist before profile completion.
 - The schema does not currently use `foods`, `products`, or `exercises` reference tables.
-- Meal and workout detail tables store direct logged values instead of referencing external dictionaries.
+- Meal item nutrition/calorie values are intentionally not stored; meal progression should use `meals.health_score`.
+- Gym exercise detail rows store direct logged values instead of referencing an exercise dictionary.
 - Workout activity lists from the UI should map to `activity_category`, `activity_code`, and `activity_name`.
   The current top-level categories are `gym`, `sport`, `general`, and fallback `other`.
 - Challenge-like definitions are event-driven. Do not scan every challenge on every request; filter by `event_trigger`, then evaluate JSONB `conditions` in backend code.

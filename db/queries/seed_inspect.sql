@@ -159,22 +159,6 @@ WITH snapshot AS (
     UNION ALL
 
     SELECT
-        'meal_items' AS table_name,
-        mi.id AS row_id,
-        to_jsonb(mi)
-            || jsonb_build_object('email', u.email, 'meal_title', m.title, 'meal_type', m.meal_type) AS row_data
-    FROM (
-        SELECT *
-        FROM meal_items
-        ORDER BY id
-        LIMIT 20
-    ) mi
-    JOIN meals m ON m.id = mi.meal_id
-    JOIN users u ON u.id = m.user_id
-
-    UNION ALL
-
-    SELECT
         'workouts' AS table_name,
         w.id AS row_id,
         to_jsonb(w) || jsonb_build_object('email', u.email) AS row_data
@@ -189,13 +173,13 @@ WITH snapshot AS (
     UNION ALL
 
     SELECT
-        'workout_exercises' AS table_name,
+        'gym_workout_exercises' AS table_name,
         we.id AS row_id,
         to_jsonb(we)
             || jsonb_build_object('email', u.email, 'workout_title', w.title, 'workout_type', w.workout_type) AS row_data
     FROM (
         SELECT *
-        FROM workout_exercises
+        FROM gym_workout_exercises
         ORDER BY id
         LIMIT 20
     ) we

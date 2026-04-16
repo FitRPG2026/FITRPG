@@ -270,12 +270,10 @@ Defined in `migrations/002_workflow_procedures.sql`.
 
 What it does:
 - inserts into `meals`
-- inserts `meal_items` from `jsonb`
-- recalculates meal totals from the items
+- stores meal type, time, optional photo/notes, score, and AI confidence
 - optionally grants meal EXP
 
 Notes:
-- `p_items` must be a JSON array of item objects.
 - If `p_grant_exp = TRUE`, `p_exp_amount` is required.
 
 Example:
@@ -286,9 +284,7 @@ CALL proc_log_meal(
     p_meal_type => 'breakfast',
     p_eaten_at => '2026-03-20 07:35:00+00',
     p_title => 'High Protein Oats',
-    p_items => $$[
-        {"item_name":"Oats","quantity":80.00,"unit":"g","grams":80.00,"calories":311.00,"protein_g":10.00,"carbs_g":53.00,"fat_g":5.50,"health_score":9}
-    ]$$::jsonb,
+    p_health_score => 9::SMALLINT,
     p_grant_exp => TRUE,
     p_exp_amount => 10
 );
@@ -302,14 +298,14 @@ Defined in `migrations/002_workflow_procedures.sql`, overridden by `migrations/0
 
 What it does:
 - inserts into `workouts`
-- inserts `workout_exercises` from `jsonb`
+- inserts `gym_workout_exercises` from `jsonb` only for gym workouts
 - stores UI activity taxonomy in `activity_category`, `activity_code`, and `activity_name`
 - stores exercise taxonomy from JSONB fields `exercise_group` and `exercise_code`
-- optionally derives `calories_burned` from exercises
 - optionally grants workout EXP
 
 Notes:
 - `p_exercises` must be a JSON array.
+- Detailed exercises are allowed only when `p_activity_category = 'gym'`.
 - If `p_grant_exp = TRUE`, `p_exp_amount` is required.
 - `p_activity_category` should be `gym`, `sport`, `general`, or `other`.
 - Use normalized ASCII `activity_code` / `exercise_code` values for challenge conditions, for example `basketball`, `football`, `lat_pulldown`.
@@ -326,9 +322,6 @@ CALL proc_log_workout(
     p_title => 'Basketball Scrimmage',
     p_performed_at => '2026-03-22 18:30:00+00',
     p_duration_min => 53,
-    p_exercises => $$[
-        {"exercise_name":"Full-court scrimmage","exercise_order":1,"duration_sec":3180,"distance_m":4600.00}
-    ]$$::jsonb,
     p_activity_category => 'sport',
     p_activity_code => 'basketball',
     p_activity_name => 'Basketball'

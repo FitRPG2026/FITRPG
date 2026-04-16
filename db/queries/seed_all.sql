@@ -413,11 +413,6 @@ CALL proc_log_meal(
     p_notes => 'Added berries after training.',
     p_health_score => 9::SMALLINT,
     p_ai_confidence => 0.962,
-    p_items => $$[
-        {"item_name":"Oats","quantity":80.00,"unit":"g","grams":80.00,"calories":311.00,"protein_g":10.00,"carbs_g":53.00,"fat_g":5.50,"health_score":9},
-        {"item_name":"Skyr","quantity":150.00,"unit":"g","grams":150.00,"calories":96.00,"protein_g":17.00,"carbs_g":6.00,"fat_g":0.20,"health_score":9},
-        {"item_name":"Blueberries","quantity":60.00,"unit":"g","grams":60.00,"calories":34.00,"protein_g":0.40,"carbs_g":8.00,"fat_g":0.20,"health_score":10}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 10,
     p_exp_reason => 'Logged a high-quality breakfast.',
@@ -433,12 +428,6 @@ CALL proc_log_meal(
     p_notes => 'Meal-prepped bowl with rice and avocado.',
     p_health_score => 8::SMALLINT,
     p_ai_confidence => 0.911,
-    p_items => $$[
-        {"item_name":"Chicken breast","quantity":160.00,"unit":"g","grams":160.00,"calories":264.00,"protein_g":49.00,"carbs_g":0.00,"fat_g":5.80,"health_score":9},
-        {"item_name":"Cooked rice","quantity":180.00,"unit":"g","grams":180.00,"calories":234.00,"protein_g":4.50,"carbs_g":50.00,"fat_g":0.40,"health_score":7},
-        {"item_name":"Avocado","quantity":70.00,"unit":"g","grams":70.00,"calories":112.00,"protein_g":1.40,"carbs_g":6.00,"fat_g":10.50,"health_score":9},
-        {"item_name":"Roasted vegetables","quantity":150.00,"unit":"g","grams":150.00,"calories":100.00,"protein_g":3.00,"carbs_g":12.00,"fat_g":7.30,"health_score":8}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 15,
     p_exp_reason => 'Logged a balanced lunch.',
@@ -451,12 +440,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-21 16:20:00+00',
     p_title => 'Greek Yogurt Snack',
     p_notes => 'Fast snack between meetings.',
-    p_health_score => 8::SMALLINT,
-    p_items => $$[
-        {"item_name":"Greek yogurt","quantity":170.00,"unit":"g","grams":170.00,"calories":146.00,"protein_g":17.00,"carbs_g":6.00,"fat_g":5.00,"health_score":8},
-        {"item_name":"Honey","quantity":15.00,"unit":"g","grams":15.00,"calories":46.00,"protein_g":0.00,"carbs_g":12.00,"fat_g":0.00,"health_score":6},
-        {"item_name":"Walnuts","quantity":12.00,"unit":"g","grams":12.00,"calories":79.00,"protein_g":1.80,"carbs_g":1.00,"fat_g":7.80,"health_score":8}
-    ]$$::jsonb
+    p_health_score => 8::SMALLINT
 );
 
 CALL proc_log_meal(
@@ -467,12 +451,6 @@ CALL proc_log_meal(
     p_notes => 'Grabbed on the way to work.',
     p_health_score => 6::SMALLINT,
     p_ai_confidence => 0.702,
-    p_items => $$[
-        {"item_name":"Tortilla wrap","quantity":1.00,"unit":"pcs","grams":70.00,"calories":220.00,"protein_g":6.00,"carbs_g":36.00,"fat_g":5.00,"health_score":6},
-        {"item_name":"Scrambled eggs","quantity":2.00,"unit":"pcs","grams":100.00,"calories":155.00,"protein_g":13.00,"carbs_g":1.00,"fat_g":11.00,"health_score":7},
-        {"item_name":"Cheddar cheese","quantity":25.00,"unit":"g","grams":25.00,"calories":101.00,"protein_g":6.00,"carbs_g":1.00,"fat_g":8.00,"health_score":5},
-        {"item_name":"Tomato salsa","quantity":40.00,"unit":"g","grams":40.00,"calories":34.00,"protein_g":0.50,"carbs_g":8.00,"fat_g":0.20,"health_score":8}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 10,
     p_exp_reason => 'Logged breakfast during workday.',
@@ -487,12 +465,7 @@ CALL proc_log_meal(
     p_photo_url => 'https://cdn.fitrpg.dev/meals/salmon_rice_plate.jpg',
     p_notes => 'Restaurant dinner, estimate adjusted manually.',
     p_health_score => 8::SMALLINT,
-    p_ai_confidence => 0.834,
-    p_items => $$[
-        {"item_name":"Salmon fillet","quantity":170.00,"unit":"g","grams":170.00,"calories":354.00,"protein_g":34.00,"carbs_g":0.00,"fat_g":22.00,"health_score":9},
-        {"item_name":"Jasmine rice","quantity":170.00,"unit":"g","grams":170.00,"calories":221.00,"protein_g":4.00,"carbs_g":48.00,"fat_g":0.40,"health_score":7},
-        {"item_name":"Cucumber salad","quantity":120.00,"unit":"g","grams":120.00,"calories":58.00,"protein_g":1.00,"carbs_g":7.00,"fat_g":3.00,"health_score":8}
-    ]$$::jsonb
+    p_ai_confidence => 0.834
 );
 
 CALL proc_log_meal(
@@ -504,11 +477,6 @@ CALL proc_log_meal(
     p_notes => 'Recovery smoothie after tempo run.',
     p_health_score => 9::SMALLINT,
     p_ai_confidence => 0.955,
-    p_items => $$[
-        {"item_name":"Banana","quantity":1.00,"unit":"pcs","grams":120.00,"calories":105.00,"protein_g":1.30,"carbs_g":27.00,"fat_g":0.40,"health_score":8},
-        {"item_name":"Protein powder","quantity":30.00,"unit":"g","grams":30.00,"calories":120.00,"protein_g":24.00,"carbs_g":3.00,"fat_g":1.50,"health_score":8},
-        {"item_name":"Oat milk","quantity":250.00,"unit":"ml","grams":250.00,"calories":105.00,"protein_g":1.00,"carbs_g":8.00,"fat_g":5.00,"health_score":7}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 12,
     p_exp_reason => 'Recovery meal logged after training.',
@@ -521,13 +489,7 @@ CALL proc_log_meal(
     p_eaten_at => '2026-03-21 20:15:00+00',
     p_title => 'Veggie Pasta Dinner',
     p_notes => 'Homemade whole-grain pasta.',
-    p_health_score => 8::SMALLINT,
-    p_items => $$[
-        {"item_name":"Whole-grain pasta","quantity":110.00,"unit":"g","grams":110.00,"calories":380.00,"protein_g":15.00,"carbs_g":72.00,"fat_g":2.00,"health_score":8},
-        {"item_name":"Tomato sauce","quantity":140.00,"unit":"g","grams":140.00,"calories":72.00,"protein_g":2.00,"carbs_g":12.00,"fat_g":1.50,"health_score":8},
-        {"item_name":"Parmesan","quantity":18.00,"unit":"g","grams":18.00,"calories":77.00,"protein_g":7.00,"carbs_g":1.00,"fat_g":5.00,"health_score":7},
-        {"item_name":"Zucchini and peppers","quantity":160.00,"unit":"g","grams":160.00,"calories":61.00,"protein_g":1.50,"carbs_g":10.00,"fat_g":1.80,"health_score":9}
-    ]$$::jsonb
+    p_health_score => 8::SMALLINT
 );
 
 CALL proc_log_meal(
@@ -537,11 +499,6 @@ CALL proc_log_meal(
     p_title => 'Quick Convenience Lunch',
     p_notes => 'Logged to restart tracking habit.',
     p_health_score => 4::SMALLINT,
-    p_items => $$[
-        {"item_name":"Ham sandwich","quantity":1.00,"unit":"pcs","grams":210.00,"calories":430.00,"protein_g":17.00,"carbs_g":42.00,"fat_g":17.00,"health_score":4},
-        {"item_name":"Potato chips","quantity":45.00,"unit":"g","grams":45.00,"calories":239.00,"protein_g":3.00,"carbs_g":27.00,"fat_g":14.00,"health_score":2},
-        {"item_name":"Cola","quantity":330.00,"unit":"ml","grams":330.00,"calories":139.00,"protein_g":0.00,"carbs_g":35.00,"fat_g":0.00,"health_score":1}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 5,
     p_exp_reason => 'Logged a meal after a long gap.',
@@ -556,13 +513,7 @@ CALL proc_log_meal(
     p_photo_url => 'https://cdn.fitrpg.dev/meals/weekend_pancakes.jpg',
     p_notes => 'Shared breakfast, estimated half portion.',
     p_health_score => 6::SMALLINT,
-    p_ai_confidence => 0.821,
-    p_items => $$[
-        {"item_name":"Pancakes","quantity":3.00,"unit":"pcs","grams":210.00,"calories":366.00,"protein_g":9.00,"carbs_g":52.00,"fat_g":11.00,"health_score":6},
-        {"item_name":"Maple syrup","quantity":25.00,"unit":"g","grams":25.00,"calories":65.00,"protein_g":0.00,"carbs_g":17.00,"fat_g":0.00,"health_score":4},
-        {"item_name":"Strawberries","quantity":90.00,"unit":"g","grams":90.00,"calories":29.00,"protein_g":0.70,"carbs_g":7.00,"fat_g":0.30,"health_score":10},
-        {"item_name":"Greek yogurt topping","quantity":80.00,"unit":"g","grams":80.00,"calories":80.00,"protein_g":7.30,"carbs_g":3.00,"fat_g":2.80,"health_score":8}
-    ]$$::jsonb
+    p_ai_confidence => 0.821
 );
 
 CALL proc_log_meal(
@@ -574,12 +525,6 @@ CALL proc_log_meal(
     p_notes => 'Mostly manual corrections after scan.',
     p_health_score => 9::SMALLINT,
     p_ai_confidence => 0.943,
-    p_items => $$[
-        {"item_name":"Mixed greens","quantity":70.00,"unit":"g","grams":70.00,"calories":18.00,"protein_g":1.50,"carbs_g":2.00,"fat_g":0.20,"health_score":10},
-        {"item_name":"Chickpeas","quantity":100.00,"unit":"g","grams":100.00,"calories":164.00,"protein_g":9.00,"carbs_g":27.00,"fat_g":2.60,"health_score":8},
-        {"item_name":"Feta cheese","quantity":45.00,"unit":"g","grams":45.00,"calories":119.00,"protein_g":6.50,"carbs_g":2.00,"fat_g":9.60,"health_score":7},
-        {"item_name":"Olive oil dressing","quantity":12.00,"unit":"g","grams":12.00,"calories":108.00,"protein_g":0.00,"carbs_g":0.00,"fat_g":12.00,"health_score":7}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 14,
     p_exp_reason => 'Logged nutrient-dense lunch.',
@@ -591,11 +536,7 @@ CALL proc_log_meal(
     p_meal_type => 'snack',
     p_eaten_at => '2026-03-22 16:05:00+00',
     p_title => 'Apple Peanut Snack',
-    p_health_score => 7::SMALLINT,
-    p_items => $$[
-        {"item_name":"Apple","quantity":1.00,"unit":"pcs","grams":180.00,"calories":95.00,"protein_g":0.50,"carbs_g":25.00,"fat_g":0.30,"health_score":9},
-        {"item_name":"Peanut butter","quantity":25.00,"unit":"g","grams":25.00,"calories":148.00,"protein_g":6.00,"carbs_g":4.00,"fat_g":12.60,"health_score":6}
-    ]$$::jsonb
+    p_health_score => 7::SMALLINT
 );
 
 CALL proc_log_meal(
@@ -605,11 +546,6 @@ CALL proc_log_meal(
     p_title => 'Protein Shake',
     p_notes => 'Post leg day shake.',
     p_health_score => 8::SMALLINT,
-    p_items => $$[
-        {"item_name":"Whey protein","quantity":35.00,"unit":"g","grams":35.00,"calories":140.00,"protein_g":28.00,"carbs_g":4.00,"fat_g":2.50,"health_score":8},
-        {"item_name":"Banana","quantity":1.00,"unit":"pcs","grams":120.00,"calories":105.00,"protein_g":1.30,"carbs_g":27.00,"fat_g":0.40,"health_score":8},
-        {"item_name":"Milk","quantity":200.00,"unit":"ml","grams":200.00,"calories":103.00,"protein_g":6.80,"carbs_g":10.00,"fat_g":5.10,"health_score":7}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 8,
     p_exp_reason => 'Logged post-workout snack.',
@@ -624,12 +560,7 @@ CALL proc_log_meal(
     p_photo_url => 'https://cdn.fitrpg.dev/meals/sushi_dinner.jpg',
     p_notes => 'Dinner after basketball with friends.',
     p_health_score => 7::SMALLINT,
-    p_ai_confidence => 0.776,
-    p_items => $$[
-        {"item_name":"Salmon nigiri","quantity":6.00,"unit":"pcs","grams":210.00,"calories":290.00,"protein_g":18.00,"carbs_g":33.00,"fat_g":8.00,"health_score":8},
-        {"item_name":"California rolls","quantity":8.00,"unit":"pcs","grams":220.00,"calories":255.00,"protein_g":8.00,"carbs_g":38.00,"fat_g":7.00,"health_score":7},
-        {"item_name":"Miso soup","quantity":1.00,"unit":"bowl","grams":240.00,"calories":70.00,"protein_g":5.00,"carbs_g":8.00,"fat_g":2.50,"health_score":8}
-    ]$$::jsonb
+    p_ai_confidence => 0.776
 );
 END;
 $seed$;
@@ -747,10 +678,10 @@ CALL proc_log_workout(
     p_health_score => 9::SMALLINT,
     p_notes => 'Focused on progressive overload.',
     p_exercises => $$[
-        {"exercise_name":"Bench Press","exercise_order":1,"exercise_group":"chest","sets":4,"reps":8,"weight_kg":42.50,"calories_burned":120.00,"notes":"Last set close to failure."},
-        {"exercise_name":"One-Arm Dumbbell Row","exercise_order":2,"exercise_group":"back","sets":4,"reps":10,"weight_kg":20.00,"calories_burned":95.00},
-        {"exercise_name":"Seated Shoulder Press","exercise_order":3,"exercise_group":"shoulders","sets":3,"reps":10,"weight_kg":14.00,"calories_burned":82.00},
-        {"exercise_name":"Plank","exercise_order":4,"exercise_group":"core","sets":3,"duration_sec":180,"calories_burned":28.00,"notes":"Three sixty-second holds."}
+        {"exercise_name":"Bench Press","exercise_order":1,"exercise_group":"chest","sets":4,"reps":8,"weight_kg":42.50,"notes":"Last set close to failure."},
+        {"exercise_name":"One-Arm Dumbbell Row","exercise_order":2,"exercise_group":"back","sets":4,"reps":10,"weight_kg":20.00},
+        {"exercise_name":"Seated Shoulder Press","exercise_order":3,"exercise_group":"shoulders","sets":3,"reps":10,"weight_kg":14.00},
+        {"exercise_name":"Plank","exercise_order":4,"exercise_group":"core","sets":3,"duration_sec":180,"notes":"Three sixty-second holds."}
     ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 40,
@@ -769,11 +700,6 @@ CALL proc_log_workout(
     p_duration_min => 22,
     p_health_score => 8::SMALLINT,
     p_notes => 'Short recovery-focused session.',
-    p_exercises => $$[
-        {"exercise_name":"Hip Openers","exercise_order":1,"sets":2,"reps":12,"duration_sec":420,"calories_burned":18.00},
-        {"exercise_name":"Thoracic Rotations","exercise_order":2,"sets":2,"reps":10,"duration_sec":360,"calories_burned":14.00},
-        {"exercise_name":"Hamstring Stretch","exercise_order":3,"sets":2,"duration_sec":300,"calories_burned":12.00,"notes":"Held both sides equally."}
-    ]$$::jsonb,
     p_activity_category => 'general',
     p_activity_code => 'mobility',
     p_activity_name => 'Morning Mobility Flow'
@@ -787,9 +713,6 @@ CALL proc_log_workout(
     p_duration_min => 35,
     p_health_score => 7::SMALLINT,
     p_notes => 'Walked around the office district.',
-    p_exercises => $$[
-        {"exercise_name":"Outdoor brisk walk","exercise_order":1,"duration_sec":2100,"distance_m":3200.00,"calories_burned":180.00,"notes":"Mostly flat route."}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 20,
     p_exp_reason => 'Completed lunchtime walk.',
@@ -807,11 +730,6 @@ CALL proc_log_workout(
     p_duration_min => 31,
     p_health_score => 9::SMALLINT,
     p_notes => 'Sustained race-pace effort.',
-    p_exercises => $$[
-        {"exercise_name":"Warm-up jog","exercise_order":1,"duration_sec":480,"distance_m":1200.00,"calories_burned":70.00},
-        {"exercise_name":"Tempo block","exercise_order":2,"duration_sec":1320,"distance_m":4000.00,"calories_burned":250.00,"notes":"Held a strong but controlled pace."},
-        {"exercise_name":"Cool-down jog","exercise_order":3,"duration_sec":300,"distance_m":800.00,"calories_burned":35.00}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 45,
     p_exp_reason => 'Completed tempo run.',
@@ -829,11 +747,6 @@ CALL proc_log_workout(
     p_duration_min => 18,
     p_health_score => 8::SMALLINT,
     p_notes => 'Mobility and foam rolling.',
-    p_exercises => $$[
-        {"exercise_name":"Foam rolling","exercise_order":1,"duration_sec":420,"calories_burned":18.00},
-        {"exercise_name":"Calf stretch","exercise_order":2,"sets":2,"duration_sec":240,"calories_burned":8.00},
-        {"exercise_name":"Glute mobility","exercise_order":3,"sets":2,"reps":10,"duration_sec":300,"calories_burned":12.00}
-    ]$$::jsonb,
     p_activity_category => 'general',
     p_activity_code => 'stretching',
     p_activity_name => 'Recovery Stretch'
@@ -848,9 +761,9 @@ CALL proc_log_workout(
     p_health_score => 6::SMALLINT,
     p_notes => 'First gym visit in a while.',
     p_exercises => $$[
-        {"exercise_name":"Leg Press","exercise_order":1,"exercise_group":"legs","sets":3,"reps":12,"weight_kg":80.00,"calories_burned":92.00,"notes":"Conservative weight selection."},
-        {"exercise_name":"Lat Pulldown","exercise_order":2,"exercise_group":"back","sets":3,"reps":10,"weight_kg":35.00,"calories_burned":70.00},
-        {"exercise_name":"Bike warm-up","exercise_order":3,"exercise_group":"cardio_conditioning","duration_sec":600,"distance_m":3800.00,"calories_burned":45.00}
+        {"exercise_name":"Leg Press","exercise_order":1,"exercise_group":"legs","sets":3,"reps":12,"weight_kg":80.00,"notes":"Conservative weight selection."},
+        {"exercise_name":"Lat Pulldown","exercise_order":2,"exercise_group":"back","sets":3,"reps":10,"weight_kg":35.00},
+        {"exercise_name":"Bike warm-up","exercise_order":3,"exercise_group":"cardio_conditioning","duration_sec":600,"distance_m":3800.00}
     ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 25,
@@ -869,9 +782,6 @@ CALL proc_log_workout(
     p_duration_min => 74,
     p_health_score => 9::SMALLINT,
     p_notes => 'Long outdoor ride with friends.',
-    p_exercises => $$[
-        {"exercise_name":"Outdoor cycling","exercise_order":1,"duration_sec":4440,"distance_m":24000.00,"calories_burned":520.00,"notes":"Rolling terrain and moderate wind."}
-    ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 35,
     p_exp_reason => 'Completed long bike ride.',
@@ -889,11 +799,6 @@ CALL proc_log_workout(
     p_duration_min => 41,
     p_health_score => 8::SMALLINT,
     p_notes => 'Studio pilates class.',
-    p_exercises => $$[
-        {"exercise_name":"Hundred","exercise_order":1,"sets":1,"reps":100,"duration_sec":180,"calories_burned":28.00},
-        {"exercise_name":"Roll-Up","exercise_order":2,"sets":3,"reps":8,"duration_sec":240,"calories_burned":26.00},
-        {"exercise_name":"Single-Leg Stretch","exercise_order":3,"sets":3,"reps":12,"duration_sec":360,"calories_burned":32.00}
-    ]$$::jsonb,
     p_activity_category => 'general',
     p_activity_code => 'pilates',
     p_activity_name => 'Pilates'
@@ -908,10 +813,10 @@ CALL proc_log_workout(
     p_health_score => 9::SMALLINT,
     p_notes => 'Heavy lower-body workout.',
     p_exercises => $$[
-        {"exercise_name":"Back Squat","exercise_order":1,"exercise_group":"legs","sets":5,"reps":5,"weight_kg":120.00,"calories_burned":170.00,"notes":"Top set felt strong."},
-        {"exercise_name":"Romanian Deadlift","exercise_order":2,"exercise_group":"glutes","sets":4,"reps":8,"weight_kg":90.00,"calories_burned":130.00},
-        {"exercise_name":"Walking Lunges","exercise_order":3,"exercise_group":"legs","sets":3,"reps":12,"weight_kg":22.00,"calories_burned":95.00,"notes":"Per leg."},
-        {"exercise_name":"Sled Push","exercise_order":4,"exercise_group":"cardio_conditioning","sets":4,"weight_kg":140.00,"duration_sec":300,"distance_m":120.00,"calories_burned":75.00,"notes":"Heavy finishers."}
+        {"exercise_name":"Back Squat","exercise_order":1,"exercise_group":"legs","sets":5,"reps":5,"weight_kg":120.00,"notes":"Top set felt strong."},
+        {"exercise_name":"Romanian Deadlift","exercise_order":2,"exercise_group":"glutes","sets":4,"reps":8,"weight_kg":90.00},
+        {"exercise_name":"Walking Lunges","exercise_order":3,"exercise_group":"legs","sets":3,"reps":12,"weight_kg":22.00,"notes":"Per leg."},
+        {"exercise_name":"Sled Push","exercise_order":4,"exercise_group":"cardio_conditioning","sets":4,"weight_kg":140.00,"duration_sec":300,"distance_m":120.00,"notes":"Heavy finishers."}
     ]$$::jsonb,
     p_grant_exp => TRUE,
     p_exp_amount => 50,
@@ -930,9 +835,6 @@ CALL proc_log_workout(
     p_duration_min => 53,
     p_health_score => 8::SMALLINT,
     p_notes => 'Competitive full-court game.',
-    p_exercises => $$[
-        {"exercise_name":"Full-court scrimmage","exercise_order":1,"duration_sec":3180,"distance_m":4600.00,"calories_burned":430.00,"notes":"Tracked by smartwatch estimate."}
-    ]$$::jsonb,
     p_activity_category => 'sport',
     p_activity_code => 'basketball',
     p_activity_name => 'Basketball'

@@ -239,11 +239,6 @@ CREATE OR REPLACE PROCEDURE proc_log_meal(
     IN p_notes TEXT DEFAULT NULL,
     IN p_health_score SMALLINT DEFAULT NULL,
     IN p_ai_confidence NUMERIC(4,3) DEFAULT NULL,
-    IN p_total_calories NUMERIC(8,2) DEFAULT NULL,
-    IN p_total_protein_g NUMERIC(8,2) DEFAULT NULL,
-    IN p_total_carbs_g NUMERIC(8,2) DEFAULT NULL,
-    IN p_total_fat_g NUMERIC(8,2) DEFAULT NULL,
-    IN p_items JSONB DEFAULT '[]'::jsonb,
     IN p_grant_exp BOOLEAN DEFAULT FALSE,
     IN p_exp_amount INTEGER DEFAULT NULL,
     IN p_exp_reason TEXT DEFAULT NULL,
@@ -252,7 +247,6 @@ CREATE OR REPLACE PROCEDURE proc_log_meal(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_items JSONB := COALESCE(p_items, '[]'::jsonb);
     v_meal_id BIGINT;
 BEGIN
     PERFORM 1
@@ -261,10 +255,6 @@ BEGIN
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'User % does not exist', p_user_id;
-    END IF;
-
-    IF jsonb_typeof(v_items) <> 'array' THEN
-        RAISE EXCEPTION 'Meal items payload must be a JSON array';
     END IF;
 
     IF p_grant_exp AND p_exp_amount IS NULL THEN
@@ -279,11 +269,7 @@ BEGIN
         photo_url,
         notes,
         health_score,
-        ai_confidence,
-        total_calories,
-        total_protein_g,
-        total_carbs_g,
-        total_fat_g
+        ai_confidence
     )
     VALUES (
         p_user_id,
@@ -293,73 +279,9 @@ BEGIN
         p_photo_url,
         p_notes,
         p_health_score,
-        p_ai_confidence,
-        p_total_calories,
-        p_total_protein_g,
-        p_total_carbs_g,
-        p_total_fat_g
+        p_ai_confidence
     )
     RETURNING id INTO v_meal_id;
-
-    IF jsonb_array_length(v_items) > 0 THEN
-        INSERT INTO meal_items (
-            meal_id,
-            item_name,
-            quantity,
-            unit,
-            grams,
-            calories,
-            protein_g,
-            carbs_g,
-            fat_g,
-            health_score,
-            created_at
-        )
-        SELECT
-            v_meal_id,
-            item.item_name,
-            item.quantity,
-            item.unit,
-            item.grams,
-            item.calories,
-            item.protein_g,
-            item.carbs_g,
-            item.fat_g,
-            item.health_score,
-            COALESCE(item.created_at, NOW())
-        FROM jsonb_to_recordset(v_items) AS item(
-            item_name VARCHAR(100),
-            quantity NUMERIC(8,2),
-            unit VARCHAR(20),
-            grams NUMERIC(8,2),
-            calories NUMERIC(8,2),
-            protein_g NUMERIC(8,2),
-            carbs_g NUMERIC(8,2),
-            fat_g NUMERIC(8,2),
-            health_score SMALLINT,
-            created_at TIMESTAMPTZ
-        );
-
-        UPDATE meals
-        SET
-            total_calories = agg.total_calories,
-            total_protein_g = agg.total_protein_g,
-            total_carbs_g = agg.total_carbs_g,
-            total_fat_g = agg.total_fat_g,
-            updated_at = NOW()
-        FROM (
-            SELECT
-                meal_id,
-                COALESCE(SUM(calories), 0)::NUMERIC(8,2) AS total_calories,
-                COALESCE(SUM(protein_g), 0)::NUMERIC(8,2) AS total_protein_g,
-                COALESCE(SUM(carbs_g), 0)::NUMERIC(8,2) AS total_carbs_g,
-                COALESCE(SUM(fat_g), 0)::NUMERIC(8,2) AS total_fat_g
-            FROM meal_items
-            WHERE meal_id = v_meal_id
-            GROUP BY meal_id
-        ) AS agg
-        WHERE meals.id = agg.meal_id;
-    END IF;
 
     UPDATE user_progress
     SET
@@ -390,7 +312,6 @@ CREATE OR REPLACE PROCEDURE proc_log_workout(
     IN p_title VARCHAR(100) DEFAULT NULL,
     IN p_performed_at TIMESTAMPTZ DEFAULT NOW(),
     IN p_duration_min INTEGER DEFAULT NULL,
-    IN p_calories_burned NUMERIC(8,2) DEFAULT NULL,
     IN p_health_score SMALLINT DEFAULT NULL,
     IN p_notes TEXT DEFAULT NULL,
     IN p_exercises JSONB DEFAULT '[]'::jsonb,
@@ -427,7 +348,6 @@ BEGIN
         title,
         performed_at,
         duration_min,
-        calories_burned,
         health_score,
         notes
     )
@@ -437,14 +357,13 @@ BEGIN
         p_title,
         p_performed_at,
         p_duration_min,
-        p_calories_burned,
         p_health_score,
         p_notes
     )
     RETURNING id INTO v_workout_id;
 
     IF jsonb_array_length(v_exercises) > 0 THEN
-        INSERT INTO workout_exercises (
+        INSERT INTO gym_workout_exercises (
             workout_id,
             exercise_name,
             exercise_order,
@@ -453,7 +372,6 @@ BEGIN
             weight_kg,
             duration_sec,
             distance_m,
-            calories_burned,
             notes,
             created_at
         )
@@ -466,7 +384,6 @@ BEGIN
             exercise.weight_kg,
             exercise.duration_sec,
             exercise.distance_m,
-            exercise.calories_burned,
             exercise.notes,
             COALESCE(exercise.created_at, NOW())
         FROM jsonb_to_recordset(v_exercises) AS exercise(
@@ -477,26 +394,9 @@ BEGIN
             weight_kg NUMERIC(8,2),
             duration_sec INTEGER,
             distance_m NUMERIC(10,2),
-            calories_burned NUMERIC(8,2),
             notes TEXT,
             created_at TIMESTAMPTZ
         );
-
-        IF p_calories_burned IS NULL THEN
-            UPDATE workouts
-            SET
-                calories_burned = agg.total_calories_burned,
-                updated_at = NOW()
-            FROM (
-                SELECT
-                    workout_id,
-                    COALESCE(SUM(calories_burned), 0)::NUMERIC(8,2) AS total_calories_burned
-                FROM workout_exercises
-                WHERE workout_id = v_workout_id
-                GROUP BY workout_id
-            ) AS agg
-            WHERE workouts.id = agg.workout_id;
-        END IF;
     END IF;
 
     UPDATE user_progress
