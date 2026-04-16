@@ -5,6 +5,7 @@
 - Add DB functions/getters for backend reads.
 - Add DB views for backend read models.
 - Keep progress-state rules consistent between procedures, functions, and views.
+- Decide whether backend should always recompute compound progress from logs, or store incremental details in `progress_state` and periodically repair it.
 - Implement FastAPI progression engine around `event_trigger`, `mechanic_type`, and JSONB `conditions`.
 - Define backend condition interpreters for:
   threshold checks, accumulation counters, streak resets, same-day combinations, distinct sport/activity collections, and gym exercise group coverage.

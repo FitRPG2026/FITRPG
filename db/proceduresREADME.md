@@ -167,6 +167,7 @@ What it does:
 What it does:
 - creates membership if needed through `proc_join_challenge`
 - updates `progress_value`
+- optionally replaces backend-owned `progress_state` JSONB through `p_progress_state`
 - marks challenge `completed` when `goal_value` is reached
 - stores `last_progress_at`
 
@@ -221,6 +222,7 @@ What it does:
 What it does:
 - requires an existing `user_achievements` row
 - updates progress
+- optionally replaces backend-owned `progress_state` JSONB through `p_progress_state`
 - sets `unlocked_at` when target is reached
 - stores `last_progress_at`
 - ignores further progress updates after the reward was already claimed
@@ -376,6 +378,14 @@ The engine should query definitions by `event_trigger`, evaluate JSONB `conditio
 {"streak_field": "current_login_streak_days"}
 ```
 
+Use `progress_value` for the numeric completion check and `progress_state` for details the backend must remember between events. For example:
+
+```json
+{"seen_activity_codes": ["football"], "required_activity_codes": ["football", "handball"]}
+{"exercise_groups": ["chest", "back", "core"]}
+{"activity_counts": {"basketball": 2, "cycling": 1}}
+```
+
 #### `proc_start_quest`
 
 What it does:
@@ -387,6 +397,7 @@ What it does:
 What it does:
 - auto-starts the quest if needed
 - updates progress
+- optionally replaces backend-owned `progress_state` JSONB through `p_progress_state`
 - marks the quest completed when target is reached
 
 #### `proc_claim_quest_reward`

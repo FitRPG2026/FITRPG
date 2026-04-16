@@ -27,7 +27,8 @@ The current application schema is the ordered migration set in `migrations/`.
 At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_procedures.sql`,
 `003_quests_schema.sql`, `004_quest_workflow_procedures.sql`,
 `005_achievement_join_workflow.sql`, `006_progression_rule_metadata.sql`, and
-`007_workout_activity_taxonomy.sql` applied in filename order.
+`007_workout_activity_taxonomy.sql`, and `008_progression_state_payload.sql`
+applied in filename order.
 
 ### Main Table Groups
 
@@ -91,6 +92,10 @@ At the moment, a fresh database needs `001_initial_schema.sql`, `002_workflow_pr
   `workout`, `meal`, `challenge`, `quest`, `achievement`, `manual`, and optionally `streak` if streak rewards are handled as separate EXP events.
 - `progress_value`
   Current progress toward a challenge or achievement target.
+- `progress_state`
+  Optional JSONB progress details owned by the backend for compound definitions.
+  Use it for state that cannot fit in one number, for example seen sport codes,
+  per-activity counters, covered gym exercise groups, or streak anchors.
 - `mechanic_type`
   Progress mechanic for challenges, achievements, and quests:
   `threshold` for one-off checks, `accumulation` for counters or sums, and `streak` for consecutive-day logic.
