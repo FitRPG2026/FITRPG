@@ -1,13 +1,15 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import distinct, select, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from ..core.db import get_db
 from ..core import queries
 from ..core.security import hash_password, verify_password, create_access_token, get_current_user_id, get_current_user
-from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse
+from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse, WorkoutHistoryResponse
 from ..core.models import Workout, WorkoutExercise
 
 #   Tutaj przechowywane beda endpointy
@@ -122,3 +124,20 @@ async def get_training_data_from_history(db: AsyncSession = Depends(get_db)):
         "categories": categories,
         "exercise_types": exercise_types
     }
+    
+@router.get("/workouts-history", response_model=List[WorkoutHistoryResponse])
+async def get_workout_history(
+    current_user: dict = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = (
+        select(Workout)
+        .where(Workout.user_id == current_user["user_id"])
+        .options(selectinload(Workout.exercises))
+        .order_by(Workout.performed_at.desc())
+    )
+    
+    result = await db.execute(stmt)
+    workouts = result.scalars().all()
+    
+    return workouts

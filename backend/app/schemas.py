@@ -59,3 +59,23 @@ class WorkoutResponse(WorkoutBase):
     id: int
     class Config:
         from_attributes = True
+        
+class ExerciseResponse(BaseModel):
+    exercise_name: str
+    sets: int
+    reps: int
+    weight_kg: float
+
+    class Config:
+        from_attributes = True
+
+class WorkoutHistoryResponse(BaseModel):
+    id: int
+    workout_type: str
+    title: str
+    duration_min: int
+    performed_at: datetime
+    exercises: List[ExerciseResponse] = []
+
+    class Config:
+        from_attributes = True
