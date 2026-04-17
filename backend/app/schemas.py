@@ -45,3 +45,17 @@ class MeResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+    
+# ─────────────────────────────────────────────────────────────
+# EXERCISE
+# ─────────────────────────────────────────────────────────────
+
+class WorkoutBase(BaseModel):
+    title: str
+    workout_type: str
+    duration_min: int
+
+class WorkoutResponse(WorkoutBase):
+    id: int
+    class Config:
+        from_attributes = True
