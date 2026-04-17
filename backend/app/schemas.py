@@ -74,6 +74,9 @@ class WorkoutHistoryResponse(BaseModel):
     workout_type: str
     title: str
     duration_min: int
+    calories_burned: float
+    health_score: int
+    notes: Optional[str] = None
     performed_at: datetime
     exercises: List[ExerciseResponse] = []
 

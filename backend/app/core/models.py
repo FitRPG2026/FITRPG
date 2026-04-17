@@ -16,6 +16,9 @@ class Workout(Base):
     title = Column(String(100))
     duration_min = Column(Integer)
     performed_at = Column(DateTime(timezone=True), server_default=func.now())
+    calories_burned = Column(Numeric(10, 2))
+    health_score = Column(Integer)
+    notes = Column(Text)
     
     exercises = relationship("WorkoutExercise", back_populates="workout", cascade="all, delete")
 
