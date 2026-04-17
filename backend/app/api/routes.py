@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
+from sqlalchemy import distinct, select, text
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 from ..core.db import get_db
 from ..core import queries
 from ..core.security import hash_password, verify_password, create_access_token, get_current_user_id, get_current_user
@@ -91,4 +92,32 @@ async def get_me(current_user: dict = Depends(get_current_user), db: AsyncSessio
         "username": user.get("username"),
         "display_name": user.get("display_name"),
         "status": user.get("status"),
+    }
+    
+# ─── EXERCISE ───────────────────────────────────────────────────────────────────
+
+@router.get("/training-data")
+async def get_training_data_from_history(db: AsyncSession = Depends(get_db)):
+    types_stmt = select(distinct(queries.Workout.workout_type)).where(queries.Workout.workout_type != None)
+    types_result = await db.execute(types_stmt)
+    existing_types = types_result.scalars().all()
+
+    ex_stmt = (
+        select(queries.Workout.workout_type, queries.WorkoutExercise.exercise_name)
+        .join(queries.WorkoutExercise, queries.Workout.id == queries.WorkoutExercise.workout_id)
+        .distinct()
+    )
+    ex_result = await db.execute(ex_stmt)
+    rows = ex_result.all()
+
+    categories = [{"value": t, "label": t.capitalize()} for t in existing_types]
+    
+    exercise_types = {t: [] for t in existing_types}
+    for w_type, ex_name in rows:
+        if w_type in exercise_types:
+            exercise_types[w_type].append(ex_name)
+
+    return {
+        "categories": categories,
+        "exercise_types": exercise_types
     }

@@ -7,3 +7,4 @@ backend/__pycache__
 /backend/app/core/__pycache__
 .vscode/extensions.json
 .vscode/settings.json
+.venv
