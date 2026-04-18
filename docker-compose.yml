@@ -10,28 +10,28 @@
 
 services:
 
-  db:
-    image: postgres:16-alpine
-    container_name: fitrpg_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./db/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql
-      - ./db/migrations/002_workflow_procedures.sql:/docker-entrypoint-initdb.d/002_workflow_procedures.sql
-      - ./db/migrations/003_quests_schema.sql:/docker-entrypoint-initdb.d/003_quests_schema.sql
-      - ./db/migrations/004_quest_workflow_procedures.sql:/docker-entrypoint-initdb.d/004_quest_workflow_procedures.sql
-      - ./db/migrations/005_achievement_join_workflow.sql:/docker-entrypoint-initdb.d/005_achievement_join_workflow.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fitrpg_user} -d ${POSTGRES_DB:-fitrpg}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # db:
+  #   image: postgres:16-alpine
+  #   container_name: fitrpg_db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./db/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql
+  #     - ./db/migrations/002_workflow_procedures.sql:/docker-entrypoint-initdb.d/002_workflow_procedures.sql
+  #     - ./db/migrations/003_quests_schema.sql:/docker-entrypoint-initdb.d/003_quests_schema.sql
+  #     - ./db/migrations/004_quest_workflow_procedures.sql:/docker-entrypoint-initdb.d/004_quest_workflow_procedures.sql
+  #     - ./db/migrations/005_achievement_join_workflow.sql:/docker-entrypoint-initdb.d/005_achievement_join_workflow.sql
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fitrpg_user} -d ${POSTGRES_DB:-fitrpg}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   backend:
     build:
@@ -46,9 +46,9 @@ services:
       - ./backend:/app
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # FRONTEND – wyłączony tymczasowo 
