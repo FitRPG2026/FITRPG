@@ -39,11 +39,11 @@ Zainstalowany Docker oraz Docker Compose.
 
 Projekt oparty jest na architekturze mikroserwisów w środowisku Monorepo.
 
-* **Frontend:** Angular (PWA)
-* **Backend API:** Node.js / Python 
+* **Frontend:** Angular (PWA), CSS, TS, html
+* **Backend API:** Python 
 * **Machine Learning:** Python (FastAPI + CNN)
-* **Baza Danych:** PostgreSQL (zarządzana)
-* **Infrastruktura & DevOps:** Docker, GitHub Actions (CI/CD), Railway/GCP (Deployment)
+* **Baza Danych:** PostgreSQL
+* **Infrastruktura & DevOps:** Docker, GitHub Actions, Railway/GCP (Deployment, ?)
 
 ---
 
