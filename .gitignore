@@ -8,5 +8,5 @@ backend/__pycache__
 .vscode/extensions.json
 .vscode/settings.json
 backend/schemaspy-output/
-db/schemaspy-output/
-schemaspy-output/
+# db/schemaspy-output/
+# schemaspy-output/
