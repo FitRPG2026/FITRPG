@@ -15,7 +15,7 @@ async def get_user_by_email(conn: AsyncConnection, email: str) -> dict | None:
                 u.id,
                 u.email,
                 u.status,
-                ua.password_hash,
+                u.password_hash,
                 up.display_name,
                 up.username
             FROM users u
