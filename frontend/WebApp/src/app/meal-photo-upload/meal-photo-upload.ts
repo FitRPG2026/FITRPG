@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, NgZone, OnDestroy, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MealPhotoUploadService } from './meal-photo-upload.service';
@@ -29,11 +29,10 @@ export class MealPhotoUploadComponent implements OnDestroy {
 
   constructor(
     private readonly uploadService: MealPhotoUploadService,
-    private readonly zone: NgZone,
     private readonly changeDetector: ChangeDetectorRef,
   ) {}
 
-  get isCaptionLocked(): boolean {
+  get isLocked(): boolean {
     return this.loading || this.result !== null;
   }
 
@@ -46,7 +45,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    if (this.isCaptionLocked) {
+    if (this.isLocked) {
       input.value = '';
       return;
     }
@@ -61,7 +60,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
   openFilePicker(event: Event): void {
     event.preventDefault();
 
-    if (this.isCaptionLocked) {
+    if (this.isLocked) {
       return;
     }
 
@@ -70,7 +69,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
-    if (this.isCaptionLocked) {
+    if (this.isLocked) {
       return;
     }
 
@@ -86,7 +85,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
     event.preventDefault();
     this.dragging = false;
 
-    if (this.isCaptionLocked) {
+    if (this.isLocked) {
       return;
     }
 
@@ -112,7 +111,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
   }
 
   onCaptionChange(value: string): void {
-    if (this.isCaptionLocked) {
+    if (this.isLocked) {
       return;
     }
 
@@ -120,7 +119,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
   }
 
   blockCaptionEdit(event: Event): void {
-    if (this.isCaptionLocked) {
+    if (this.isLocked) {
       event.preventDefault();
       const input = this.captionInput?.nativeElement;
       if (input) {
@@ -130,11 +129,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
     }
   }
 
-  private setSelectedFile(file: File | null): void {
-    if (!file) {
-      return;
-    }
-
+  private setSelectedFile(file: File): void {
     this.resetResult();
     this.revokePreviewUrl();
     this.selectedFile = file;
@@ -160,25 +155,21 @@ export class MealPhotoUploadComponent implements OnDestroy {
     this.clearUnavailableFallback();
 
     const file = this.selectedFile;
-    const blobUrl = this.previewUrl;
-
-    if (!file || !blobUrl) {
+    if (!file || !this.previewUrl) {
       return;
     }
 
     const caption = this.caption.trim();
 
     this.fallbackTimerId = setTimeout(() => {
-      this.zone.run(() => {
-        const result = this.uploadService.createLocalMealReviewPayload(file, caption, blobUrl);
+      const result = this.uploadService.createUnavailableMealReview(file, caption);
 
-        this.fallbackTimerId = null;
-        this.loading = false;
-        this.result = result;
-        this.statusMessage = result.message;
-        this.mealReviewCreated.emit(result);
-        this.changeDetector.detectChanges();
-      });
+      this.fallbackTimerId = null;
+      this.loading = false;
+      this.result = result;
+      this.statusMessage = result.message;
+      this.mealReviewCreated.emit(result);
+      this.changeDetector.detectChanges();
     }, 10000);
   }
 

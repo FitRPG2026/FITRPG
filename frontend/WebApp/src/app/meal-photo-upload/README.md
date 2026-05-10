@@ -51,4 +51,3 @@ Cloudinary naming convention used by the mock:
 asset_folder: fitrpg/{env}/users/{userId}/meals/{YYYY}/{MM}
 public_id: meal-{YYYYMMDDTHHMMSSZ}-{shortId}
 ```
-

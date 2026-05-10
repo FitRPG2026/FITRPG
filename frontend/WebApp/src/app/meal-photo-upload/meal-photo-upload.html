@@ -7,7 +7,7 @@
     class="drop-zone"
     [class.dragging]="dragging"
     [class.has-image]="previewUrl"
-    [class.locked]="isCaptionLocked"
+    [class.locked]="isLocked"
     (click)="openFilePicker($event)"
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave($event)"
@@ -17,8 +17,8 @@
       class="file-input"
       #fileInput
       accept="image/*"
-      [disabled]="isCaptionLocked"
-      [attr.disabled]="isCaptionLocked ? '' : null"
+      [disabled]="isLocked"
+      [attr.disabled]="isLocked ? '' : null"
       (click)="$event.stopPropagation()"
       (change)="onFileSelected($event)" />
 
@@ -43,9 +43,9 @@
     (input)="blockCaptionEdit($event)"
     (paste)="blockCaptionEdit($event)"
     (drop)="blockCaptionEdit($event)"
-    [disabled]="isCaptionLocked"
-    [attr.disabled]="isCaptionLocked ? '' : null"
-    [attr.readonly]="isCaptionLocked ? '' : null"
+    [disabled]="isLocked"
+    [attr.disabled]="isLocked ? '' : null"
+    [attr.readonly]="isLocked ? '' : null"
     placeholder="Np. owsianka z jogurtem i owocami"></textarea>
 
   <div class="status-banner" *ngIf="statusMessage">{{ statusMessage }}</div>
