@@ -107,6 +107,10 @@ export class MealPhotoUploadComponent implements OnDestroy {
     this.result = null;
     this.statusMessage = null;
     this.captionInput?.nativeElement.blur();
+    console.log('mealPhotoUpload submit started', {
+      file_name: this.selectedFile.name,
+      caption: this.caption.trim(),
+    });
     this.startUnavailableFallback();
   }
 
@@ -168,6 +172,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
       this.loading = false;
       this.result = result;
       this.statusMessage = result.message;
+      console.log('mealReviewCreated', result);
       this.mealReviewCreated.emit(result);
       this.changeDetector.detectChanges();
     }, 10000);
