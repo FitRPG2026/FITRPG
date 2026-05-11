@@ -6,7 +6,7 @@
          *ngFor="let t of toasts; trackBy: trackById"
          [class.xp-toast]="t.type === 'xp'"
          [style.display]="t.type === 'xp' ? 'flex' : 'none'">
-      <span class="xp-icon">⚡</span>
+      <span class="xp-icon">+</span>
       <span class="xp-text">{{ t.message }}</span>
     </div>
   </div>
@@ -15,7 +15,7 @@
   <ng-container *ngFor="let t of toasts; trackBy: trackById">
     <div class="challenge-overlay" *ngIf="t.type === 'challenge'">
       <div class="challenge-card">
-        <div class="challenge-icon">🏆</div>
+        <div class="challenge-icon">★</div>
         <div class="challenge-label">Wyzwanie ukończone!</div>
         <div class="challenge-title">{{ t.challengeTitle }}</div>
         <div class="challenge-points">+{{ t.pointsEarned }} XP</div>

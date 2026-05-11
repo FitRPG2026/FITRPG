@@ -86,12 +86,12 @@ export class MockDataService {
 
   getAchievements() {
     return of<Achievement[]>([
-      { id: 1, title: 'Pierwszy krok', description: 'Ukończ swój pierwszy quest', icon: '🥇', unlockedAt: '2024-01-16', locked: false },
-      { id: 2, title: 'Tygodniowy wojownik', description: '7 dni z rzędu aktywności', icon: '🔥', unlockedAt: '2024-01-22', locked: false },
-      { id: 3, title: 'Żelazna wola', description: 'Ukończ 50 questów', icon: '⚔️', unlockedAt: '2024-03-10', locked: false },
-      { id: 4, title: 'Maraton', description: 'Przebiegaj łącznie 42km', icon: '🏅', unlockedAt: null, locked: true },
-      { id: 5, title: 'Legenda sali', description: 'Osiągnij poziom 20', icon: '👑', unlockedAt: null, locked: true },
-      { id: 6, title: 'Mistrz cardio', description: 'Wykonaj 100 questów cardio', icon: '💨', unlockedAt: null, locked: true },
+      { id: 1, title: 'Pierwszy krok', description: 'Ukończ swój pierwszy quest', icon: 'I', unlockedAt: '2024-01-16', locked: false },
+      { id: 2, title: 'Tygodniowy wojownik', description: '7 dni z rzędu aktywności', icon: 'II', unlockedAt: '2024-01-22', locked: false },
+      { id: 3, title: 'Żelazna wola', description: 'Ukończ 50 questów', icon: 'III', unlockedAt: '2024-03-10', locked: false },
+      { id: 4, title: 'Maraton', description: 'Przebiegaj łącznie 42km', icon: 'IV', unlockedAt: null, locked: true },
+      { id: 5, title: 'Legenda sali', description: 'Osiągnij poziom 20', icon: 'V', unlockedAt: null, locked: true },
+      { id: 6, title: 'Mistrz cardio', description: 'Wykonaj 100 questów cardio', icon: 'VI', unlockedAt: null, locked: true },
     ]).pipe(delay(9));
   }
 

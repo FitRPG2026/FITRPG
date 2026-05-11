@@ -6,34 +6,27 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <span class="logo-icon">⚔️</span>
       <span class="logo-text">FitRPG</span>
     </div>
 
     <nav class="sidebar-nav">
       <button class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">
-        <span class="nav-icon">🏠</span>
         <span class="nav-label">Dashboard</span>
       </button>
       <button class="nav-item" [class.active]="activeTab === 'training'" (click)="setTab('training')">
-        <span class="nav-icon">🏋️</span>
         <span class="nav-label">Trening</span>
       </button>
       <button class="nav-item" [class.active]="activeTab === 'quests'" (click)="setTab('quests')">
-        <span class="nav-icon">📜</span>
         <span class="nav-label">Questy</span>
         <span class="nav-badge" *ngIf="pendingQuests.length > 0">{{ pendingQuests.length }}</span>
       </button>
       <button class="nav-item" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
-        <span class="nav-icon">🏆</span>
         <span class="nav-label">Osiągnięcia</span>
       </button>
       <button class="nav-item" [class.active]="activeTab === 'stats'" (click)="setTab('stats')">
-        <span class="nav-icon">📊</span>
         <span class="nav-label">Statystyki</span>
       </button>
       <button class="nav-item" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
-        <span class="nav-icon">👤</span>
         <span class="nav-label">Profil</span>
       </button>
     </nav>
@@ -43,7 +36,7 @@
         <div class="profile-name">{{ profile.display_name || profile.username || 'Gracz' }}</div>
         <div class="profile-level">Poziom {{ profile.level }}</div>
       </div>
-      <button class="logout-btn" (click)="logout()" title="Wyloguj">🚪</button>
+      <button class="logout-btn" (click)="logout()" title="Wyloguj">Wyloguj</button>
     </div>
   </aside>
 
@@ -55,7 +48,7 @@
       <div class="page-header">
         <h1>Witaj z powrotem,
           <span class="accent" *ngIf="profile">{{ (profile.display_name || profile.username || 'Graczu').split(' ')[0] }}</span>
-          <span class="skeleton-inline" *ngIf="loadingProfile"></span> ⚔️
+          <span class="skeleton-inline" *ngIf="loadingProfile"></span>
         </h1>
         <p class="page-subtitle">Twoja przygoda trwa. Dziś kolejny dzień walki.</p>
       </div>
@@ -77,7 +70,7 @@
           <div *ngIf="loadingProfile" class="card-skeleton"></div>
           <div *ngIf="!loadingProfile && profile">
             <div class="card-label">Passa</div>
-            <div class="card-value-big flame">🔥 {{ profile.current_streak_days }}</div>
+            <div class="card-value-big flame">{{ profile.current_streak_days }}</div>
             <div class="card-sub">dni z rzędu</div>
           </div>
         </div>
@@ -130,7 +123,7 @@
     <!-- ═══════════════ TAB: TRENING (DEV-45, DEV-48) ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'training'">
       <div class="page-header">
-        <h1>🏋️ Trening & Posiłki</h1>
+        <h1>Trening & Posiłki</h1>
         <p class="page-subtitle">Zaloguj aktywność i zdobywaj doświadczenie.</p>
       </div>
 
@@ -143,11 +136,11 @@
     <!-- ═══════════════ TAB: QUESTY ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'quests'">
       <div class="page-header">
-        <h1>📜 Questy</h1>
+        <h1>Questy</h1>
         <p class="page-subtitle">Wykonuj zadania, zdobywaj XP i rozwijaj swojego bohatera.</p>
       </div>
 
-      <div class="error-toast" *ngIf="saveErrorMessage">⚠️ {{ saveErrorMessage }}</div>
+      <div class="error-toast" *ngIf="saveErrorMessage">{{ saveErrorMessage }}</div>
 
       <div *ngIf="loadingQuests" class="loading-state">
         <div class="spinner"></div>
@@ -180,12 +173,12 @@
                           (click)="completeQuest(quest)">
                     <span *ngIf="savingQuestId === quest.id" class="btn-spinner"></span>
                     <span *ngIf="savingQuestId !== quest.id && saveSuccessId !== quest.id">Zapisz ✓</span>
-                    <span *ngIf="saveSuccessId === quest.id">Ukończono! 🎉</span>
+                    <span *ngIf="saveSuccessId === quest.id">Ukończono!</span>
                   </button>
                 </td>
               </tr>
               <tr *ngIf="pendingQuests.length === 0">
-                <td colspan="5" class="empty-row">🎉 Wszystkie questy ukończone na dziś!</td>
+                <td colspan="5" class="empty-row">Wszystkie questy ukończone na dziś!</td>
               </tr>
             </tbody>
           </table>
@@ -202,7 +195,7 @@
                 <td><div class="quest-title">{{ quest.title }}</div></td>
                 <td><span class="category-badge" [style.background]="getCategoryColor(quest.category)">{{ quest.category }}</span></td>
                 <td class="quest-xp">+{{ quest.xp }} XP</td>
-                <td><span class="done-badge">✅ Ukończono</span></td>
+                <td><span class="done-badge">Ukończono</span></td>
               </tr>
             </tbody>
           </table>
@@ -213,7 +206,7 @@
     <!-- ═══════════════ TAB: OSIĄGNIĘCIA ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'achievements'">
       <div class="page-header">
-        <h1>🏆 Osiągnięcia</h1>
+        <h1>Osiągnięcia</h1>
         <p class="page-subtitle">Twoja historia chwały. Zdobyto {{ unlockedAchievements.length }} z {{ achievements.length }}.</p>
       </div>
 
@@ -236,7 +229,7 @@
         <div class="section-label locked-label">Zablokowane</div>
         <div class="achievements-grid">
           <div class="achievement-card locked" *ngFor="let ach of lockedAchievements">
-            <div class="ach-icon locked-icon">🔒</div>
+            <div class="ach-icon locked-icon">—</div>
             <div class="ach-title locked-text">{{ ach.title }}</div>
             <div class="ach-desc locked-text">{{ ach.description }}</div>
           </div>
@@ -247,7 +240,7 @@
     <!-- ═══════════════ TAB: STATYSTYKI ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'stats'">
       <div class="page-header">
-        <h1>📊 Statystyki</h1>
+        <h1>Statystyki</h1>
         <p class="page-subtitle">Twoje atrybuty i postępy.</p>
       </div>
 
@@ -292,7 +285,7 @@
     <!-- ═══════════════ TAB: PROFIL (DEV-41) ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'profile'">
       <div class="page-header">
-        <h1>👤 Profil</h1>
+        <h1>Profil</h1>
         <p class="page-subtitle">Zarządzaj swoimi danymi i ustawieniami prywatności.</p>
       </div>
 
@@ -318,7 +311,7 @@
               <div class="profile-xp-bar" [style.width.%]="xpPercent"></div>
             </div>
             <div class="profile-xp-text">{{ profile.xp_in_level | number }} / {{ profile.xp_to_next_level | number }} XP ({{ xpPercent }}%)</div>
-            <div class="profile-streak">🔥 Passa: {{ profile.current_streak_days }} dni (rekord: {{ profile.longest_streak_days }})</div>
+            <div class="profile-streak">Passa: {{ profile.current_streak_days }} dni (rekord: {{ profile.longest_streak_days }})</div>
           </div>
         </div>
 
@@ -326,8 +319,8 @@
         <div class="panel profile-form-panel">
           <div class="panel-header"><h2>Dane osobowe</h2></div>
 
-          <div class="msg msg-error"   *ngIf="profileSaveError">⚠️ {{ profileSaveError }}</div>
-          <div class="msg msg-success" *ngIf="profileSaveSuccess">✅ Profil zapisany pomyślnie!</div>
+          <div class="msg msg-error"   *ngIf="profileSaveError">{{ profileSaveError }}</div>
+          <div class="msg msg-success" *ngIf="profileSaveSuccess">Profil zapisany pomyślnie!</div>
 
           <div class="profile-form-grid">
             <div class="pf-group">
@@ -384,7 +377,7 @@
                   [disabled]="savingProfile"
                   (click)="saveProfile()">
             <span class="btn-spinner white" *ngIf="savingProfile"></span>
-            <span *ngIf="!savingProfile">💾 Zapisz profil</span>
+            <span *ngIf="!savingProfile">Zapisz profil</span>
             <span *ngIf="savingProfile">Zapisywanie…</span>
           </button>
         </div>
@@ -393,7 +386,7 @@
         <div class="panel settings-panel" *ngIf="!loadingSettings">
           <div class="panel-header"><h2>Ustawienia prywatności</h2></div>
 
-          <div class="msg msg-success" *ngIf="settingsSaveSuccess">✅ Ustawienia zapisane!</div>
+          <div class="msg msg-success" *ngIf="settingsSaveSuccess">Ustawienia zapisane!</div>
 
           <div class="settings-list">
             <label class="consent-row">
@@ -417,7 +410,7 @@
                   [disabled]="savingSettings"
                   (click)="saveSettings()">
             <span class="btn-spinner white" *ngIf="savingSettings"></span>
-            <span *ngIf="!savingSettings">🔒 Zapisz ustawienia</span>
+            <span *ngIf="!savingSettings">Zapisz ustawienia</span>
             <span *ngIf="savingSettings">Zapisywanie…</span>
           </button>
         </div>

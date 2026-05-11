@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Nunito:wght@200;400;600;700&display=swap');
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .page {
@@ -5,22 +7,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2f2f2;
+  background:
+    radial-gradient(ellipse at 15% 30%, rgba(61, 184, 122, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 75%, rgba(240, 165, 0, 0.06) 0%, transparent 45%),
+    #0f1814;
   padding: 2rem;
-  font-family: -apple-system, sans-serif;
+  font-family: 'Nunito', sans-serif;
   position: relative;
   overflow: hidden;
 }
 
 .card {
-  background: #fff;
-  border: 0.5px solid #d0e8d0;
-  border-radius: 16px;
+  background: #192219;
+  border: 1px solid #1e3224;
+  border-radius: 18px;
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 400px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.55);
 }
 
 .card-accent {
@@ -29,7 +35,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #2a8f5e, #5ec48a, #2a8f5e);
+  background: linear-gradient(90deg, #2a8f5e, #5de89a, #2a8f5e);
 }
 
 .sport-icons {
@@ -38,7 +44,7 @@
   right: 1.5rem;
   display: flex;
   gap: 6px;
-  opacity: 0.15;
+  opacity: 0.08;
 }
 
 .brand {
@@ -53,7 +59,7 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #2a8f5e;
+  background: #3db87a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,24 +68,29 @@
 .brand-dot svg { width: 18px; height: 18px; }
 
 .brand-name {
+  font-family: 'Cinzel', serif;
   font-size: 16px;
-  font-weight: 600;
-  color: #1e3a28;
-  letter-spacing: 0.02em;
+  font-weight: 900;
+  color: #d8eadd;
+  letter-spacing: 0.03em;
 }
 
 h1 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1e3a28;
-  margin-bottom: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #d8eadd;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #5a7a5a;
+  font-weight: 200;
+  color: #6aaa84;
   margin-bottom: 2rem;
   line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 
 .field { margin-bottom: 1rem; }
@@ -87,77 +98,83 @@ h1 {
 label {
   display: block;
   font-size: 12px;
-  color: #5a7a5a;
-  margin-bottom: 5px;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6aaa84;
+  margin-bottom: 6px;
 }
 
 input[type="email"],
 input[type="password"] {
   width: 100%;
   padding: 0 14px;
-  height: 42px;
+  height: 44px;
   font-size: 14px;
-  border: 1px solid #c8e0c8;
+  border: 1px solid #1e3224;
   border-radius: 8px;
-  background: #fff;
-  color: #1e3a28;
+  background: #111a15;
+  color: #d8eadd;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  font-family: 'Nunito', sans-serif;
 }
 
-input::placeholder { color: #b8ccb8; }
+input::placeholder { color: #3a5a44; }
 
 input:focus {
-  border-color: #2a8f5e;
-  box-shadow: 0 0 0 3px rgba(42, 143, 94, 0.1);
+  border-color: #3db87a;
+  background: #182218;
+  box-shadow: 0 0 0 3px rgba(61, 184, 122, 0.12);
 }
 
 .forgot {
   display: block;
   text-align: right;
   font-size: 12px;
-  color: #2a8f5e;
-  margin-top: 5px;
+  color: #3db87a;
+  margin-top: 6px;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .forgot:hover { text-decoration: underline; }
 
 .btn-primary {
   width: 100%;
-  height: 44px;
+  height: 46px;
   margin-top: 1.25rem;
-  background: #2a8f5e;
-  color: #fff;
-  border: 2px solid #2a8f5e;
+  background: #3db87a;
+  color: #0f1814;
+  border: none;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
-  letter-spacing: 0.03em;
-  transition: all 0.18s;
+  letter-spacing: 0.04em;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.18s, transform 0.18s;
 }
 
 .btn-primary:hover {
-  background: #1e6e47;
-  border-color: #1e6e47;
+  background: #5de89a;
   transform: translateY(-1px);
 }
 
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 .btn-ghost {
   width: 100%;
-  height: 44px;
+  height: 46px;
   background: transparent;
-  color: #2a8f5e;
-  border: 2px solid #2a8f5e;
+  color: #3db87a;
+  border: 1px solid #1e3224;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   letter-spacing: 0.03em;
+  font-family: 'Nunito', sans-serif;
   transition: all 0.18s;
   display: flex;
   align-items: center;
@@ -166,7 +183,8 @@ input:focus {
 }
 
 .btn-ghost:hover {
-  background: #e6f5ee;
+  border-color: #3db87a;
+  background: rgba(61, 184, 122, 0.08);
   transform: translateY(-1px);
 }
 
@@ -177,26 +195,26 @@ input:focus {
   margin: 1.25rem 0;
 }
 
-.divider-line { flex: 1; height: 0.5px; background: #d0e8d0; }
-.divider span { font-size: 12px; color: #b8ccb8; }
+.divider-line { flex: 1; height: 0.5px; background: #1e3224; }
+.divider span { font-size: 12px; color: #3a5a44; }
 
 .footer-text {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 13px;
-  color: #9aaa9a;
+  color: #4a6a54;
 }
 
 .footer-text a {
-  color: #2a8f5e;
-  font-weight: 600;
+  color: #3db87a;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .footer-text a:hover { text-decoration: underline; }
 
 .error-msg {
-  color: #e05555;
+  color: #f87171;
   font-size: 13px;
   margin-top: 8px;
   text-align: center;

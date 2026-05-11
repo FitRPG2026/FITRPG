@@ -42,10 +42,10 @@ export class WorkoutFormComponent {
   successMessage: string | null = null;
 
   readonly categories: CategoryOption[] = [
-    { key: 'gym',     label: '🏋️ Siłownia',        activity_category: 'gym',     workout_type: 'strength' },
-    { key: 'sport',   label: '⚽ Sport',             activity_category: 'sport',   workout_type: 'sport'    },
-    { key: 'cardio',  label: '🏃 Bieganie / Cardio', activity_category: 'general', workout_type: 'cardio'   },
-    { key: 'general', label: '🌿 Ogólne',            activity_category: 'general', workout_type: 'other'    },
+    { key: 'gym',     label: 'Siłownia',        activity_category: 'gym',     workout_type: 'strength' },
+    { key: 'sport',   label: 'Sport',             activity_category: 'sport',   workout_type: 'sport'    },
+    { key: 'cardio',  label: 'Bieganie / Cardio', activity_category: 'general', workout_type: 'cardio'   },
+    { key: 'general', label: 'Ogólne',            activity_category: 'general', workout_type: 'other'    },
   ];
 
   readonly exerciseGroups = [

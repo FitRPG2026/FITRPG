@@ -4,8 +4,8 @@
     <p class="hint">Zaloguj co zjadłeś i zdobądź XP za zdrowe jedzenie.</p>
   </div>
 
-  <div class="msg msg-error"   *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
-  <div class="msg msg-success" *ngIf="successMessage">✅ {{ successMessage }}</div>
+  <div class="msg msg-error"   *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="msg msg-success" *ngIf="successMessage">{{ successMessage }}</div>
 
   <div class="form-grid">
 
@@ -45,7 +45,7 @@
 
   <button class="save-btn" [disabled]="isSubmitting" (click)="submit()">
     <span class="btn-spinner" *ngIf="isSubmitting"></span>
-    <span *ngIf="!isSubmitting">🍽️ Zapisz posiłek</span>
+    <span *ngIf="!isSubmitting">Zapisz posiłek</span>
     <span *ngIf="isSubmitting">Zapisywanie…</span>
   </button>
 </div>
