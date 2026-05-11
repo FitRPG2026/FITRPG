@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService, Toast } from '../../services/notification.service';
 
@@ -10,9 +10,8 @@ import { NotificationService, Toast } from '../../services/notification.service'
   styleUrls: ['./toast-container.css'],
 })
 export class ToastContainerComponent {
+  private notificationService = inject(NotificationService);
   toasts$ = this.notificationService.toasts$;
-
-  constructor(private notificationService: NotificationService) {}
 
   dismiss(id: number): void {
     this.notificationService.dismiss(id);
