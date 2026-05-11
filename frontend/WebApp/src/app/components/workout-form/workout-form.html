@@ -1,0 +1,93 @@
+<div class="workout-panel">
+  <div class="panel-header">
+    <h2>Dodaj trening</h2>
+    <p class="hint">Wypełnij pola i naciśnij „Zapisz trening", aby zdobyć XP.</p>
+  </div>
+
+  <div class="msg msg-error"   *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
+  <div class="msg msg-success" *ngIf="successMessage">✅ {{ successMessage }}</div>
+
+  <div class="form-grid">
+
+    <div class="form-group full">
+      <label class="form-label">Nazwa treningu *</label>
+      <input class="form-input" type="text" [(ngModel)]="title"
+             placeholder="np. Klatka piersiowa" maxlength="100" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Kategoria</label>
+      <select class="form-select" [(ngModel)]="categoryKey" (ngModelChange)="onCategoryChange()">
+        <option *ngFor="let c of categories" [value]="c.key">{{ c.label }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Czas (minuty)</label>
+      <input class="form-input" type="number" [(ngModel)]="durationMin" min="1" max="600" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Data i godzina</label>
+      <input class="form-input" type="datetime-local" [(ngModel)]="performedAt" />
+    </div>
+
+    <div class="form-group full">
+      <label class="form-label">Notatki (opcjonalne)</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="notes"
+                rows="2" placeholder="Jak minął trening?"></textarea>
+    </div>
+
+  </div>
+
+  <!-- Exercise table — gym only -->
+  <div class="exercise-section" *ngIf="isGym">
+    <div class="exercise-header">
+      <span class="exercise-title">Ćwiczenia</span>
+      <button class="add-exercise-btn" type="button" (click)="addExercise()">+ Dodaj ćwiczenie</button>
+    </div>
+    <p class="hint" *ngIf="exercises.length === 0">Tabela ćwiczeń jest opcjonalna — możesz ją pominąć.</p>
+
+    <div class="exercise-table-wrap" *ngIf="exercises.length > 0">
+      <table class="exercise-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ćwiczenie</th>
+            <th>Grupa mięśniowa</th>
+            <th>Serie</th>
+            <th>Powt.</th>
+            <th>Ciężar&nbsp;(kg)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ex of exercises; let i = index">
+            <td class="ex-order">{{ i + 1 }}</td>
+            <td>
+              <input class="ex-input" type="text" [(ngModel)]="ex.exercise_name"
+                     placeholder="Nazwa ćwiczenia" />
+            </td>
+            <td>
+              <select class="ex-select" [(ngModel)]="ex.exercise_group">
+                <option *ngFor="let g of exerciseGroups" [value]="g.value">{{ g.label }}</option>
+              </select>
+            </td>
+            <td><input class="ex-input ex-num" type="number" [(ngModel)]="ex.sets"    min="1" max="99"  placeholder="—" /></td>
+            <td><input class="ex-input ex-num" type="number" [(ngModel)]="ex.reps"    min="1" max="999" placeholder="—" /></td>
+            <td><input class="ex-input ex-num" type="number" [(ngModel)]="ex.weight_kg" min="0" step="0.5" placeholder="—" /></td>
+            <td>
+              <button class="remove-btn" type="button" (click)="removeExercise(i)" title="Usuń">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <button class="save-btn" [disabled]="isSubmitting" (click)="submit()">
+    <span class="btn-spinner" *ngIf="isSubmitting"></span>
+    <span *ngIf="!isSubmitting">💾 Zapisz trening</span>
+    <span *ngIf="isSubmitting">Zapisywanie…</span>
+  </button>
+</div>
