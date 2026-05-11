@@ -1,0 +1,64 @@
+<section class="meal-photo-upload">
+  <div class="panel-header">
+    <h2>Zdjęcie posiłku</h2>
+  </div>
+
+  <label
+    class="drop-zone"
+    [class.dragging]="dragging"
+    [class.has-image]="previewUrl"
+    [class.locked]="isLocked"
+    (click)="openFilePicker($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)">
+    <input
+      type="file"
+      class="file-input"
+      #fileInput
+      accept="image/*"
+      [disabled]="isLocked"
+      [attr.disabled]="isLocked ? '' : null"
+      (click)="$event.stopPropagation()"
+      (change)="onFileSelected($event)" />
+
+    <ng-container *ngIf="!previewUrl">
+      <span class="drop-title">Przeciągnij plik tutaj albo kliknij</span>
+      <span class="drop-subtitle">JPG, PNG lub WEBP</span>
+    </ng-container>
+
+    <img *ngIf="previewUrl" [src]="previewUrl" alt="Podgląd wybranego posiłku" />
+  </label>
+
+  <label class="field-label" for="meal-caption">Podpis</label>
+  <textarea
+    #captionInput
+    id="meal-caption"
+    class="caption-input"
+    rows="3"
+    [ngModel]="caption"
+    (ngModelChange)="onCaptionChange($event)"
+    (beforeinput)="blockCaptionEdit($event)"
+    (keydown)="blockCaptionEdit($event)"
+    (input)="blockCaptionEdit($event)"
+    (paste)="blockCaptionEdit($event)"
+    (drop)="blockCaptionEdit($event)"
+    [disabled]="isLocked"
+    [attr.disabled]="isLocked ? '' : null"
+    [attr.readonly]="isLocked ? '' : null"
+    placeholder="Np. owsianka z jogurtem i owocami"></textarea>
+
+  <div class="status-banner" *ngIf="statusMessage">{{ statusMessage }}</div>
+
+  <button
+    *ngIf="!statusMessage"
+    type="button"
+    class="upload-button"
+    [disabled]="!selectedFile || loading"
+    (click)="uploadSelectedImage()">
+    <span *ngIf="loading" class="btn-spinner"></span>
+    {{ loading ? 'Wysyłanie...' : 'Załaduj zdjęcie' }}
+  </button>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+</section>
