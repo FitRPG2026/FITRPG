@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -86,6 +86,7 @@ export class DashboardComponent implements OnInit {
     private api: ApiService,
     private notificationService: NotificationService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -148,8 +149,9 @@ export class DashboardComponent implements OnInit {
       next: (result) => {
         this.savingQuestId = null;
         if (result.success) {
-          quest.completed = true;
+          this.quests = this.quests.map(q => q.id === quest.id ? { ...q, completed: true } : q);
           this.saveSuccessId = quest.id;
+          this.cdr.detectChanges();
           if (this.profile && result.updatedXp) {
             this.notificationService.showXpToast(result.updatedXp - this.profile.total_exp);
           }
