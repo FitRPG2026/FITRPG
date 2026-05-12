@@ -1,0 +1,51 @@
+<div class="meal-panel">
+  <div class="panel-header">
+    <h2>Dodaj posiłek</h2>
+    <p class="hint">Zaloguj co zjadłeś i zdobądź XP za zdrowe jedzenie.</p>
+  </div>
+
+  <div class="msg msg-error"   *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
+  <div class="msg msg-success" *ngIf="successMessage">✅ {{ successMessage }}</div>
+
+  <div class="form-grid">
+
+    <div class="form-group full">
+      <label class="form-label">Nazwa posiłku *</label>
+      <input class="form-input" type="text" [(ngModel)]="title"
+             placeholder="np. Owsianka z owocami" maxlength="100" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Typ posiłku</label>
+      <select class="form-select" [(ngModel)]="mealType">
+        <option *ngFor="let t of mealTypes" [value]="t.value">{{ t.label }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Data i godzina</label>
+      <input class="form-input" type="datetime-local" [(ngModel)]="eatenAt" />
+    </div>
+
+    <div class="form-group full">
+      <label class="form-label">Ocena zdrowotności: {{ healthScore }}/10</label>
+      <input class="form-range" type="range" [(ngModel)]="healthScore" min="1" max="10" step="1" />
+      <div class="range-labels">
+        <span>Słaba</span><span>Doskonała</span>
+      </div>
+    </div>
+
+    <div class="form-group full">
+      <label class="form-label">Notatki (opcjonalne)</label>
+      <textarea class="form-input form-textarea" [(ngModel)]="notes"
+                rows="2" placeholder="Co zawierał posiłek?"></textarea>
+    </div>
+
+  </div>
+
+  <button class="save-btn" [disabled]="isSubmitting" (click)="submit()">
+    <span class="btn-spinner" *ngIf="isSubmitting"></span>
+    <span *ngIf="!isSubmitting">🍽️ Zapisz posiłek</span>
+    <span *ngIf="isSubmitting">Zapisywanie…</span>
+  </button>
+</div>

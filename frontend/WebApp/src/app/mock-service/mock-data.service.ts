@@ -61,7 +61,7 @@ export class MockDataService {
       xpToNext: 5000,
       streak: 7,
       joinDate: '2024-01-15'
-    }).pipe(delay(600));
+    }).pipe(delay(6));
   }
 
   getStats() {
@@ -70,7 +70,7 @@ export class MockDataService {
       { name: 'Wytrzymałość', value: 58, max: 100, icon: '🏃', color: '#2a8f5e' },
       { name: 'Zwinność', value: 43, max: 100, icon: '⚡', color: '#f39c12' },
       { name: 'Wola', value: 81, max: 100, icon: '🧠', color: '#9b59b6' },
-    ]).pipe(delay(800));
+    ]).pipe(delay(8));
   }
 
   getQuests() {
@@ -81,7 +81,7 @@ export class MockDataService {
       { id: 4, title: 'Bieg 5km', description: 'Przebieg 5 kilometrów bez przerwy', xp: 350, completed: false, category: 'Cardio', dueDate: 'Jutro' },
       { id: 5, title: 'Plank 2 minuty', description: 'Utrzymaj pozycję planku przez 2 minuty', xp: 120, completed: true, category: 'Core', dueDate: 'Dziś' },
       { id: 6, title: 'Pływanie 30 min', description: 'Przepłyń przez 30 minut w basenie', xp: 280, completed: false, category: 'Cardio', dueDate: 'Pojutrze' },
-    ]).pipe(delay(700));
+    ]).pipe(delay(7));
   }
 
   getAchievements() {
@@ -92,7 +92,7 @@ export class MockDataService {
       { id: 4, title: 'Maraton', description: 'Przebiegaj łącznie 42km', icon: '🏅', unlockedAt: null, locked: true },
       { id: 5, title: 'Legenda sali', description: 'Osiągnij poziom 20', icon: '👑', unlockedAt: null, locked: true },
       { id: 6, title: 'Mistrz cardio', description: 'Wykonaj 100 questów cardio', icon: '💨', unlockedAt: null, locked: true },
-    ]).pipe(delay(900));
+    ]).pipe(delay(9));
   }
 
   getWeeklyActivity() {
@@ -104,7 +104,7 @@ export class MockDataService {
       { day: 'Pt', workouts: 2, xp: 450 },
       { day: 'Sob', workouts: 4, xp: 890 },
       { day: 'Nd', workouts: 1, xp: 200 },
-    ]).pipe(delay(700));
+    ]).pipe(delay(7));
   }
 
   saveQuestCompletion(questId: number) {
@@ -112,13 +112,13 @@ export class MockDataService {
       success: true,
       message: 'Quest ukończony! XP dodane.',
       updatedXp: 3420 + 200
-    }).pipe(delay(1000));
+    }).pipe(delay(10));
   }
 
   saveProfileSettings(data: Partial<UserProfile>) {
     return of<SaveResult>({
       success: true,
       message: 'Profil zaktualizowany pomyślnie!'
-    }).pipe(delay(1000));
+    }).pipe(delay(10));
   }
 }
