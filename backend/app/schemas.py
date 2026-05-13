@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, List
 from pydantic import BaseModel, field_validator
 
@@ -48,11 +48,27 @@ class UpsertProfileRequest(BaseModel):
     username: Optional[str] = None
     display_name: Optional[str] = None
     birth_date: Optional[str] = None        # "YYYY-MM-DD"
-    sex: Optional[str] = None
+    gender: Optional[str] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
     goal: Optional[str] = None
     activity_level: Optional[str] = None
+
+
+class ProfileResponse(BaseModel):
+    user_id: int
+    email: str
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    birth_date: Optional[str] = None
+    gender: Optional[str] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    goal: Optional[str] = None
+    activity_level: Optional[str] = None
+    total_exp: int = 0
+    level: int = 1
+    current_streak_days: int = 0
 
 
 # ─────────────────────────────────────────────
@@ -180,7 +196,7 @@ class MealLoggedResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
-# ERROR 
+# ERROR
 # ─────────────────────────────────────────────
 
 class ErrorResponse(BaseModel):

@@ -20,7 +20,6 @@ async def get_user_by_email(conn: AsyncConnection, email: str) -> dict | None:
                 up.display_name,
                 up.username
             FROM users u
-            JOIN user_auth ua ON ua.user_id = u.id
             LEFT JOIN user_profiles up ON up.user_id = u.id
             WHERE LOWER(u.email) = LOWER(:email)
         """),
@@ -31,9 +30,45 @@ async def get_user_by_email(conn: AsyncConnection, email: str) -> dict | None:
 
 
 async def call_mark_login(conn: AsyncConnection, user_id: int, login_at: datetime) -> None:
+    """
+    Bezpośredni UPDATE zamiast proc_mark_login (stara procedura operowała
+    na kolumnach last_login_date / longest_login_streak_days których nie ma w tym schemacie).
+    """
+    row = await conn.execute(
+        text("""
+            SELECT last_login_at, current_login_streak_days
+            FROM user_auth WHERE user_id = :uid FOR UPDATE
+        """),
+        {"uid": user_id},
+    )
+    auth = row.mappings().one_or_none()
+    if not auth:
+        return
+
+    from datetime import timedelta
+    prev = auth["last_login_at"]
+    streak = auth["current_login_streak_days"] or 0
+    today = login_at.date()
+
+    if prev is None:
+        new_streak = 1
+    elif today == prev.date():
+        new_streak = max(streak, 1)
+    elif today == prev.date() + timedelta(days=1):
+        new_streak = streak + 1
+    else:
+        new_streak = 1
+
     await conn.execute(
-        text("CALL proc_mark_login(:user_id, :login_at)"),
-        {"user_id": user_id, "login_at": login_at},
+        text("""
+            UPDATE user_auth SET
+                last_login_at             = :at,
+                login_count               = login_count + 1,
+                current_login_streak_days = :streak,
+                updated_at                = NOW()
+            WHERE user_id = :uid
+        """),
+        {"uid": user_id, "at": login_at, "streak": new_streak},
     )
 
 
@@ -41,13 +76,41 @@ async def call_mark_login(conn: AsyncConnection, user_id: int, login_at: datetim
 # PROFILE
 # ─────────────────────────────────────────────────────────────
 
-async def call_upsert_profile(
+async def get_profile(conn: AsyncConnection, user_id: int) -> dict | None:
+    row = await conn.execute(
+        text("""
+            SELECT
+                u.id        AS user_id,
+                u.email,
+                up.username,
+                up.display_name,
+                up.birth_date::text,
+                up.gender,
+                up.height_cm,
+                up.weight_kg,
+                up.goal,
+                up.activity_level,
+                COALESCE(pr.total_exp, 0)           AS total_exp,
+                COALESCE(pr.level, 1)               AS level,
+                COALESCE(pr.current_streak_days, 0) AS current_streak_days
+            FROM users u
+            LEFT JOIN user_profiles up ON up.user_id = u.id
+            LEFT JOIN user_progress pr ON pr.user_id = u.id
+            WHERE u.id = :user_id
+        """),
+        {"user_id": user_id},
+    )
+    row = row.mappings().one_or_none()
+    return dict(row) if row else None
+
+
+async def upsert_profile(
     conn: AsyncConnection,
     user_id: int,
     username: Optional[str],
     display_name: Optional[str],
     birth_date: Optional[str],
-    sex: Optional[str],
+    gender: Optional[str],
     height_cm: Optional[float],
     weight_kg: Optional[float],
     goal: Optional[str],
@@ -55,24 +118,30 @@ async def call_upsert_profile(
 ) -> None:
     await conn.execute(
         text("""
-            CALL proc_upsert_user_profile(
-                p_user_id      => :user_id,
-                p_username     => :username,
-                p_display_name => :display_name,
-                p_birth_date   => CAST(:birth_date AS date),
-                p_sex          => :sex,
-                p_height_cm    => :height_cm,
-                p_weight_kg    => :weight_kg,
-                p_goal         => :goal,
-                p_activity_level => :activity_level
-            )
+            INSERT INTO user_profiles
+                (user_id, username, display_name, birth_date, gender,
+                 height_cm, weight_kg, goal, activity_level)
+            VALUES
+                (:user_id, :username, :display_name,
+                 CAST(:birth_date AS date), :gender,
+                 :height_cm, :weight_kg, :goal, :activity_level)
+            ON CONFLICT (user_id) DO UPDATE SET
+                username       = EXCLUDED.username,
+                display_name   = EXCLUDED.display_name,
+                birth_date     = EXCLUDED.birth_date,
+                gender         = EXCLUDED.gender,
+                height_cm      = EXCLUDED.height_cm,
+                weight_kg      = EXCLUDED.weight_kg,
+                goal           = EXCLUDED.goal,
+                activity_level = EXCLUDED.activity_level,
+                updated_at     = NOW()
         """),
         {
             "user_id": user_id,
             "username": username,
             "display_name": display_name,
             "birth_date": birth_date,
-            "sex": sex,
+            "gender": gender,
             "height_cm": height_cm,
             "weight_kg": weight_kg,
             "goal": goal,

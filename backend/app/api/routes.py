@@ -8,7 +8,7 @@ from ..core.db import get_db
 from ..core import queries
 from ..core.security import hash_password, verify_password, create_access_token, get_current_user_id, get_current_user
 from ..core.exp import calculate_workout_exp, calculate_meal_exp
-from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse, UpsertProfileRequest, LogWorkoutRequest, WorkoutLoggedResponse, LogMealRequest, MealLoggedResponse
+from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse, UpsertProfileRequest, LogWorkoutRequest, WorkoutLoggedResponse, LogMealRequest, MealLoggedResponse, ProfileResponse
 
 #   Tutaj przechowywane beda endpointy
 router = APIRouter()
@@ -124,20 +124,31 @@ async def get_me(current_user: dict = Depends(get_current_user), db: AsyncSessio
 
 # ─── Profile ───────────────────────────────────────────────────────────────────
 
+@router.get("/profile", response_model=ProfileResponse)
+async def get_profile(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    profile = await queries.get_profile(db, current_user["user_id"])
+    if not profile:
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    return profile
+
+
 @router.put("/profile", status_code=status.HTTP_200_OK)
-async def upsert_profile(
+async def update_profile(
     body: UpsertProfileRequest,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     try:
-        await queries.call_upsert_profile(
+        await queries.upsert_profile(
             db,
             user_id=current_user["user_id"],
             username=body.username,
             display_name=body.display_name,
             birth_date=body.birth_date,
-            sex=body.sex,
+            gender=body.gender,
             height_cm=body.height_cm,
             weight_kg=body.weight_kg,
             goal=body.goal,
@@ -151,7 +162,8 @@ async def upsert_profile(
             detail="Podana nazwa użytkownika jest już zajęta",
         )
 
-    return {"message": "Profil zaktualizowany"}
+    profile = await queries.get_profile(db, current_user["user_id"])
+    return profile
 
 
 # ─── Workouts ──────────────────────────────────────────────────────────────────
