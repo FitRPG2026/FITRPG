@@ -48,7 +48,18 @@
     [attr.readonly]="isLocked ? '' : null"
     placeholder="Np. owsianka z jogurtem i owocami"></textarea>
 
-  <div class="status-banner" *ngIf="statusMessage">{{ statusMessage }}</div>
+  <div class="status-banner success" *ngIf="statusMessage">{{ statusMessage }}</div>
+
+  <div class="upload-debug" *ngIf="isDebug && result?.meal_review as review">
+    <div class="debug-field">
+      <label>Link zwrócony z Cloudinary</label>
+      <input type="text" [value]="review.url" readonly>
+    </div>
+    <div class="debug-field">
+      <label>Opis zdjęcia</label>
+      <textarea rows="2" readonly>{{ review.caption || 'Zdjęcie posiłku' }}</textarea>
+    </div>
+  </div>
 
   <button
     *ngIf="!statusMessage"
