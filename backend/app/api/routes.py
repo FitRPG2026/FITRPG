@@ -10,7 +10,21 @@ from ..core.security import hash_password, verify_password, create_access_token,
 from ..core.exp import calculate_workout_exp, calculate_meal_exp
 from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse, UpsertProfileRequest, LogWorkoutRequest, WorkoutLoggedResponse, LogMealRequest, MealLoggedResponse, ProfileResponse
 from ..core.exp_utils import compute_level, compute_workout_exp, compute_meal_exp
-
+from ..schemas import (
+    RegisterRequest, 
+    LoginRequest, 
+    TokenResponse, 
+    MeResponse, 
+    UpdateProfileRequest, 
+    UserProfileResponse, 
+    UpdateSettingsRequest, 
+    UserSettingsResponse, 
+    WorkoutRequest, 
+    WorkoutResponse, 
+    MealRequest, 
+    MealResponse, 
+    ChallengeRewardItem
+)
 
 #   Tutaj przechowywane beda endpointy
 router = APIRouter()
