@@ -1,0 +1,9 @@
+{
+  "outputDirectory": "dist/my-login-app/browser",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
