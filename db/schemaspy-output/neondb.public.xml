@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<database name="neondb" schema="public" type="PostgreSQL - 17.8 (130b160)">
+   <sequences>
+      <sequence increment="1" name="achievements_id_seq" startValue="1"/>
+      <sequence increment="1" name="challenges_id_seq" startValue="1"/>
+      <sequence increment="1" name="exp_events_id_seq" startValue="1"/>
+      <sequence increment="1" name="gym_workout_exercises_id_seq" startValue="1"/>
+      <sequence increment="1" name="meals_id_seq" startValue="1"/>
+      <sequence increment="1" name="quests_id_seq" startValue="1"/>
+      <sequence increment="1" name="user_achievements_id_seq" startValue="1"/>
+      <sequence increment="1" name="user_challenges_id_seq" startValue="1"/>
+      <sequence increment="1" name="user_quests_id_seq" startValue="1"/>
+      <sequence increment="1" name="users_id_seq" startValue="1"/>
+      <sequence increment="1" name="workouts_id_seq" startValue="1"/>
+   </sequences>
+   <tables>
+      <table name="achievements" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('achievements_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="achievement_id" foreignKey="user_achievements_achievement_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_achievements"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="code" nullable="false" remarks="" size="80" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="title" nullable="false" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="description" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="achievement_type" nullable="false" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="5" name="target_value" nullable="false" remarks="" size="12" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="6" name="reward_exp" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="icon_url" nullable="true" remarks="" size="512" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="mechanic_type" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="event_trigger" nullable="false" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="'{}'::jsonb" digits="0" id="10" name="conditions" nullable="false" remarks="" size="2147483647" type="jsonb" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="11" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="achievements_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="achievements_code_key" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+         <index name="ix_achievements_code" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+      </table>
+      <table name="challenges" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('challenges_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="challenge_id" foreignKey="user_challenges_challenge_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_challenges"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="title" nullable="false" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="description" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="challenge_type" nullable="false" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="4" name="goal_value" nullable="false" remarks="" size="12" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="5" name="reward_exp" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="start_date" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="7" name="end_date" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="mechanic_type" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="event_trigger" nullable="false" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="'{}'::jsonb" digits="0" id="10" name="conditions" nullable="false" remarks="" size="2147483647" type="jsonb" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="11" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="challenges_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+      </table>
+      <table name="exp_events" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('exp_events_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="exp_events_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="source_type" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="source_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="amount" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="reason" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="6" name="granted_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="7" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="exp_events_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_exp_events_granted_at" unique="false">
+            <column ascending="true" name="granted_at"/>
+         </index>
+         <index name="ix_exp_events_user_id" unique="false">
+            <column ascending="true" name="user_id"/>
+         </index>
+      </table>
+      <table name="gym_workout_exercises" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('gym_workout_exercises_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="workout_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="gym_workout_exercises_workout_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="workouts"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="exercise_name" nullable="false" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="exercise_order" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="exercise_group" nullable="true" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="sets" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="reps" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="7" name="weight_kg" nullable="true" remarks="" size="6" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="duration_sec" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="9" name="distance_m" nullable="true" remarks="" size="8" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="notes" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="gym_workout_exercises_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_gym_exercises_workout" unique="false">
+            <column ascending="true" name="workout_id"/>
+         </index>
+      </table>
+      <table name="meals" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('meals_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="meals_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="meal_type" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="title" nullable="true" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="4" name="eaten_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="photo_url" nullable="true" remarks="" size="512" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="notes" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="health_score" nullable="true" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="3" id="8" name="ai_confidence" nullable="true" remarks="" size="4" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="9" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="meals_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_meals_eaten_at" unique="false">
+            <column ascending="true" name="eaten_at"/>
+         </index>
+         <index name="ix_meals_user_id" unique="false">
+            <column ascending="true" name="user_id"/>
+         </index>
+      </table>
+      <table name="quests" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('quests_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="quest_id" foreignKey="user_quests_quest_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_quests"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="code" nullable="false" remarks="" size="80" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="title" nullable="false" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="description" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="quest_type" nullable="false" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="'standalone'::character varying" digits="0" id="5" name="progression_mode" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="quest_series_code" nullable="true" remarks="" size="80" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="sequence_order" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="8" name="target_value" nullable="false" remarks="" size="12" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="reward_exp" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="mechanic_type" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="event_trigger" nullable="false" remarks="" size="60" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="'{}'::jsonb" digits="0" id="12" name="conditions" nullable="false" remarks="" size="2147483647" type="jsonb" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="13" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="quests_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_quests_code" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+         <index name="ix_quests_series_code" unique="false">
+            <column ascending="true" name="quest_series_code"/>
+         </index>
+         <index name="quests_code_key" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+      </table>
+      <table name="user_achievements" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('user_achievements_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_achievements_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="achievement_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_achievements_achievement_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="achievements"/>
+         </column>
+         <column autoUpdated="false" defaultValue="0" digits="2" id="3" name="progress_value" nullable="false" remarks="" size="12" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="'active'::character varying" digits="0" id="4" name="status" nullable="false" remarks="" size="20" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="5" name="started_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="completed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="7" name="claimed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="user_achievements_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_user_achievements_achievement" unique="false">
+            <column ascending="true" name="achievement_id"/>
+         </index>
+         <index name="ix_user_achievements_user" unique="false">
+            <column ascending="true" name="user_id"/>
+         </index>
+         <index name="uq_user_achievement" unique="true">
+            <column ascending="true" name="user_id"/>
+            <column ascending="true" name="achievement_id"/>
+         </index>
+      </table>
+      <table name="user_auth" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_auth_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="refresh_token_hash" nullable="true" remarks="" size="512" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="last_login_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="3" name="login_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="4" name="current_login_streak_days" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="user_id" sequenceNumberInPK="1"/>
+         <index name="user_auth_pkey" unique="true">
+            <column ascending="true" name="user_id"/>
+         </index>
+      </table>
+      <table name="user_challenges" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('user_challenges_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_challenges_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="challenge_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_challenges_challenge_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="challenges"/>
+         </column>
+         <column autoUpdated="false" defaultValue="0" digits="2" id="3" name="progress_value" nullable="false" remarks="" size="12" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="'active'::character varying" digits="0" id="4" name="status" nullable="false" remarks="" size="20" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="5" name="started_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="completed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="7" name="claimed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="8" name="failed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="user_challenges_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_user_challenges_challenge" unique="false">
+            <column ascending="true" name="challenge_id"/>
+         </index>
+         <index name="ix_user_challenges_user" unique="false">
+            <column ascending="true" name="user_id"/>
+         </index>
+         <index name="uq_user_challenge" unique="true">
+            <column ascending="true" name="user_id"/>
+            <column ascending="true" name="challenge_id"/>
+         </index>
+      </table>
+      <table name="user_profiles" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_profiles_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="username" nullable="true" remarks="" size="100" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="display_name" nullable="true" remarks="" size="100" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="birth_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="gender" nullable="true" remarks="" size="20" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="5" name="height_cm" nullable="true" remarks="" size="5" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="null" digits="2" id="6" name="weight_kg" nullable="true" remarks="" size="5" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="goal" nullable="true" remarks="" size="50" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="activity_level" nullable="true" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="9" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="user_id" sequenceNumberInPK="1"/>
+         <index name="user_profiles_pkey" unique="true">
+            <column ascending="true" name="user_id"/>
+         </index>
+         <index name="ix_user_profiles_username" unique="true">
+            <column ascending="true" name="username"/>
+         </index>
+         <index name="user_profiles_username_key" unique="true">
+            <column ascending="true" name="username"/>
+         </index>
+      </table>
+      <table name="user_progress" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_progress_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="1" name="total_exp" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="1" digits="0" id="2" name="level" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="3" name="current_streak_days" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="4" name="longest_streak_days" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="5" name="current_login_streak_days" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="6" name="longest_login_streak_days" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="last_activity_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="8" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="user_id" sequenceNumberInPK="1"/>
+         <index name="user_progress_pkey" unique="true">
+            <column ascending="true" name="user_id"/>
+         </index>
+      </table>
+      <table name="user_quests" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('user_quests_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_quests_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="quest_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="user_quests_quest_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="quests"/>
+         </column>
+         <column autoUpdated="false" defaultValue="0" digits="2" id="3" name="progress_value" nullable="false" remarks="" size="12" type="numeric" typeCode="2"/>
+         <column autoUpdated="false" defaultValue="'active'::character varying" digits="0" id="4" name="status" nullable="false" remarks="" size="20" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="5" name="started_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="completed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="7" name="claimed_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="8" name="abandoned_at" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="user_quests_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_user_quests_quest" unique="false">
+            <column ascending="true" name="quest_id"/>
+         </index>
+         <index name="ix_user_quests_user" unique="false">
+            <column ascending="true" name="user_id"/>
+         </index>
+         <index name="uq_user_quest" unique="true">
+            <column ascending="true" name="user_id"/>
+            <column ascending="true" name="quest_id"/>
+         </index>
+      </table>
+      <table name="users" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('users_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="user_id" foreignKey="exp_events_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="exp_events"/>
+            <child column="user_id" foreignKey="meals_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="meals"/>
+            <child column="user_id" foreignKey="user_achievements_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_achievements"/>
+            <child column="user_id" foreignKey="user_auth_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_auth"/>
+            <child column="user_id" foreignKey="user_challenges_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_challenges"/>
+            <child column="user_id" foreignKey="user_profiles_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_profiles"/>
+            <child column="user_id" foreignKey="user_progress_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_progress"/>
+            <child column="user_id" foreignKey="user_quests_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="user_quests"/>
+            <child column="user_id" foreignKey="workouts_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="workouts"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="email" nullable="false" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="password_hash" nullable="false" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="'active'::character varying" digits="0" id="3" name="status" nullable="false" remarks="" size="20" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="users_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_users_email" unique="true">
+            <column ascending="true" name="email"/>
+         </index>
+         <index name="users_email_key" unique="true">
+            <column ascending="true" name="email"/>
+         </index>
+      </table>
+      <table name="workouts" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('workouts_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="workout_id" foreignKey="gym_workout_exercises_workout_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="gym_workout_exercises"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="user_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="workouts_user_id_fkey" implied="false" onDeleteCascade="true" schema="public" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="workout_type" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="title" nullable="true" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="4" name="performed_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="duration_min" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="health_score" nullable="true" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="notes" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="activity_category" nullable="true" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="activity_code" nullable="true" remarks="" size="80" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="activity_name" nullable="true" remarks="" size="255" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="11" name="created_at" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="workouts_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="ix_workouts_activity" unique="false">
+            <column ascending="true" name="activity_category"/>
+            <column ascending="true" name="activity_code"/>
+         </index>
+         <index name="ix_workouts_performed_at" unique="false">
+            <column ascending="true" name="performed_at"/>
+         </index>
+         <index name="ix_workouts_user_id" unique="false">
+            <column ascending="true" name="user_id"/>
+         </index>
+      </table>
+   </tables>
+</database>
