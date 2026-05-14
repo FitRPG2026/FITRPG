@@ -53,16 +53,16 @@ services:
 
   # FRONTEND – wyłączony tymczasowo 
   # Odkomentuj gdy aplikacja Angular zostanie stworzona
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: fitrpg_frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "4200:80"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fitrpg_frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
 
   # ML – wyłączony tymczasowo
   # Odkomentuj gdy plik zostanie stworzony
