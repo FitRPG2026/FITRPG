@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, HTTPException, Depends, status
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,14 +7,10 @@ from sqlalchemy.exc import IntegrityError
 from ..core.db import get_db
 from ..core import queries
 from ..core.security import hash_password, verify_password, create_access_token, get_current_user_id, get_current_user
+from ..core.exp import calculate_workout_exp, calculate_meal_exp
+from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse, UpsertProfileRequest, LogWorkoutRequest, WorkoutLoggedResponse, LogMealRequest, MealLoggedResponse, ProfileResponse
 from ..core.exp_utils import compute_level, compute_workout_exp, compute_meal_exp
-from ..schemas import (
-    RegisterRequest, LoginRequest, TokenResponse, MeResponse,
-    WorkoutRequest, WorkoutResponse, ChallengeRewardItem,
-    MealRequest, MealResponse,
-    UserProfileResponse, UpdateProfileRequest,
-    UserSettingsResponse, UpdateSettingsRequest,
-)
+
 
 #   Tutaj przechowywane beda endpointy
 router = APIRouter()
@@ -66,6 +63,17 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         text("CALL proc_register_user(:email, :hash, :status)"),
         {"email": body.email, "hash": password_hash, "status": "active"},
     )
+    # proc_register_user nie tworzy user_progress (brak triggera w tym schemacie)
+    user_row = await db.execute(
+        text("SELECT id FROM users WHERE LOWER(email) = LOWER(:email)"),
+        {"email": body.email},
+    )
+    new_user_id = user_row.scalar_one_or_none()
+    if new_user_id:
+        await db.execute(
+            text("INSERT INTO user_progress (user_id) VALUES (:uid) ON CONFLICT DO NOTHING"),
+            {"uid": new_user_id},
+        )
     await db.commit()
 
     user = await queries.get_user_by_email(db, body.email)
@@ -140,6 +148,135 @@ async def get_me(current_user: dict = Depends(get_current_user), db: AsyncSessio
 
 # ─── Profile ───────────────────────────────────────────────────────────────────
 
+@router.get("/profile", response_model=ProfileResponse)
+async def get_profile(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    profile = await queries.get_profile(db, current_user["user_id"])
+    if not profile:
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    return profile
+
+
+@router.put("/profile", status_code=status.HTTP_200_OK)
+async def update_profile(
+    body: UpsertProfileRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        await queries.upsert_profile(
+            db,
+            user_id=current_user["user_id"],
+            username=body.username,
+            display_name=body.display_name,
+            birth_date=body.birth_date,
+            gender=body.gender,
+            height_cm=body.height_cm,
+            weight_kg=body.weight_kg,
+            goal=body.goal,
+            activity_level=body.activity_level,
+        )
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Podana nazwa użytkownika jest już zajęta",
+        )
+
+    profile = await queries.get_profile(db, current_user["user_id"])
+    return profile
+
+
+# ─── Workouts ──────────────────────────────────────────────────────────────────
+
+@router.post("/workouts", response_model=WorkoutLoggedResponse, status_code=status.HTTP_201_CREATED)
+async def log_workout(
+    body: LogWorkoutRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    user_id = current_user["user_id"]
+    performed_at = body.performed_at or datetime.now(timezone.utc)
+
+    exp_amount = calculate_workout_exp(body.workout_type, body.duration_min, body.health_score)
+
+    exercises_list = [e.model_dump() for e in (body.exercises or [])]
+
+    try:
+        await queries.call_log_workout(
+            db,
+            user_id=user_id,
+            workout_type=body.workout_type,
+            title=body.title,
+            performed_at=performed_at,
+            duration_min=body.duration_min,
+            health_score=body.health_score,
+            notes=body.notes,
+            exercises_json=json.dumps(exercises_list),
+            exp_amount=exp_amount,
+            activity_category=body.activity_category,
+            activity_code=body.activity_code,
+            activity_name=body.activity_name,
+        )
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e).split("\n")[0],
+        )
+
+    progress = await queries.get_user_progress(db, user_id)
+    return WorkoutLoggedResponse(
+        message="Trening zapisany",
+        exp_granted=exp_amount,
+        total_exp=progress["total_exp"] if progress else 0,
+    )
+
+
+# ─── Meals ─────────────────────────────────────────────────────────────────────
+
+@router.post("/meals", response_model=MealLoggedResponse, status_code=status.HTTP_201_CREATED)
+async def log_meal(
+    body: LogMealRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    user_id = current_user["user_id"]
+    eaten_at = body.eaten_at or datetime.now(timezone.utc)
+
+    exp_amount = calculate_meal_exp(body.health_score)
+
+    try:
+        await queries.call_log_meal(
+            db,
+            user_id=user_id,
+            meal_type=body.meal_type,
+            eaten_at=eaten_at,
+            title=body.title,
+            photo_url=body.photo_url,
+            notes=body.notes,
+            health_score=body.health_score,
+            ai_confidence=body.ai_confidence,
+            exp_amount=exp_amount,
+        )
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e).split("\n")[0],
+        )
+
+    progress = await queries.get_user_progress(db, user_id)
+    return MealLoggedResponse(
+        message="Posiłek zapisany",
+        exp_granted=exp_amount,
+        total_exp=progress["total_exp"] if progress else 0,
+    )
 @router.get("/profile", response_model=UserProfileResponse, tags=["Profile"], summary="Pobierz profil użytkownika")
 async def get_profile(current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     user_id = current_user["user_id"]
