@@ -12,6 +12,7 @@ app = FastAPI(
 origins = [
     "http://localhost:4200",
     "https://fitrpg-mocha.vercel.app/,
+    "https://fitrpg2026.vercel.app",
 ]
 
 # app.add_middleware(
