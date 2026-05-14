@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncConnection
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 # ─────────────────────────────────────────────────────────────
@@ -27,6 +27,7 @@ async def get_user_by_email(conn: AsyncConnection, email: str) -> dict | None:
                 up.display_name,
                 up.username
             FROM users u
+            LEFT JOIN user_auth ua ON ua.user_id = u.id
             LEFT JOIN user_profiles up ON up.user_id = u.id
             WHERE LOWER(u.email) = LOWER(:email)
         """),
