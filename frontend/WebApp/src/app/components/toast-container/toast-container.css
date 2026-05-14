@@ -1,0 +1,117 @@
+/* ─── XP toasts (top-right stack) ─── */
+
+.xp-stack {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.xp-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #2a8f5e;
+  color: #fff;
+  border-radius: 999px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(42, 143, 94, 0.45);
+  animation: xpSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.xp-icon { font-size: 16px; }
+
+@keyframes xpSlideIn {
+  from { opacity: 0; transform: translateY(-16px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Challenge overlay (centered) ─── */
+
+.challenge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9100;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayFadeIn 0.2s ease both;
+}
+
+.challenge-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 48px;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: cardScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.challenge-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+
+.challenge-label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #6b7c74;
+  margin-bottom: 8px;
+}
+
+.challenge-title {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a2722;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.challenge-points {
+  font-family: 'Nunito', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2a8f5e;
+  margin-bottom: 28px;
+}
+
+.challenge-dismiss {
+  background: #2a8f5e;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 32px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.challenge-dismiss:hover {
+  background: #3db87a;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes cardScaleIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}

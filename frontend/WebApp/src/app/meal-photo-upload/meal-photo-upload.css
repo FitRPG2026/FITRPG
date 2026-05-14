@@ -1,0 +1,238 @@
+:host {
+  --green: #2a8f5e;
+  --green-dark: #1e6b47;
+  --panel-bg: #ffffff;
+  --text: #1a2722;
+  --text-muted: #6b7c74;
+  --red: #e74c3c;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  display: block;
+  padding: 24px;
+}
+
+.meal-photo-upload {
+  width: min(100%, 560px);
+  background: var(--panel-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  padding: 22px;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: 16px;
+  }
+}
+
+.panel-header {
+  margin-bottom: 18px;
+}
+
+.panel-header h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.drop-zone {
+  border: 2px dashed #b7c8c0;
+  border-radius: 12px;
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  min-height: 190px;
+  overflow: hidden;
+  place-items: center;
+  position: relative;
+  text-align: center;
+  background: #f8faf9;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.drop-zone:hover,
+.drop-zone.dragging {
+  background: #e8f5ee;
+  border-color: var(--green);
+  transform: translateY(-1px);
+}
+
+.drop-zone.locked {
+  cursor: not-allowed;
+}
+
+.drop-zone.locked:hover {
+  background: #f8faf9;
+  border-color: #b7c8c0;
+  transform: none;
+}
+
+.drop-zone.has-image {
+  border-style: solid;
+  padding: 0;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  opacity: 0;
+}
+
+.file-input:disabled {
+  cursor: not-allowed;
+}
+
+.drop-zone img {
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  display: block;
+  object-fit: cover;
+}
+
+.drop-title {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.drop-subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 18px 0 6px;
+  text-transform: uppercase;
+}
+
+.caption-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 82px;
+  border: 1px solid #c8e0c8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.caption-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(42, 143, 94, 0.1);
+}
+
+.caption-input:disabled,
+.caption-input[readonly] {
+  background: #f3f6f4;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.upload-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--green);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.upload-button:hover:not(:disabled) {
+  background: var(--green-dark);
+  transform: translateY(-1px);
+}
+
+.upload-button:disabled {
+  background: #9aa7a1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 14px 0 0;
+}
+
+.status-banner {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  margin-top: 18px;
+  min-height: 46px;
+  padding: 0 14px;
+}
+
+.upload-debug {
+  border: 1px solid #d7e5de;
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.debug-field {
+  display: grid;
+  gap: 6px;
+}
+
+.debug-field label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.debug-field input,
+.debug-field textarea {
+  border: 1px solid #c8e0c8;
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  padding: 10px 12px;
+  resize: vertical;
+}

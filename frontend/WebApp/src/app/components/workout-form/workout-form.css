@@ -1,0 +1,211 @@
+:host {
+  --green: #2a8f5e;
+  --green-light: #3db87a;
+  --red: #e74c3c;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  display: block;
+}
+
+.workout-panel {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 32px 32px;
+}
+
+.panel-header h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a2722;
+  margin: 0 0 4px;
+}
+
+.hint {
+  font-size: 13px;
+  color: #6b7c74;
+  margin: 0 0 20px;
+}
+
+/* ─── Messages ─── */
+.msg {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.msg-error   { background: #fdecea; color: #c0392b; }
+.msg-success { background: #e8f5ee; color: #1e6b47; }
+
+/* ─── Form grid ─── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  margin-bottom: 24px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7c74;
+}
+
+.form-input,
+.form-select {
+  padding: 9px 12px;
+  border: 1px solid #d8e0db;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: #1a2722;
+  background: #f8faf9;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus,
+.form-select:focus { border-color: var(--green); background: #fff; }
+
+.form-textarea { resize: vertical; min-height: 56px; }
+
+/* ─── Exercise section ─── */
+.exercise-section {
+  border-top: 1px solid #e8eee9;
+  padding-top: 20px;
+  margin-bottom: 28px;
+}
+
+.exercise-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.exercise-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7c74;
+}
+
+.add-exercise-btn {
+  background: none;
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  color: var(--green);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.add-exercise-btn:hover { background: var(--green); color: #fff; }
+
+.exercise-table-wrap { overflow-x: auto; }
+
+.exercise-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.exercise-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7c74;
+  border-bottom: 1px solid #e8eee9;
+  white-space: nowrap;
+}
+
+.exercise-table td {
+  padding: 6px 6px;
+  border-bottom: 1px solid #f0f4f2;
+  vertical-align: middle;
+}
+
+.ex-order { color: #a0b0a8; font-size: 12px; text-align: center; width: 28px; }
+
+.ex-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d8e0db;
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  background: #f8faf9;
+  outline: none;
+}
+.ex-input:focus { border-color: var(--green); background: #fff; }
+
+.ex-select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d8e0db;
+  border-radius: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  background: #f8faf9;
+  outline: none;
+}
+.ex-select:focus { border-color: var(--green); }
+
+.ex-num { width: 64px; text-align: center; }
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+.remove-btn:hover { background: #fdecea; }
+
+/* ─── Submit ─── */
+.save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.save-btn:hover:not(:disabled) { background: var(--green-light); }
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
