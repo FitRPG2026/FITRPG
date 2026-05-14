@@ -10,3 +10,4 @@ backend/__pycache__
 backend/schemaspy-output/
 # db/schemaspy-output/
 # schemaspy-output/
+.env

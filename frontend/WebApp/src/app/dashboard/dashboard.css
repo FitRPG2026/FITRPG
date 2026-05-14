@@ -640,6 +640,229 @@
 .save-profile-btn.saving { background: #888; }
 .btn-spinner.white { border-color: rgba(255,255,255,0.4); border-top-color: white; }
 
+/* ═══════════════════════════════════════════
+   TRAINING TAB
+   ═══════════════════════════════════════════ */
+
+.training-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ═══════════════════════════════════════════
+   PROFILE TAB (DEV-41)
+   ═══════════════════════════════════════════ */
+
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Hero card at the top */
+.profile-hero-card {
+  background: var(--sidebar-bg);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+
+.profile-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  background: var(--green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.profile-hero-name {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.profile-hero-level {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 3px;
+}
+
+.profile-hero-right {
+  flex: 1;
+  min-width: 220px;
+}
+
+.profile-xp-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+
+.profile-xp-bar-wrap {
+  background: rgba(255,255,255,0.12);
+  border-radius: 99px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.profile-xp-bar {
+  height: 100%;
+  background: var(--green-light);
+  border-radius: 99px;
+  transition: width 0.8s ease;
+}
+
+.profile-xp-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+}
+
+.profile-streak {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  margin-top: 6px;
+}
+
+/* Profile form panel */
+.profile-form-panel { padding: 28px 32px; }
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin-bottom: 24px;
+}
+
+.pf-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.pf-input {
+  padding: 10px 14px;
+  border: 1px solid #d8e0db;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: #f8faf9;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.pf-input:focus { border-color: var(--green); background: #fff; }
+
+.pf-save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 32px;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.pf-save-btn:hover:not(:disabled) { background: var(--green-light); }
+.pf-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Messages (shared) */
+.msg {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.msg-error   { background: #fdecea; color: #c0392b; }
+.msg-success { background: #e8f5ee; color: #1e6b47; }
+
+/* Settings / privacy */
+.settings-panel { padding: 28px 32px; }
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  padding: 16px;
+  border: 1px solid #e8eee9;
+  border-radius: 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.consent-row:hover { border-color: var(--green); background: #f4fbf7; }
+
+.consent-checkbox {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.consent-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.consent-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.consent-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 /* ─── Responsywność (tablet) ─── */
 @media (max-width: 1100px) {
   .cards-row { grid-template-columns: repeat(2, 1fr); }
@@ -654,4 +877,6 @@
   .achievements-grid { grid-template-columns: repeat(2, 1fr); }
   .profile-summary-card { flex-wrap: wrap; }
   .summary-xp { width: 100%; }
+  .profile-form-grid { grid-template-columns: 1fr; }
+  .profile-hero-card { flex-direction: column; align-items: flex-start; }
 }

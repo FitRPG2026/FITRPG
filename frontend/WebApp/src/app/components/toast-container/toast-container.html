@@ -1,0 +1,27 @@
+<ng-container *ngIf="toasts$ | async as toasts">
+
+  <!-- XP toasts — stacked in top-right -->
+  <div class="xp-stack">
+    <div class="xp-toast"
+         *ngFor="let t of toasts; trackBy: trackById"
+         [class.xp-toast]="t.type === 'xp'"
+         [style.display]="t.type === 'xp' ? 'flex' : 'none'">
+      <span class="xp-icon">⚡</span>
+      <span class="xp-text">{{ t.message }}</span>
+    </div>
+  </div>
+
+  <!-- Challenge overlay — centered, one at a time -->
+  <ng-container *ngFor="let t of toasts; trackBy: trackById">
+    <div class="challenge-overlay" *ngIf="t.type === 'challenge'">
+      <div class="challenge-card">
+        <div class="challenge-icon">🏆</div>
+        <div class="challenge-label">Wyzwanie ukończone!</div>
+        <div class="challenge-title">{{ t.challengeTitle }}</div>
+        <div class="challenge-points">+{{ t.pointsEarned }} XP</div>
+        <button class="challenge-dismiss" (click)="dismiss(t.id)">Odbierz nagrodę</button>
+      </div>
+    </div>
+  </ng-container>
+
+</ng-container>
