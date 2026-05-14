@@ -230,6 +230,7 @@ async def call_log_meal(
     ai_confidence: Optional[float],
     exp_amount: int,
 ) -> None:
+    """
     Wywołuje procedurę bazodanową rejestrującą datę i czas logowania użytkownika.
     Pamiętaj o wykonaniu db.commit() po wywołaniu tej funkcji.
     """
