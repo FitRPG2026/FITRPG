@@ -1,0 +1,36 @@
+<div class="page">
+  <div class="card">
+    <div class="brand">
+      <div class="brand-dot"><span>F</span></div>
+      <span class="brand-name">FitRPG</span>
+    </div>
+
+    <h1>Create an account</h1>
+    <p class="subtitle">Join thousands of users.</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" placeholder="you@example.com" [(ngModel)]="email" />
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" placeholder="minimum 8 characters" [(ngModel)]="password" />
+    </div>
+
+    <div class="field">
+      <label>Confirm password</label>
+      <input type="password" placeholder="••••••••" [(ngModel)]="confirmPassword" />
+    </div>
+
+    <p *ngIf="errorMessage" style="color: #E24B4A; font-size: 13px; margin-top: 8px; text-align: center;">
+      {{ errorMessage }}
+    </p>
+
+    <button class="btn-primary" (click)="onRegister()" [disabled]="isLoading">
+      {{ isLoading ? 'Registering...' : 'Sign up' }}
+    </button>
+
+    <p class="footer-text">Already have an account? <a (click)="goToLogin()">Sign in</a></p>
+  </div>
+</div>

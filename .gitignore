@@ -1,0 +1,10 @@
+backend/venv
+.idea
+backend/__pycache__
+/backend/app/__pycache__
+/backend/tests/__pycache__
+/backend/app/api/__pycache__
+/backend/app/core/__pycache__
+.vscode/extensions.json
+.vscode/settings.json
+.env

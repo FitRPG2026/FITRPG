@@ -1,0 +1,8 @@
+fastapi==0.135.1
+uvicorn==0.41.0
+numpy
+torch
+opencv-python-headless
+pydantic==2.12.5
+Pillow
+python-multipart
