@@ -194,10 +194,10 @@
 }
 
 .status-banner {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
   border-radius: 10px;
-  color: #b91c1c;
+  color: #166534;
   display: flex;
   align-items: center;
   font-size: 14px;
@@ -205,4 +205,34 @@
   margin-top: 18px;
   min-height: 46px;
   padding: 0 14px;
+}
+
+.upload-debug {
+  border: 1px solid #d7e5de;
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.debug-field {
+  display: grid;
+  gap: 6px;
+}
+
+.debug-field label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.debug-field input,
+.debug-field textarea {
+  border: 1px solid #c8e0c8;
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  padding: 10px 12px;
+  resize: vertical;
 }

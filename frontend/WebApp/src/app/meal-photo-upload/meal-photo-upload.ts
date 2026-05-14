@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
+﻿import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MealPhotoUploadService } from './meal-photo-upload.service';
@@ -13,6 +14,7 @@ import { LocalMealReviewResult } from './meal-photo-upload.types';
   styleUrl: './meal-photo-upload.css',
 })
 export class MealPhotoUploadComponent implements OnDestroy {
+  @Input() userId: string | number = '1';
   @Output() mealReviewCreated = new EventEmitter<LocalMealReviewResult>();
   @ViewChild('captionInput') private captionInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
@@ -25,7 +27,6 @@ export class MealPhotoUploadComponent implements OnDestroy {
   loading = false;
   dragging = false;
   errorMessage: string | null = null;
-  private fallbackTimerId: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly uploadService: MealPhotoUploadService,
@@ -36,8 +37,11 @@ export class MealPhotoUploadComponent implements OnDestroy {
     return this.loading || this.result !== null;
   }
 
+  get isDebug(): boolean {
+    return this.uploadService.isDebug;
+  }
+
   ngOnDestroy(): void {
-    this.clearUnavailableFallback();
     this.revokePreviewUrl();
   }
 
@@ -102,16 +106,33 @@ export class MealPhotoUploadComponent implements OnDestroy {
       return;
     }
 
+    const file = this.selectedFile;
+    const caption = this.caption.trim();
+
     this.loading = true;
     this.errorMessage = null;
     this.result = null;
     this.statusMessage = null;
     this.captionInput?.nativeElement.blur();
     console.log('mealPhotoUpload submit started', {
-      file_name: this.selectedFile.name,
-      caption: this.caption.trim(),
+      file_name: file.name,
+      caption,
     });
-    this.startUnavailableFallback();
+
+    this.uploadService.uploadMealPhoto(file, caption, this.userId)
+      .then((result) => {
+        this.loading = false;
+        this.result = result;
+        this.statusMessage = result.message;
+        console.log('mealReviewCreated', result);
+        this.mealReviewCreated.emit(result);
+        this.changeDetector.detectChanges();
+      })
+      .catch((error: unknown) => {
+        this.loading = false;
+        this.errorMessage = this.resolveErrorMessage(error);
+        this.changeDetector.detectChanges();
+      });
   }
 
   onCaptionChange(value: string): void {
@@ -149,40 +170,26 @@ export class MealPhotoUploadComponent implements OnDestroy {
   }
 
   private resetResult(): void {
-    this.clearUnavailableFallback();
     this.result = null;
     this.statusMessage = null;
     this.errorMessage = null;
   }
 
-  private startUnavailableFallback(): void {
-    this.clearUnavailableFallback();
+  private resolveErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        return 'Cloudinary nie odpowiedziało. Sprawdź upload preset i połączenie z internetem.';
+      }
 
-    const file = this.selectedFile;
-    if (!file || !this.previewUrl) {
-      return;
+      const cloudinaryMessage = error.error?.error?.message || error.error?.message;
+      return cloudinaryMessage || `Cloudinary odrzuciło upload. Status: ${error.status}.`;
     }
 
-    const caption = this.caption.trim();
-
-    this.fallbackTimerId = setTimeout(() => {
-      const result = this.uploadService.createUnavailableMealReview(file, caption);
-
-      this.fallbackTimerId = null;
-      this.loading = false;
-      this.result = result;
-      this.statusMessage = result.message;
-      console.log('mealReviewCreated', result);
-      this.mealReviewCreated.emit(result);
-      this.changeDetector.detectChanges();
-    }, 10000);
-  }
-
-  private clearUnavailableFallback(): void {
-    if (this.fallbackTimerId) {
-      clearTimeout(this.fallbackTimerId);
-      this.fallbackTimerId = null;
+    if (error instanceof Error) {
+      return error.message;
     }
+
+    return 'Nie udało się wysłać zdjęcia. Spróbuj ponownie.';
   }
 
   private revokePreviewUrl(): void {
@@ -192,3 +199,4 @@ export class MealPhotoUploadComponent implements OnDestroy {
     }
   }
 }
+

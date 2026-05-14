@@ -21,3 +21,13 @@ export interface LocalMealReviewResult {
   message: string;
   meal_review: MealReviewDraft;
 }
+
+export interface CloudinaryUploadResponse {
+  secure_url: string;
+  public_id: string;
+  original_filename?: string;
+  created_at?: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+}
