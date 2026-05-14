@@ -1,5 +1,5 @@
 {
-  "outputDirectory": "dist/WebApp",
+  "outputDirectory": "dist/my-login-app/browser",
   "rewrites": [
     {
       "source": "/(.*)",
