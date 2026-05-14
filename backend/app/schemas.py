@@ -194,6 +194,23 @@ class MealLoggedResponse(BaseModel):
     total_exp: int
 
 
+
+
+class MealRequest(BaseModel):
+    title: Optional[str] = None
+    meal_type: Optional[str] = None
+    eaten_at: Optional[datetime] = None
+    notes: Optional[str] = None
+    health_score: int = 7
+
+
+class MealResponse(BaseModel):
+    status: str = "success"
+    meal_id: int
+    exp_granted: int
+    rewards: List[ChallengeRewardItem] = []
+
+
 # ─────────────────────────────────────────────
 # ERROR
 # ─────────────────────────────────────────────
