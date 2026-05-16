@@ -2,8 +2,7 @@ import json
 from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncConnection
 
 # ─────────────────────────────────────────────────────────────
 # AUTH
@@ -230,6 +229,7 @@ async def call_log_meal(
     ai_confidence: Optional[float],
     exp_amount: int,
 ) -> None:
+    """
     Wywołuje procedurę bazodanową rejestrującą datę i czas logowania użytkownika.
     Pamiętaj o wykonaniu db.commit() po wywołaniu tej funkcji.
     """

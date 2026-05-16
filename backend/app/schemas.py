@@ -194,6 +194,113 @@ class MealLoggedResponse(BaseModel):
     total_exp: int
 
 
+
+# ─────────────────────────────────────────────
+# NOWE KLASY DO DODANIA W SCHEMAS.PY
+# ─────────────────────────────────────────────
+
+class UpdateProfileRequest(BaseModel):
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    birth_date: Optional[str] = None        # "YYYY-MM-DD"
+    sex: Optional[str] = None               
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    goal: Optional[str] = None
+    activity_level: Optional[str] = None
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    birth_date: Optional[str] = None
+    sex: Optional[str] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    goal: Optional[str] = None
+    activity_level: Optional[str] = None
+    total_exp: int = 0
+    level: int = 1
+    xp_in_level: int = 0
+    xp_to_next_level: int = 0
+    current_streak_days: int = 0
+    longest_streak_days: int = 0
+
+class UpdateSettingsRequest(BaseModel):
+    data_processing_consent: bool = False
+    profile_public: bool = False
+
+class UserSettingsResponse(BaseModel):
+    data_processing_consent: bool
+    profile_public: bool
+
+class ChallengeRewardItem(BaseModel):
+    challenge_id: int
+    title: str
+    points_earned: int
+
+class WorkoutRequest(BaseModel):
+    workout_type: Optional[str] = None
+    title: Optional[str] = None
+    performed_at: Optional[datetime] = None
+    duration_min: Optional[int] = None
+    notes: Optional[str] = None
+    exercises: Optional[List[ExerciseInput]] = []
+    activity_category: Optional[str] = None
+
+    @field_validator("workout_type")
+    @classmethod
+    def validate_workout_type(cls, v):
+        if v is not None and v not in _WORKOUT_TYPES:
+            raise ValueError(f"workout_type musi być jednym z: {', '.join(sorted(_WORKOUT_TYPES))}")
+        return v
+
+    @field_validator("activity_category")
+    @classmethod
+    def validate_activity_category(cls, v):
+        if v is not None and v not in _ACTIVITY_CATEGORIES:
+            raise ValueError(f"activity_category musi być jednym z: {', '.join(sorted(_ACTIVITY_CATEGORIES))}")
+        return v
+
+    @field_validator("duration_min")
+    @classmethod
+    def validate_duration(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("duration_min musi być większe od 0")
+        return v
+
+class WorkoutResponse(BaseModel):
+    workout_id: int
+    exp_granted: int
+    rewards: List[ChallengeRewardItem] = []
+
+class MealRequest(BaseModel):
+    meal_type: Optional[str] = None
+    eaten_at: Optional[datetime] = None
+    title: Optional[str] = None
+    notes: Optional[str] = None
+    health_score: Optional[int] = None
+
+    @field_validator("meal_type")
+    @classmethod
+    def validate_meal_type(cls, v):
+        if v is not None and v not in _MEAL_TYPES:
+            raise ValueError(f"meal_type musi być jednym z: {', '.join(sorted(_MEAL_TYPES))}")
+        return v
+
+    @field_validator("health_score")
+    @classmethod
+    def validate_health_score(cls, v):
+        if v is not None and not (1 <= v <= 10):
+            raise ValueError("health_score musi być w zakresie 1–10")
+        return v
+
+class MealResponse(BaseModel):
+    meal_id: int
+    exp_granted: int
+    rewards: List[ChallengeRewardItem] = []
+
+
 # ─────────────────────────────────────────────
 # ERROR
 # ─────────────────────────────────────────────

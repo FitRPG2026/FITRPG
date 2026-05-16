@@ -53,7 +53,7 @@ Projekt oparty jest na architekturze mikroserwisów w środowisku Monorepo.
 FITRPG/
 ├── frontend/      # Aplikacja kliencka (Angular)
 ├── backend/       # Główne API REST i logika biznesowa
-├── db/            # Schemat bazy danych i migracje
+├── db/            # alembic i dokumentacja
 ├── ML/            # Mikroserwis sztucznej inteligencji do oceny zdjęć posiłków
 ├── docker-compose.yml # Konfiguracja środowiska lokalnego
 └── README.md
