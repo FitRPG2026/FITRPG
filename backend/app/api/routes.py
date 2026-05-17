@@ -110,35 +110,45 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     - Waliduje hasło z hashem.
     - Zapisuje czas ostatniego logowania wywołując `proc_mark_login`.
     """
-    user = await queries.get_user_by_email(db, body.email)
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nieprawidłowy email lub hasło",
-        )
-    if user["status"] != "active":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Konto ma status: {user['status']}. Dostęp zablokowany.",
-        )
-    if not verify_password(body.password, user["password_hash"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nieprawidłowy email lub hasło",
-        )
-
-    await queries.call_mark_login(db, user["id"], datetime.now(timezone.utc))
-    await db.commit()
-
-    token = create_access_token(user["id"], user["email"])
+    # user = await queries.get_user_by_email(db, body.email)
+    #
+    # if not user:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Nieprawidłowy email lub hasło",
+    #     )
+    # if user["status"] != "active":
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail=f"Konto ma status: {user['status']}. Dostęp zablokowany.",
+    #     )
+    # if not verify_password(body.password, user["password_hash"]):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Nieprawidłowy email lub hasło",
+    #     )
+    #
+    # await queries.call_mark_login(db, user["id"], datetime.now(timezone.utc))
+    # await db.commit()
+    #
+    # token = create_access_token(user["id"], user["email"])
+    #
+    # return TokenResponse(
+    #     access_token=token,
+    #     user_id=user["id"],
+    #     email=user["email"],
+    #     username=user.get("username"),
+    #     display_name=user.get("display_name"),
+    # )
 
     return TokenResponse(
-        access_token=token,
-        user_id=user["id"],
-        email=user["email"],
-        username=user.get("username"),
-        display_name=user.get("display_name"),
+        access_token="testowy-token-bez-bazy-123",
+        token_type="bearer",
+        user_id=999,
+        email=body.email,
+        username="TestowyGracz",
+        display_name="Testowy Gracz"
     )
 
 
@@ -164,44 +174,67 @@ async def get_me(current_user: dict = Depends(get_current_user), db: AsyncSessio
 
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(
-    current_user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+#    current_user: dict = Depends(get_current_user),
+#    db: AsyncSession = Depends(get_db),
 ):
-    profile = await queries.get_profile(db, current_user["user_id"])
-    if not profile:
-        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
-    return profile
+#    profile = await queries.get_profile(db, current_user["user_id"])
+#    if not profile:
+#        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+#    return profile
+    return {
+        "user_id": 999,
+        "email": "test@test.pl",
+        "username": "TestowyGracz",
+        "display_name": "Testowy",
+        "birth_date": "2000-01-01",
+        "gender": "male",
+        "height_cm": 180.0,
+        "weight_kg": 75.0,
+        "goal": "maintain",
+        "activity_level": "moderate"
+    } 
 
 
 @router.put("/profile", status_code=status.HTTP_200_OK)
 async def update_profile(
     body: UpsertProfileRequest,
-    current_user: dict = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+#    current_user: dict = Depends(get_current_user),
+#    db: AsyncSession = Depends(get_db),
 ):
-    try:
-        await queries.upsert_profile(
-            db,
-            user_id=current_user["user_id"],
-            username=body.username,
-            display_name=body.display_name,
-            birth_date=body.birth_date,
-            gender=body.gender,
-            height_cm=body.height_cm,
-            weight_kg=body.weight_kg,
-            goal=body.goal,
-            activity_level=body.activity_level,
-        )
-        await db.commit()
-    except IntegrityError:
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Podana nazwa użytkownika jest już zajęta",
-        )
-
-    profile = await queries.get_profile(db, current_user["user_id"])
-    return profile
+#    try:
+#        await queries.upsert_profile(
+#            db,
+#            user_id=current_user["user_id"],
+#            username=body.username,
+#            display_name=body.display_name,
+#            birth_date=body.birth_date,
+#            gender=body.gender,
+#            height_cm=body.height_cm,
+#            weight_kg=body.weight_kg,
+#            goal=body.goal,
+#            activity_level=body.activity_level,
+#        )
+#        await db.commit()
+#    except IntegrityError:
+#        await db.rollback()
+#        raise HTTPException(
+#            status_code=status.HTTP_409_CONFLICT,
+#            detail="Podana nazwa użytkownika jest już zajęta",
+#        )
+#
+#    profile = await queries.get_profile(db, current_user["user_id"])
+#    return profile
+    return {
+        "user_id": 999,
+        "username": body.username,
+        "display_name": body.display_name,
+        "birth_date": body.birth_date,
+        "gender": body.gender,
+        "height_cm": body.height_cm,
+        "weight_kg": body.weight_kg,
+        "goal": body.goal,
+        "activity_level": body.activity_level
+    }
 
 
 # ─── Workouts ──────────────────────────────────────────────────────────────────
@@ -373,16 +406,32 @@ async def log_meal(
 # ─── Settings ─────────────────────────────────────────────────────────────────
 
 @router.get("/settings", response_model=UserSettingsResponse, tags=["Profile"], summary="Pobierz ustawienia prywatności")
-async def get_settings(current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    settings = await queries.get_user_settings(db, current_user["user_id"])
-    return UserSettingsResponse(**settings)
+async def get_settings(
+    #current_user: dict = Depends(get_current_user),
+    #db: AsyncSession = Depends(get_db)
+    ):
+    #settings = await queries.get_user_settings(db, current_user["user_id"])
+    #return UserSettingsResponse(**settings)
+
+    return UserSettingsResponse(
+        data_processing_consent=True,
+        profile_public=True
+    )
 
 
 @router.put("/settings", response_model=UserSettingsResponse, tags=["Profile"], summary="Zaktualizuj ustawienia prywatności")
-async def update_settings(body: UpdateSettingsRequest, current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    await queries.upsert_user_settings(db, current_user["user_id"], body.data_processing_consent, body.profile_public)
-    await db.commit()
-    return UserSettingsResponse(data_processing_consent=body.data_processing_consent, profile_public=body.profile_public)
+async def update_settings(body: UpdateSettingsRequest
+                            # current_user: dict = Depends(get_current_user),
+                            # db: AsyncSession = Depends(get_db)
+                            ):
+    #await queries.upsert_user_settings(db, current_user["user_id"], body.data_processing_consent, body.profile_public)
+    #await db.commit()
+    #return UserSettingsResponse(data_processing_consent=body.data_processing_consent, profile_public=body.profile_public)
+
+    return UserSettingsResponse(
+        data_processing_consent=body.data_processing_consent,
+        profile_public=body.profile_public
+    )
 
 
 # # ─── Workouts ─────────────────────────────────────────────────────────────────
