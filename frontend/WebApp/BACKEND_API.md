@@ -58,7 +58,7 @@ app.add_middleware(
 > Gdy backend będzie gotowy, w `src/app/login/login.ts` zastąp mock rzeczywistym `HttpClient`:
 >
 > ```typescript
-> this.http.post('http://localhost:8000/api/login', { email, password }).subscribe({
+> this.http.post('${environment.apiUrl}/login', { email, password }).subscribe({
 >   next: (response: any) => {
 >     localStorage.setItem('token', response.access_token);
 >     this.router.navigate(['/dashboard']);
@@ -250,7 +250,7 @@ getUserProfile() {
 
 // PO (backend)
 getUserProfile() {
-  return this.http.get<UserProfile>('http://localhost:8000/api/user/profile');
+  return this.http.get<UserProfile>('${environment.apiUrl}/user/profile');
 }
 ```
 
