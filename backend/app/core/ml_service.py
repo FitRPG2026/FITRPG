@@ -1,5 +1,6 @@
 import json
 import asyncio
+import os
 from gradio_client import Client
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -7,8 +8,13 @@ from .exp import calculate_meal_exp
 from ..core.db import get_db
 from ..core.exp import calculate_meal_exp
 
-# Inicjujemy klienta raz, przy starcie aplikacji (szybciej działa)
-hf_client = Client("stachtotalny/fitrpg", hf_token="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")
+
+hf_token =  os.getenv("HF_TOKEN")
+
+if hf_token:
+    hf_client = Client("stachtotalny/fitrpg", hf_token=hf_token)
+else:
+    hf_client = Client("stachtotalny/fitrpg")
 
 async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
     print(f"Rozpoczęto analizę AI dla posiłku {meal_id}")
@@ -22,7 +28,7 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
                 image_url=photo_url,
                 api_name="/predict_health"
             )
-            
+
             health_score = int(result) 
             exp_amount = calculate_meal_exp(health_score)
             
