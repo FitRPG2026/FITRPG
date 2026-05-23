@@ -188,12 +188,15 @@ class LogMealRequest(BaseModel):
         return v
 
 
+# class MealLoggedResponse(BaseModel):
+#     message: str
+#     exp_granted: int
+#     total_exp: int
+
 class MealLoggedResponse(BaseModel):
+    meal_id: int      
+    status: str       # np. "pending"
     message: str
-    exp_granted: int
-    total_exp: int
-
-
 
 # ─────────────────────────────────────────────
 # NOWE KLASY DO DODANIA W SCHEMAS.PY
