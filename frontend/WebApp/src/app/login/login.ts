@@ -2,8 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { AuthService } from '../auth';
 
 @Component({
   selector: 'app-login',
@@ -17,7 +16,10 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService // Wstrzykujemy nasz serwis
+  ) { }
 
   goToRegister() {
     this.router.navigate(['/register']);
@@ -27,11 +29,15 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // TODO: zastąpić prawdziwym backendem
-    of({ access_token: 'mock-token-123' }).pipe(delay(1000)).subscribe({
-      next: (response: any) => {
-        localStorage.setItem('token', response.access_token);
+    this.authService.login(this.email, this.password).subscribe({
+      next: () => {
+        this.isLoading = false;
         this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = 'Nieprawidłowy adres e-mail lub hasło.';
+        console.error('Błąd logowania:', err);
       }
     });
   }
