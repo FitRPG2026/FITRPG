@@ -18,7 +18,7 @@ export class LoginComponent {
 
   constructor(
     private router: Router,
-    private authService: AuthService // Wstrzykujemy nasz serwis
+    private authService: AuthService
   ) { }
 
   goToRegister() {
@@ -34,10 +34,13 @@ export class LoginComponent {
         this.isLoading = false;
         this.router.navigate(['/dashboard']);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.isLoading = false;
-        this.errorMessage = 'Nieprawidłowy adres e-mail lub hasło.';
-        console.error('Błąd logowania:', err);
+        if (err.status === 401) {
+          this.errorMessage = 'Nieprawidłowy adres e-mail lub hasło.';
+        } else {
+          this.errorMessage = 'Błąd serwera. Spróbuj ponownie.';
+        }
       }
     });
   }
