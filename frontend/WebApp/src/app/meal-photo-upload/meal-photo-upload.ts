@@ -17,9 +17,6 @@ import { switchMap, takeWhile } from 'rxjs/operators';
   templateUrl: './meal-photo-upload.html',
   styleUrl: './meal-photo-upload.css',
 })
-
-
-
 export class MealPhotoUploadComponent implements OnDestroy {
   @Input() userId: string | number = '1';
   @Output() mealReviewCreated = new EventEmitter<LocalMealReviewResult>();
@@ -108,6 +105,30 @@ export class MealPhotoUploadComponent implements OnDestroy {
   uploadSelectedImage(): void {
     if (!this.selectedFile || !this.previewUrl || this.loading) {
       return;
+    }
+  }
+  private setSelectedFile(file: File): void {
+    this.revokePreviewUrl();
+    this.selectedFile = file;
+    this.previewUrl = URL.createObjectURL(file);
+  }
+
+  private revokePreviewUrl(): void {
+    if (this.previewUrl) {
+      URL.revokeObjectURL(this.previewUrl);
+      this.previewUrl = null;
+    }
+  }
+
+  // Obsługa zmiany tekstu w HTML
+  onCaptionChange(event: string): void {
+    this.caption = event;
+  }
+
+  // Blokowanie edycji pola (np. podczas ładowania)
+  blockCaptionEdit(event: Event): void {
+    if (this.isLocked) {
+      event.preventDefault();
     }
   }
 }
