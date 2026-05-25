@@ -53,6 +53,21 @@
               ],
               "outputHashing": "all"
             },
+            "staging": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "40kB",
+                  "maximumError": "80kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -66,6 +81,9 @@
           "configurations": {
             "production": {
               "buildTarget": "my-login-app:build:production"
+            },
+            "staging": {
+              "buildTarget": "my-login-app:build:staging"
             },
             "development": {
               "buildTarget": "my-login-app:build:development"
