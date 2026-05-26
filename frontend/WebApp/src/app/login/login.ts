@@ -10,7 +10,7 @@ import { AuthService } from '../auth';
   imports: [FormsModule, CommonModule],
   templateUrl: './login.html'
 })
-export class LoginComponent {
+export class Login {
   email = '';
   password = '';
   errorMessage = '';
