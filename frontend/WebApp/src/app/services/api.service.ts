@@ -88,12 +88,12 @@ export interface UserSettingsData {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly baseUrl = `${environment.apiUrl}`;
+  private readonly baseUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) {}
 
   private headers(): HttpHeaders {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : '';
     return new HttpHeaders({ Authorization: `Bearer ${token ?? ''}` });
   }
 
