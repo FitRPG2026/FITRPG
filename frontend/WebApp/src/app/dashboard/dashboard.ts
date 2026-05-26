@@ -89,7 +89,7 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : null;
     if (!token) {
       this.router.navigate(['/login']);
       return;
