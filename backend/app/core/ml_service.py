@@ -11,10 +11,7 @@ from ..core.exp import calculate_meal_exp
 
 hf_token =  os.getenv("HF_TOKEN")
 
-if hf_token:
-    hf_client = Client("stachtotalny/fitrpg", hf_token=hf_token)
-else:
-    hf_client = Client("stachtotalny/fitrpg")
+hf_client = None
 
 async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
     print(f"Rozpoczęto analizę AI dla posiłku {meal_id}")
