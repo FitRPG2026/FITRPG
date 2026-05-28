@@ -178,6 +178,7 @@ export class DashboardComponent implements OnInit {
     }
     this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
 
+    // Instrukcja dla Twojego komponentu ProgressComponent:
     if (this.progressComponent) {
       this.progressComponent.workoutsList.unshift({
         title: 'Nowy Trening',
@@ -190,6 +191,7 @@ export class DashboardComponent implements OnInit {
       this.progressComponent.generateCalendar();
       this.progressComponent.selectDate(new Date());
     }
+  } // <-- Upewnij się, że ta klamra zamyka onWorkoutSaved!
 
   onMealSaved(response: LogMealResponse): void {
     if (response.exp_granted > 0) {
@@ -263,4 +265,4 @@ export class DashboardComponent implements OnInit {
     localStorage.removeItem('token');
     this.router.navigate(['/login']);
   }
-}
+} // <-- Ostatnia klamra zamykająca całą klasę Componentu
