@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     storageState: '.auth/user.json',
-    baseURL: 'http://localhost:4200',
+    baseURL: 'https://fitrpg2026.vercel.app',
   },
 
   projects: [

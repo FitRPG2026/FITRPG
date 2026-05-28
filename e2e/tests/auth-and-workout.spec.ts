@@ -4,13 +4,13 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
   });
 
   // --- GRUPA A: PROFIL ---
 
   test('A3: Wejście do profilu po logowaniu', async ({ page }) => {
-    const profileSection = page.getByText(/profil/i);
-    await expect(profileSection).toBeVisible();
+    await page.getByRole('link', { name: /^profil$/i }).click();
 
     await expect(page.getByText(/poziom/i)).toBeVisible();
     await expect(page.getByText(/xp/i)).toBeVisible();
@@ -20,6 +20,8 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   });
 
   test('A4: Sprawdzenie poprawności danych w profilu', async ({ page }) => {
+    await page.getByRole('link', { name: /^profil$/i }).click();
+
     const levelElement = page.getByText(/poziom [0-9]+/i);
     await expect(levelElement).toBeVisible();
 
@@ -33,7 +35,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   // --- GRUPA B: SZYBKIE SCENARIUSZE FORMULARZA ---
 
   test('B1: Dodawanie nowego treningu - sukces', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
 
     await page.getByPlaceholder(/tytuł treningu/i).fill('Trening testowy');
     await page.getByPlaceholder(/czas trwania/i).fill('30');
@@ -46,7 +48,8 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   });
 
   test('B2: Dodawanie treningu z pustym tytułem -> błąd walidacji', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
+
     await page.getByPlaceholder(/czas trwania/i).fill('30');
     await page.getByRole('button', { name: /zapisz/i }).click();
 
@@ -56,7 +59,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   });
 
   test('B3: Dodawanie treningu z nieprawidłowym czasem trwania -> błąd walidacji', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
     await page.getByPlaceholder(/tytuł treningu/i).fill('Trening testowy');
     await page.getByPlaceholder(/czas trwania/i).fill('-30');
     await page.getByRole('button', { name: /zapisz/i }).click();
@@ -67,7 +70,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   });
 
   test('B4: Dodawanie treningu z notatkami', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
     await page.getByPlaceholder(/tytuł treningu/i).fill('Trening z notatkami');
     await page.getByPlaceholder(/czas trwania/i).fill('45');
     await page.locator('select[name="type"]').selectOption('Siła');
@@ -79,7 +82,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   });
 
   test('B5: Dodawanie treningu z typem "Cardio"', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
     await page.getByPlaceholder(/tytuł treningu/i).fill('Trening Cardio');
     await page.getByPlaceholder(/czas trwania/i).fill('60');
     await page.locator('select[name="type"]').selectOption('Cardio');
@@ -94,7 +97,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   test('C1: Pełny scenariusz - sprawdzenie przyrostu XP po dodaniu treningu', async ({ page }) => {
     const initialXp = await page.locator('text=xp').innerText();
 
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
     await page.getByPlaceholder(/tytuł treningu/i).fill('Pełny trening testowy');
     await page.getByPlaceholder(/czas trwania/i).fill('45');
     await page.locator('select[name="type"]').selectOption('Siła');
@@ -113,7 +116,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   // --- GRUPA D: WARUNKI BRZEGOWE (EDGE CASES) ---
 
   test('D1: Dodawanie treningu z bardzo długim tytułem', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
 
     const longTitle = 'A'.repeat(200);
     await page.getByPlaceholder(/tytuł treningu/i).fill(longTitle);
@@ -124,7 +127,7 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
   });
 
   test('D2: Dodawanie treningu z minimalnym czasem trwania', async ({ page }) => {
-    await page.getByText(/trening/i).click();
+    await page.getByRole('link', { name: /^trening$/i }).click();
 
     await page.getByPlaceholder(/tytuł treningu/i).fill('Trening 1 minuta');
     await page.getByPlaceholder(/czas trwania/i).fill('1');
@@ -143,8 +146,8 @@ test.describe('Niezalogowany użytkownik / Błędy autoryzacji', () => {
     await page.goto('/login');
     await expect(page.getByText('Zaloguj się')).toBeVisible();
 
-    await page.getByPlaceholder(/email/i).fill('nieistniejący@user.pl');
-    await page.getByPlaceholder(/hasło/i).fill('BłędneHasło');
+    await page.locator('input[type="email"]').fill('test_nieistniejace@example.com');
+    await page.locator('input[type="password"]').fill('Test123!');
     await page.getByRole('button', { name: /zaloguj się/i }).click();
 
     await expect(page).not.toHaveURL(/dashboard/);
