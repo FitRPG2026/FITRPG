@@ -132,7 +132,9 @@ export class ProgressComponent implements OnInit {
     this.generateCalendar();
   }
 
-  selectDate(date: Date): void {
+  selectDate(dateInput: Date | string): void {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    
     this.selectedDate = date;
     this.selectedWorkouts = this.workoutsList.filter(w => {
       const wDate = new Date(w.performed_at);
