@@ -22,13 +22,13 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-workout-history',
+  selector: 'app-progress',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './progress.html',
-  styleUrls: './progress..css'
+  styleUrls: ['./progress..css']
 })
-export class WorkoutHistoryComponent implements OnInit {
+export class ProgressComponent implements OnInit {
   // Tutaj podepnij serwis pobierający dane z GET /workouts
   workoutsList: Workout[] = []; 
   
