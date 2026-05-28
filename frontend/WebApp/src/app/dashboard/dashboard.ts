@@ -8,7 +8,7 @@ import { NotificationService } from '../services/notification.service';
 import { ToastContainerComponent } from '../components/toast-container/toast-container';
 import { WorkoutFormComponent } from '../components/workout-form/workout-form';
 import { MealFormComponent } from '../components/meal-form/meal-form';
-import { WorkoutHistoryComponent } from '../components/progress/progress'; 
+import { ProgressComponent } from '../components/progress/progress'; 
 
 type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile';
 
@@ -21,14 +21,14 @@ type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'pro
     ToastContainerComponent,
     WorkoutFormComponent,
     MealFormComponent,
-    WorkoutHistoryComponent // 2. Dodajemy do tablicy imports (ponieważ to komponent standalone)
+    ProgressComponent
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })
 export class DashboardComponent implements OnInit {
-  // 3. Łapiemy referencję do komponentu historii, aby móc go odświeżać dynamicznie
-  @ViewChild(WorkoutHistoryComponent) workoutHistory!: WorkoutHistoryComponent;
+  
+  @ViewChild(ProgressComponent) progressComponent!: ProgressComponent;
 
   activeTab: Tab = 'dashboard';
 
@@ -178,24 +178,18 @@ export class DashboardComponent implements OnInit {
     }
     this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
 
-    // 4. Instrukcja dla komponentu historii, aby zaktualizował widok po dodaniu treningu:
-    if (this.workoutHistory) {
-      // Opcja A: Jeśli w komponencie historii napiszesz metodę fetchującą historię z API, wywołaj ją tu:
-      // this.workoutHistory.loadWorkoutsFromBackend();
-      
-      // Opcja B: Aktualnie działamy na liście demonstracyjnej, więc tymczasowo wrzucamy obiekt ręcznie:
-      this.workoutHistory.workoutsList.unshift({
+    if (this.progressComponent) {
+      this.progressComponent.workoutsList.unshift({
         title: 'Nowy Trening',
         workout_type: 'Trening',
         performed_at: new Date().toISOString(),
-        duration_min: 30, // Wartości domyślne, dopóki formularz nie zacznie ich przekazywać w evencie
+        duration_min: 30,
         health_score: 10,
         exp_amount: response.exp_granted
       });
-      this.workoutHistory.generateCalendar();
-      this.workoutHistory.selectDate(new Date());
+      this.progressComponent.generateCalendar();
+      this.progressComponent.selectDate(new Date());
     }
-  }
 
   onMealSaved(response: LogMealResponse): void {
     if (response.exp_granted > 0) {
