@@ -8,8 +8,7 @@ import { NotificationService } from '../services/notification.service';
 import { ToastContainerComponent } from '../components/toast-container/toast-container';
 import { WorkoutFormComponent } from '../components/workout-form/workout-form';
 import { MealFormComponent } from '../components/meal-form/meal-form';
-// 1. Importujemy Twój nowy komponent historii treningów
-import { WorkoutHistoryComponent } from '../components/workout-history/workout-history'; 
+import { WorkoutHistoryComponent } from '../components/progress/progress'; 
 
 type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile';
 
