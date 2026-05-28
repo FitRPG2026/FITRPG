@@ -26,7 +26,7 @@ interface CalendarDay {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './progress.html',
-  styleUrls: ['./progress..css']
+  styleUrls: ['./progress.css'] // <-- NAPRAWIONE: Jedna kropka przed css!
 })
 export class ProgressComponent implements OnInit {
   // Tutaj podepnij serwis pobierający dane z GET /workouts
