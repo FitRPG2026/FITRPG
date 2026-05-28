@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,8 @@ import { NotificationService } from '../services/notification.service';
 import { ToastContainerComponent } from '../components/toast-container/toast-container';
 import { WorkoutFormComponent } from '../components/workout-form/workout-form';
 import { MealFormComponent } from '../components/meal-form/meal-form';
+// 1. Importujemy Twój nowy komponent historii treningów
+import { WorkoutHistoryComponent } from '../components/workout-history/workout-history'; 
 
 type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile';
 
@@ -20,11 +22,15 @@ type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'pro
     ToastContainerComponent,
     WorkoutFormComponent,
     MealFormComponent,
+    WorkoutHistoryComponent // 2. Dodajemy do tablicy imports (ponieważ to komponent standalone)
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })
 export class DashboardComponent implements OnInit {
+  // 3. Łapiemy referencję do komponentu historii, aby móc go odświeżać dynamicznie
+  @ViewChild(WorkoutHistoryComponent) workoutHistory!: WorkoutHistoryComponent;
+
   activeTab: Tab = 'dashboard';
 
   // ─── Mock-backed data (until those endpoints are built) ───
@@ -172,6 +178,24 @@ export class DashboardComponent implements OnInit {
       this.notificationService.showChallengeToast(reward.title, reward.points_earned);
     }
     this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
+
+    // 4. Instrukcja dla komponentu historii, aby zaktualizował widok po dodaniu treningu:
+    if (this.workoutHistory) {
+      // Opcja A: Jeśli w komponencie historii napiszesz metodę fetchującą historię z API, wywołaj ją tu:
+      // this.workoutHistory.loadWorkoutsFromBackend();
+      
+      // Opcja B: Aktualnie działamy na liście demonstracyjnej, więc tymczasowo wrzucamy obiekt ręcznie:
+      this.workoutHistory.workoutsList.unshift({
+        title: 'Nowy Trening',
+        workout_type: 'Trening',
+        performed_at: new Date().toISOString(),
+        duration_min: 30, // Wartości domyślne, dopóki formularz nie zacznie ich przekazywać w evencie
+        health_score: 10,
+        exp_amount: response.exp_granted
+      });
+      this.workoutHistory.generateCalendar();
+      this.workoutHistory.selectDate(new Date());
+    }
   }
 
   onMealSaved(response: LogMealResponse): void {
