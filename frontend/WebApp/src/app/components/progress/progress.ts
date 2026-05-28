@@ -25,8 +25,8 @@ interface CalendarDay {
   selector: 'app-workout-history',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './workout-history.component.html',
-  styleUrls: './workout-history.component.css'
+  templateUrl: './progress.html',
+  styleUrls: './progress..css'
 })
 export class WorkoutHistoryComponent implements OnInit {
   // Tutaj podepnij serwis pobierający dane z GET /workouts
