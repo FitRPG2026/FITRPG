@@ -305,6 +305,25 @@ class MealResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
+# STATS
+# ─────────────────────────────────────────────
+
+class UserStatsResponse(BaseModel):
+    total_workouts: int
+    total_meals: int
+    total_exp: int
+    level: int
+    current_streak_days: int
+    longest_streak_days: int
+    avg_workout_duration_min: float
+    avg_meal_health_score: float
+    workouts_by_type: dict
+    meals_by_type: dict
+    workouts_by_day: dict
+    meals_by_day: dict
+
+
+# ─────────────────────────────────────────────
 # ERROR
 # ─────────────────────────────────────────────
 

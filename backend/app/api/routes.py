@@ -11,22 +11,24 @@ from ..core.exp import calculate_workout_exp, calculate_meal_exp
 from ..schemas import RegisterRequest, LoginRequest, TokenResponse, MeResponse, UpsertProfileRequest, LogWorkoutRequest, WorkoutLoggedResponse, LogMealRequest, MealLoggedResponse, ProfileResponse
 from ..core.exp_utils import compute_level, compute_workout_exp, compute_meal_exp
 from ..schemas import (
-    RegisterRequest, 
-    LoginRequest, 
-    TokenResponse, 
-    MeResponse, 
-    UpdateProfileRequest, 
-    UserProfileResponse, 
-    UpdateSettingsRequest, 
-    UserSettingsResponse, 
-    WorkoutRequest, 
-    WorkoutResponse, 
-    MealRequest, 
-    MealResponse, 
-    ChallengeRewardItem
+    RegisterRequest,
+    LoginRequest,
+    TokenResponse,
+    MeResponse,
+    UpdateProfileRequest,
+    UserProfileResponse,
+    UpdateSettingsRequest,
+    UserSettingsResponse,
+    WorkoutRequest,
+    WorkoutResponse,
+    MealRequest,
+    MealResponse,
+    ChallengeRewardItem,
+    UserStatsResponse
 )
 from fastapi import BackgroundTasks
 from ..core.ml_service import process_meal_with_ai
+from ..core.stats import get_user_stats
 
 
 
@@ -600,3 +602,16 @@ async def update_settings(body: UpdateSettingsRequest, current_user: dict = Depe
 #         for r in newly_completed
 #     ]
 #     return MealResponse(meal_id=meal_id, exp_granted=exp_amount, rewards=rewards)
+
+
+# ─── STATS ─────────────────────────────────────────────────────────────────
+@router.get("/stats", response_model=UserStatsResponse, tags=["Stats"], summary="Pobierz statystyki użytkownika")
+async def get_user_stats_endpoint(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Pobiera statystyki zalogowanego użytkownika.
+    """
+    user_id = current_user["user_id"]
+    return await get_user_stats(db, user_id, days=7)
