@@ -74,7 +74,7 @@
     <div class="card list-card">
       <h3 class="panel-subtitle font-cinzel">Wszystkie treningi</h3>
       <div class="all-workouts-list">
-        <div class="compact-workout-item" *ngFor="let workout of workoutsList" (click)="selectDate(workout.performed_at)"">
+        <div class="compact-workout-item" *ngFor="let workout of workoutsList" (click)="selectDate(workout.performed_at)">
           <div class="compact-date">
             {{ workout.performed_at | date:'dd.MM' }}
           </div>
