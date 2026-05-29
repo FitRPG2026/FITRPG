@@ -255,31 +255,52 @@ async def log_workout(
         total_exp=progress["total_exp"] if progress else 0,
     )
 @router.get("/workouts", response_model=list[WorkoutResponse], tags=["Activity"], summary="Pobierz treningi użytkownika")
+@router.get("/workouts", response_model=list, tags=["Activity"], summary="Pobierz treningi użytkownika")
 async def get_workouts(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Pobiera wszystkie treningi zalogowanego użytkownika.
+    Pobiera wszystkie treningi zalogowanego użytkownika w bezpieczny sposób.
     """
     user_id = current_user["user_id"]
     
-    # Wyciągamy treningi bezpośrednio z tabeli workouts dla danego użytkownika
-    result = await db.execute(
-        text("""
-            SELECT id, user_id, workout_type, title, performed_at, 
-                   duration_min, health_score, notes, exercises_json, 
-                   exp_amount, activity_category, activity_code, activity_name 
-            FROM workouts 
-            WHERE user_id = :uid 
-            ORDER BY performed_at DESC
-        """),
-        {"uid": user_id}
-    )
-    
-    # Mapujemy wiersze z bazy danych na słowniki, które FastAPI automatycznie sparsuje do formatu JSON
-    workouts = [dict(row) for row in result.mappings().all()]
-    return workouts
+    try:
+        result = await db.execute(
+            text("""
+                SELECT id, user_id, workout_type, title, performed_at, 
+                       duration_min, health_score, notes, exercises_json, 
+                       exp_amount, activity_category, activity_code, activity_name 
+                FROM workouts 
+                WHERE user_id = :uid 
+                ORDER BY performed_at DESC
+            """),
+            {"uid": user_id}
+        )
+        
+        raw_workouts = result.mappings().all()
+        
+        formatted_workouts = []
+        for row in raw_workouts:
+            workout_dict = dict(row)
+            
+            # Zabezpieczenie: jeśli exercises_json jest tekstem/stringiem z bazy, parsujemy go na obiekt Pythona
+            if isinstance(workout_dict.get("exercises_json"), str):
+                try:
+                    workout_dict["exercises_json"] = json.loads(workout_dict["exercises_json"])
+                except Exception:
+                    workout_dict["exercises_json"] = []
+                    
+            formatted_workouts.append(workout_dict)
+            
+        return formatted_workouts
+
+    except Exception as e:
+        # Jeśli coś pójdzie nie tak, rzucamy błąd ze szczegółami zamiast głuchego 500
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Blad bazy danych lub parsowania: {str(e)}"
+        )
 
 # ─── Meals ─────────────────────────────────────────────────────────────────────
 
