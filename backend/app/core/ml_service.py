@@ -1,7 +1,7 @@
 import json
 import asyncio
 import os
-import traceback  # <-- Dodajemy ten moduł do dokładnego debugowania
+import traceback
 from gradio_client import Client
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -18,16 +18,26 @@ else:
 async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
     print(f"Rozpoczęto analizę AI dla posiłku {meal_id}")
     
+    # WYDRUK MAPY API: To pokaże nam w logach Rendera dokładną nazwę endpointu
+    try:
+        print("=== DOSTĘPNE ENDPOINTY GRADIO ===")
+        hf_client.view_api()
+        print("=================================")
+    except Exception as api_err:
+        print(f"Nie udało się pobrać mapy API: {api_err}")
+
     async for db in get_db():
         try:
             print(f"[DEBUG HF CALL] Wysyłam sam URL do HF: {photo_url}")
 
+            # Przekazujemy adres URL pozycyjnie, a api_name bez ukośnika
             result = await asyncio.to_thread(
                 hf_client.predict,
                 photo_url,
-                fn_index=0
+                api_name="predict_health"
             )
 
+            # Wyciągamy ocenę (indeks 2 z listy zwracanej przez Hugging Face)
             health_score = int(result[2]) 
             exp_amount = calculate_meal_exp(health_score)
             
@@ -46,9 +56,7 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
             
         except Exception as e:
             print(f"Błąd analizy AI dla {meal_id}: {e}")
-            # ---> TO WYDRUKUJE CAŁY BŁĄD W LOGACH RENDERA <---
-            traceback.print_exc() 
-            
+            traceback.print_exc()
             await db.rollback()
             
             await db.execute(
