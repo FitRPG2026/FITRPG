@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { ApiService, WorkoutData } from '../../services/api.service';
 
 interface Workout {
   workout_type: string;
   title: string;
-  performed_at: string; // ISO String z backendu
+  performed_at: string; 
   duration_min: number;
   health_score: number;
   notes?: string;
@@ -28,15 +28,22 @@ interface CalendarDay {
   styleUrls: ['./calendar.component.scss']
 })
 export class CalendarComponent implements OnInit {
+  // Deklaracja wszystkich zmiennych stanowych komponentu
   workouts: WorkoutData[] = [];
+  calendarDays: CalendarDay[] = [];
+  currentMonth: Date = new Date();
+  selectedDate: Date | null = null;
+  selectedWorkouts: WorkoutData[] = [];
 
-  // 2. Wstrzyknij ChangeDetectorRef w konstruktorze
   constructor(
     private apiService: ApiService,
     private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit(): void {
+    // 1. Najpierw generujemy pustą siatkę kalendarza dla bieżącego miesiąca
+    this.generateCalendar();
+    // 2. Od razu strzelamy do API po dane treningowe
     this.loadWorkouts();
   }
 
@@ -44,7 +51,11 @@ export class CalendarComponent implements OnInit {
     this.apiService.getWorkouts().subscribe({
       next: (data) => {
         this.workouts = [...data];
-      
+        
+        // REWOLUCJA: Przeliczamy dni kalendarza na nowo, gdy tylko dane treningów pojawią się w aplikacji!
+        this.generateCalendar();
+        
+        // Wymuszamy natychmiastowy update widoku HTML
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -52,7 +63,6 @@ export class CalendarComponent implements OnInit {
       }
     });
   }
-}
 
   generateCalendar(): void {
     this.calendarDays = [];
@@ -62,7 +72,6 @@ export class CalendarComponent implements OnInit {
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
 
-    // Dopasowanie do poniedziałku jako pierwszego dnia tygodnia (0 - Nd, 1 - Pn...)
     let startDayOfWeek = firstDayOfMonth.getDay() - 1;
     if (startDayOfWeek === -1) startDayOfWeek = 6;
 
@@ -78,8 +87,8 @@ export class CalendarComponent implements OnInit {
       this.calendarDays.push(this.createCalendarDayObj(d, true));
     }
 
-    // Dni z następnego miesiąca do pełnych tygodni (wypełnienie siatki)
-    const totalSlots = 42; // 6 tygodni x 7 dni
+    // Dni z następnego miesiąca (dopełnienie siatki 42 dni)
+    const totalSlots = 42; 
     const nextMonthDaysNeeded = totalSlots - this.calendarDays.length;
     for (let i = 1; i <= nextMonthDaysNeeded; i++) {
       const d = new Date(year, month + 1, i);
@@ -93,7 +102,8 @@ export class CalendarComponent implements OnInit {
                     date.getMonth() === today.getMonth() &&
                     date.getFullYear() === today.getFullYear();
 
-    const hasWorkout = this.workoutsList.some(w => {
+    // Poprawione z workoutsList na workouts
+    const hasWorkout = this.workouts.some(w => {
       const wDate = new Date(w.performed_at);
       return wDate.getDate() === date.getDate() &&
              wDate.getMonth() === date.getMonth() &&
@@ -117,7 +127,7 @@ export class CalendarComponent implements OnInit {
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     
     this.selectedDate = date;
-    this.selectedWorkouts = this.workoutsList.filter(w => {
+    this.selectedWorkouts = this.workouts.filter(w => {
       const wDate = new Date(w.performed_at);
       return wDate.getDate() === date.getDate() &&
              wDate.getMonth() === date.getMonth() &&
@@ -139,4 +149,4 @@ export class CalendarComponent implements OnInit {
       return [];
     }
   }
-}
+} // Prawidłowe domknięcie klasy na samym końcu pliku
