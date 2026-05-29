@@ -255,32 +255,37 @@ async def log_workout(
         total_exp=progress["total_exp"] if progress else 0,
     )
 @router.get("/workouts", response_model=list[WorkoutResponse], tags=["Activity"], summary="Pobierz treningi użytkownika")
+@router.get("/workouts", response_model=list, tags=["Activity"], summary="Pobierz treningi użytkownika")
 async def get_workouts(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Pobiera wszystkie treningi zalogowanego użytkownika.
+    Pobiera listę treningów użytkownika z pominięciem problematycznych kolumn.
     """
     user_id = current_user["user_id"]
     
-    # Wyciągamy treningi bezpośrednio z tabeli workouts dla danego użytkownika
-    result = await db.execute(
-        text("""
-            SELECT id, user_id, workout_type, title, performed_at, 
-                   duration_min, health_score, notes, exercises_json, 
-                   exp_amount, activity_category, activity_code, activity_name 
-            FROM workouts 
-            WHERE user_id = :uid 
-            ORDER BY performed_at DESC
-        """),
-        {"uid": user_id}
-    )
-    
-    # Mapujemy wiersze z bazy danych na słowniki, które FastAPI automatycznie sparsuje do formatu JSON
-    workouts = [dict(row) for row in result.mappings().all()]
-    return workouts
+    try:
+        # Pobieramy tylko te kolumny, które są standardowe i bezpieczne
+        result = await db.execute(
+            text("""
+                SELECT id, user_id, workout_type, title, performed_at, 
+                       duration_min, health_score, notes, exp_amount
+                FROM workouts 
+                WHERE user_id = :uid 
+                ORDER BY performed_at DESC
+            """),
+            {"uid": user_id}
+        )
+        
+        workouts = [dict(row) for row in result.mappings().all()]
+        return workouts
 
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Błąd bazy danych podczas pobierania treningów: {str(e)}"
+        )
 # ─── Meals ─────────────────────────────────────────────────────────────────────
 
 # @router.post("/meals", response_model=MealLoggedResponse, status_code=status.HTTP_201_CREATED)
