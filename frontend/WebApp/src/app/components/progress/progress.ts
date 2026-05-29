@@ -1,4 +1,4 @@
-vimport { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, WorkoutData } from '../../services/api.service';
 
