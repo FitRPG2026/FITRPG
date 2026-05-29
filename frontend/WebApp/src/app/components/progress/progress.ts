@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+vimport { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, WorkoutData } from '../../services/api.service';
 
@@ -47,6 +47,7 @@ export class ProgressComponent implements OnInit {
   ngOnInit(): void {
     this.api.getWorkouts().subscribe({
       next: (workoutsFromDb: WorkoutData[]) => { // Dodaliśmy jawny typ : WorkoutData[]
+        console.log('Dane z bazy:', workoutsFromDb);
         this.workoutsList = workoutsFromDb;
         this.generateCalendar();
         this.selectDate(this.selectedDate);
