@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestro
 import { FormsModule } from '@angular/forms';
 
 import { MealPhotoUploadService } from './meal-photo-upload.service';
-import { LocalMealReviewResult } from './meal-photo-upload.types';
+import { LocalMealReviewResult, MealPhotoUploadMetadata } from './meal-photo-upload.types';
 
 @Component({
   selector: 'app-meal-photo-upload',
@@ -96,7 +96,7 @@ export class MealPhotoUploadComponent implements OnDestroy {
     return this.selectedFile !== null;
   }
 
-  async uploadSelectedImage(): Promise<LocalMealReviewResult | null> {
+  async uploadSelectedImage(metadata: MealPhotoUploadMetadata = {}): Promise<LocalMealReviewResult | null> {
     if (this.result) {
       return this.result;
     }
@@ -112,8 +112,9 @@ export class MealPhotoUploadComponent implements OnDestroy {
     try {
       const result = await this.uploadService.uploadMealPhoto(
         this.selectedFile,
-        this.caption.trim(),
+        (metadata.notes ?? this.caption).trim(),
         this.userId,
+        metadata.mealTitle?.trim() ?? '',
       );
 
       this.result = result;

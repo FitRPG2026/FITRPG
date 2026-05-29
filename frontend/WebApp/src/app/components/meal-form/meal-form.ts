@@ -52,7 +52,8 @@ export class MealFormComponent implements OnDestroy {
 
   onMealPhotoUploaded(result: LocalMealReviewResult): void {
     const review = result.meal_review;
-    const caption = review.caption.trim();
+    const caption = review.metadata.notes.trim();
+    const mealTitle = review.metadata.meal_title.trim();
 
     this.photoUrl = review.url;
     this.photoCaption = caption;
@@ -60,7 +61,7 @@ export class MealFormComponent implements OnDestroy {
     this.aiMessage = null;
 
     if (!this.title.trim()) {
-      this.title = caption || 'Posiłek ze zdjęcia';
+      this.title = mealTitle || caption || 'Posiłek ze zdjęcia';
     }
 
     if (caption && !this.notes.trim()) {
@@ -81,7 +82,10 @@ export class MealFormComponent implements OnDestroy {
 
     if (!this.photoUrl && this.photoUpload?.hasSelectedImage) {
       this.successMessage = 'Wysyłanie zdjęcia...';
-      const uploadResult = await this.photoUpload.uploadSelectedImage();
+      const uploadResult = await this.photoUpload.uploadSelectedImage({
+        mealTitle: this.title.trim(),
+        notes: this.notes.trim(),
+      });
 
       if (!uploadResult) {
         this.isSubmitting = false;
