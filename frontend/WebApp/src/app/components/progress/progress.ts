@@ -23,12 +23,11 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-calendar',
-  templateUrl: './calendar.component.html',
-  styleUrls: ['./calendar.component.scss']
+  selector: 'app-progress', // Zmienione z app-calendar na oryginalny app-progress
+  templateUrl: './progress.html', // POPRAWKA: Vercel szuka pliku progress.html w tym folderze (jeśli plik nazywa się inaczej, np. progress.component.html, popraw to tutaj)
+  styleUrls: ['./progress.scss']  // Tutaj tak samo - dopasowane do struktury folderu progress
 })
-export class CalendarComponent implements OnInit {
-  // Deklaracja wszystkich zmiennych stanowych komponentu
+export class ProgressComponent implements OnInit { // Zmienione z CalendarComponent na ProgressComponent!
   workouts: WorkoutData[] = [];
   calendarDays: CalendarDay[] = [];
   currentMonth: Date = new Date();
@@ -41,9 +40,7 @@ export class CalendarComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // 1. Najpierw generujemy pustą siatkę kalendarza dla bieżącego miesiąca
     this.generateCalendar();
-    // 2. Od razu strzelamy do API po dane treningowe
     this.loadWorkouts();
   }
 
@@ -51,11 +48,7 @@ export class CalendarComponent implements OnInit {
     this.apiService.getWorkouts().subscribe({
       next: (data) => {
         this.workouts = [...data];
-        
-        // REWOLUCJA: Przeliczamy dni kalendarza na nowo, gdy tylko dane treningów pojawią się w aplikacji!
         this.generateCalendar();
-        
-        // Wymuszamy natychmiastowy update widoku HTML
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -75,19 +68,16 @@ export class CalendarComponent implements OnInit {
     let startDayOfWeek = firstDayOfMonth.getDay() - 1;
     if (startDayOfWeek === -1) startDayOfWeek = 6;
 
-    // Dni z poprzedniego miesiąca
     for (let i = startDayOfWeek; i > 0; i--) {
       const d = new Date(year, month, 1 - i);
       this.calendarDays.push(this.createCalendarDayObj(d, false));
     }
 
-    // Dni z bieżącego miesiąca
     for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
       const d = new Date(year, month, i);
       this.calendarDays.push(this.createCalendarDayObj(d, true));
     }
 
-    // Dni z następnego miesiąca (dopełnienie siatki 42 dni)
     const totalSlots = 42; 
     const nextMonthDaysNeeded = totalSlots - this.calendarDays.length;
     for (let i = 1; i <= nextMonthDaysNeeded; i++) {
@@ -102,7 +92,6 @@ export class CalendarComponent implements OnInit {
                     date.getMonth() === today.getMonth() &&
                     date.getFullYear() === today.getFullYear();
 
-    // Poprawione z workoutsList na workouts
     const hasWorkout = this.workouts.some(w => {
       const wDate = new Date(w.performed_at);
       return wDate.getDate() === date.getDate() &&
@@ -149,4 +138,4 @@ export class CalendarComponent implements OnInit {
       return [];
     }
   }
-} // Prawidłowe domknięcie klasy na samym końcu pliku
+}
