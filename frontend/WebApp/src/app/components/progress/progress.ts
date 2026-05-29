@@ -23,40 +23,36 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-progress',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './progress.html',
-  styleUrls: ['./progress.css'] // <-- NAPRAWIONE: Jedna kropka przed css!
+  selector: 'app-calendar',
+  templateUrl: './calendar.component.html',
+  styleUrls: ['./calendar.component.scss']
 })
-export class ProgressComponent implements OnInit {
-  // Tutaj podepnij serwis pobierający dane z GET /workouts
-  workoutsList: WorkoutData[] = []; // Używamy nowego interfejsu z serwisu
-  selectedWorkouts: WorkoutData[] = [];
-  selectedDate: Date = new Date();
-  constructor(private api: ApiService) {}
-  calendarDays: CalendarDay[] = [];
-  currentMonth: Date = new Date();
-  
-  weekDays: string[] = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
-  months: string[] = [
-    'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
-    'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
-  ];
+export class CalendarComponent implements OnInit {
+  workouts: WorkoutData[] = [];
+
+  // 2. Wstrzyknij ChangeDetectorRef w konstruktorze
+  constructor(
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef 
+  ) {}
 
   ngOnInit(): void {
-    this.api.getWorkouts().subscribe({
-      next: (workoutsFromDb: WorkoutData[]) => { // Dodaliśmy jawny typ : WorkoutData[]
-        console.log('Dane z bazy:', workoutsFromDb);
-        this.workoutsList = workoutsFromDb;
-        this.generateCalendar();
-        this.selectDate(this.selectedDate);
+    this.loadWorkouts();
+  }
+
+  loadWorkouts(): void {
+    this.apiService.getWorkouts().subscribe({
+      next: (data) => {
+        this.workouts = [...data];
+      
+        this.cdr.detectChanges();
       },
-      error: (err: any) => { // Dodaliśmy jawny typ : any
+      error: (err) => {
         console.error('Nie udało się pobrać historii treningów', err);
       }
     });
   }
+}
 
   generateCalendar(): void {
     this.calendarDays = [];
