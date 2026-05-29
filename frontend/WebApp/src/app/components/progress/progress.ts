@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ApiService, WorkoutData } from '../../services/api.service';
 
 interface Workout {
   workout_type: string;
@@ -30,12 +31,12 @@ interface CalendarDay {
 })
 export class ProgressComponent implements OnInit {
   // Tutaj podepnij serwis pobierający dane z GET /workouts
-  workoutsList: Workout[] = []; 
+  workoutsList: WorkoutData[] = []; // Używamy nowego interfejsu z serwisu
+  selectedWorkouts: WorkoutData[] = [];
+  selectedDate: Date = new Date();
   constructor(private api: ApiService) {}
   calendarDays: CalendarDay[] = [];
   currentMonth: Date = new Date();
-  selectedDate: Date = new Date();
-  selectedWorkouts: Workout[] = [];
   
   weekDays: string[] = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
   months: string[] = [
@@ -44,17 +45,13 @@ export class ProgressComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Pobieramy prawdziwe dane z Twojego backendu
     this.api.getWorkouts().subscribe({
-      next: (workoutsFromDb) => {
-        // Zapisujemy to, co przyszło z bazy do naszej listy
+      next: (workoutsFromDb: WorkoutData[]) => { // Dodaliśmy jawny typ : WorkoutData[]
         this.workoutsList = workoutsFromDb;
-        
-        // Dopiero jak dane przyjdą, generujemy kalendarz i wybieramy dzisiejszą datę
         this.generateCalendar();
         this.selectDate(this.selectedDate);
       },
-      error: (err) => {
+      error: (err: any) => { // Dodaliśmy jawny typ : any
         console.error('Nie udało się pobrać historii treningów', err);
       }
     });
