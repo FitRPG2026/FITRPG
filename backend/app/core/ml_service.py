@@ -20,6 +20,7 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
     # 1. Pobieramy nową sesję bazy danych dla zadania w tle
     async for db in get_db():
         try:
+            print(f"[DEBUG HF CALL] Wysyłam sam URL do HF: {photo_url}")
             # 2. Odpytujemy Hugging Face w osobnym wątku, żeby nie zablokować FastAPI!
             # POPRAWKA 1 i 2: Przekazujemy argument pozycyjnie i używamy "/predict"
             result = await asyncio.to_thread(
