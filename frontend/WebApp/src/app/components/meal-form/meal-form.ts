@@ -24,7 +24,7 @@ export class MealFormComponent implements OnDestroy {
   mealType = 'breakfast';
   eatenAt: string = this.nowLocalIso();
   notes = '';
-  healthScore = 7;
+  healthScore = 3;
 
   isSubmitting = false;
   isWaitingForAi = false;
@@ -140,7 +140,7 @@ export class MealFormComponent implements OnDestroy {
 
         if (mealStatus.status === 'completed' && mealStatus.health_score !== null) {
           this.healthScore = mealStatus.health_score;
-          this.successMessage = `AI oceniło posiłek na ${mealStatus.health_score}/10.`;
+          this.successMessage = `AI oceniło posiłek na ${mealStatus.health_score}/5.`;
           this.aiMessage = mealStatus.exp_granted > 0
             ? `Przyznano ${mealStatus.exp_granted} XP.`
             : null;
@@ -169,7 +169,7 @@ export class MealFormComponent implements OnDestroy {
     this.mealType = 'breakfast';
     this.eatenAt = this.nowLocalIso();
     this.notes = '';
-    this.healthScore = 7;
+    this.healthScore = 3;
     this.photoUrl = null;
     this.photoCaption = '';
     this.aiMessage = null;
