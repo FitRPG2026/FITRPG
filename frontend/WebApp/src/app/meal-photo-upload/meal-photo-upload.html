@@ -58,12 +58,6 @@
       <input type="text" [value]="review.url" readonly>
     </div>
     <div class="debug-field">
-      <label>Warunek akceptacji</label>
-      <textarea rows="4" readonly>Nazwa posiłku w linku/public_id: {{ review.storage.public_id }}
-Opis opcjonalny w metadanych: {{ review.metadata.notes || 'brak opisu' }}
-Nazwa posiłku w metadanych: {{ review.metadata.meal_title || 'brak nazwy' }}</textarea>
-    </div>
-    <div class="debug-field">
       <label>Metadane Cloudinary</label>
       <textarea rows="4" readonly>caption={{ review.metadata.caption }}
 alt={{ review.metadata.alt }}
