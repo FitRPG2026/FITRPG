@@ -14,6 +14,7 @@ import { LocalMealReviewResult } from './meal-photo-upload.types';
 })
 export class MealPhotoUploadComponent implements OnDestroy {
   @Input() userId: string | number = '1';
+  @Input() showTitle = true;
   @Input() showCaption = true;
   @Input() showUploadButton = true;
   @Output() mealReviewCreated = new EventEmitter<LocalMealReviewResult>();
