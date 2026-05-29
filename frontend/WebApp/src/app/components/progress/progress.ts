@@ -1,19 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; 
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'; 
 import { ApiService, WorkoutData } from '../../services/api.service';
-
-interface Workout {
-  workout_type: string;
-  title: string;
-  performed_at: string; 
-  duration_min: number;
-  health_score: number;
-  notes?: string;
-  exercises_json?: string;
-  exp_amount: number;
-  activity_category?: string;
-  activity_name?: string;
-}
 
 interface CalendarDay {
   date: Date;
@@ -23,16 +10,24 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-progress', // Zmienione z app-calendar na oryginalny app-progress
-  templateUrl: './progress.html', // POPRAWKA: Vercel szuka pliku progress.html w tym folderze (jeśli plik nazywa się inaczej, np. progress.component.html, popraw to tutaj)
-  styleUrls: ['./progress.scss']  // Tutaj tak samo - dopasowane do struktury folderu progress
+  selector: 'app-progress',
+  standalone: true,           
+  imports: [CommonModule],    
+  templateUrl: './progress.html',
+  styleUrls: ['./progress.css'] // POPRAWKA: Zmieniono rozszerzenie z .scss na .css
 })
-export class ProgressComponent implements OnInit { // Zmienione z CalendarComponent na ProgressComponent!
-  workouts: WorkoutData[] = [];
+export class ProgressComponent implements OnInit {
+  workoutsList: WorkoutData[] = [];
   calendarDays: CalendarDay[] = [];
   currentMonth: Date = new Date();
   selectedDate: Date | null = null;
   selectedWorkouts: WorkoutData[] = [];
+
+  weekDays: string[] = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
+  months: string[] = [
+    'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+    'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+  ];
 
   constructor(
     private apiService: ApiService,
@@ -47,7 +42,7 @@ export class ProgressComponent implements OnInit { // Zmienione z CalendarCompon
   loadWorkouts(): void {
     this.apiService.getWorkouts().subscribe({
       next: (data) => {
-        this.workouts = [...data];
+        this.workoutsList = [...data];
         this.generateCalendar();
         this.cdr.detectChanges();
       },
@@ -92,7 +87,7 @@ export class ProgressComponent implements OnInit { // Zmienione z CalendarCompon
                     date.getMonth() === today.getMonth() &&
                     date.getFullYear() === today.getFullYear();
 
-    const hasWorkout = this.workouts.some(w => {
+    const hasWorkout = this.workoutsList.some(w => {
       const wDate = new Date(w.performed_at);
       return wDate.getDate() === date.getDate() &&
              wDate.getMonth() === date.getMonth() &&
@@ -116,7 +111,7 @@ export class ProgressComponent implements OnInit { // Zmienione z CalendarCompon
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     
     this.selectedDate = date;
-    this.selectedWorkouts = this.workouts.filter(w => {
+    this.selectedWorkouts = this.workoutsList.filter(w => {
       const wDate = new Date(w.performed_at);
       return wDate.getDate() === date.getDate() &&
              wDate.getMonth() === date.getMonth() &&
@@ -124,7 +119,8 @@ export class ProgressComponent implements OnInit { // Zmienione z CalendarCompon
     });
   }
 
-  isSameDate(date1: Date, date2: Date): boolean {
+  isSameDate(date1: Date, date2: Date | null): boolean {
+    if (!date2) return false;
     return date1.getDate() === date2.getDate() &&
            date1.getMonth() === date2.getMonth() &&
            date1.getFullYear() === date2.getFullYear();
