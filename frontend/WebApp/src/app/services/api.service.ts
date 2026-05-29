@@ -36,6 +36,17 @@ export interface LogWorkoutResponse {
   exp_granted: number;
   rewards: ChallengeReward[];
 }
+export interface WorkoutData {
+  id: number;
+  workout_type: string;
+  title: string;
+  performed_at: string;
+  duration_min: number | null;
+  health_score: number | null;
+  notes: string | null;
+  activity_category: string | null;
+  activity_name: string | null;
+}
 
 export interface LogMealRequest {
   title: string;
@@ -119,5 +130,8 @@ export class ApiService {
 
   updateSettings(req: UserSettingsData): Observable<UserSettingsData> {
     return this.http.put<UserSettingsData>(`${this.baseUrl}/settings`, req, { headers: this.headers() });
+  }
+  getWorkouts(): Observable<WorkoutData[]> {
+    return this.http.get<WorkoutData[]>(`${this.baseUrl}/workouts`, { headers: this.headers() });
   }
 }
