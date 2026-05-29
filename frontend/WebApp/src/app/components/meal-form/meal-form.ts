@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
@@ -18,6 +18,7 @@ import { LocalMealReviewResult } from '../../meal-photo-upload/meal-photo-upload
 export class MealFormComponent implements OnDestroy {
   @Input() userId: string | number = '1';
   @Output() saved = new EventEmitter<LogMealResponse>();
+  @ViewChild('photoUpload') private photoUpload?: MealPhotoUploadComponent;
 
   title = '';
   mealType = 'breakfast';
@@ -67,13 +68,27 @@ export class MealFormComponent implements OnDestroy {
     }
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     this.errorMessage = null;
     this.aiMessage = null;
 
     if (!this.title.trim()) {
       this.errorMessage = 'Podaj nazwę posiłku.';
       return;
+    }
+
+    this.isSubmitting = true;
+
+    if (!this.photoUrl && this.photoUpload?.hasSelectedImage) {
+      this.successMessage = 'Wysyłanie zdjęcia...';
+      const uploadResult = await this.photoUpload.uploadSelectedImage();
+
+      if (!uploadResult) {
+        this.isSubmitting = false;
+        this.successMessage = null;
+        this.errorMessage = 'Nie udało się wysłać zdjęcia. Spróbuj ponownie.';
+        return;
+      }
     }
 
     const payload: LogMealRequest = {
@@ -85,7 +100,6 @@ export class MealFormComponent implements OnDestroy {
       health_score: this.photoUrl ? undefined : this.healthScore,
     };
 
-    this.isSubmitting = true;
     this.api.logMeal(payload).subscribe({
       next: (response) => {
         this.isSubmitting = false;

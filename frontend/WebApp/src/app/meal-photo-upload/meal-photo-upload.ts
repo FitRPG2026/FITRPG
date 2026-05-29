@@ -15,6 +15,7 @@ import { LocalMealReviewResult } from './meal-photo-upload.types';
 export class MealPhotoUploadComponent implements OnDestroy {
   @Input() userId: string | number = '1';
   @Input() showCaption = true;
+  @Input() showUploadButton = true;
   @Output() mealReviewCreated = new EventEmitter<LocalMealReviewResult>();
   @ViewChild('captionInput') private captionInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
@@ -90,9 +91,17 @@ export class MealPhotoUploadComponent implements OnDestroy {
     this.setSelectedFile(file);
   }
 
-  async uploadSelectedImage(): Promise<void> {
+  get hasSelectedImage(): boolean {
+    return this.selectedFile !== null;
+  }
+
+  async uploadSelectedImage(): Promise<LocalMealReviewResult | null> {
+    if (this.result) {
+      return this.result;
+    }
+
     if (!this.selectedFile || !this.previewUrl || this.loading) {
-      return;
+      return null;
     }
 
     this.loading = true;
@@ -109,10 +118,12 @@ export class MealPhotoUploadComponent implements OnDestroy {
       this.result = result;
       this.statusMessage = result.message;
       this.mealReviewCreated.emit(result);
+      return result;
     } catch (error) {
       this.errorMessage = error instanceof Error
         ? error.message
         : 'Nie udało się wysłać zdjęcia posiłku.';
+      return null;
     } finally {
       this.loading = false;
       this.changeDetector.markForCheck();

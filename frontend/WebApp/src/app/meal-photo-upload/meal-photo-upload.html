@@ -64,7 +64,7 @@
   </div>
 
   <button
-    *ngIf="!statusMessage"
+    *ngIf="showUploadButton && !statusMessage"
     type="button"
     class="upload-button"
     [disabled]="!selectedFile || loading"

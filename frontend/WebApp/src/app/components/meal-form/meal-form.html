@@ -43,8 +43,10 @@
       <label class="form-label">Zdjęcie posiłku (opcjonalne)</label>
       <p class="photo-hint">Możemy ocenić posiłek ze zdjęcia. Dodaj zdjęcie, zapisz posiłek, a AI ustawi ocenę na skali.</p>
       <app-meal-photo-upload
+        #photoUpload
         [userId]="userId"
         [showCaption]="false"
+        [showUploadButton]="false"
         (mealReviewCreated)="onMealPhotoUploaded($event)">
       </app-meal-photo-upload>
     </div>
