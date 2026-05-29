@@ -256,21 +256,21 @@ async def log_workout(
     )
 @router.get("/workouts", response_model=list[WorkoutResponse], tags=["Activity"], summary="Pobierz treningi użytkownika")
 @router.get("/workouts", response_model=list, tags=["Activity"], summary="Pobierz treningi użytkownika")
+@router.get("/workouts", response_model=list, tags=["Activity"], summary="Pobierz treningi użytkownika")
 async def get_workouts(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Pobiera listę treningów użytkownika z pominięciem problematycznych kolumn.
+    Pobiera pełną historię treningów użytkownika na podstawie rzeczywistej struktury bazy danych.
     """
     user_id = current_user["user_id"]
-    
     try:
-        # Pobieramy tylko te kolumny, które są standardowe i bezpieczne
         result = await db.execute(
             text("""
                 SELECT id, user_id, workout_type, title, performed_at, 
-                       duration_min, health_score, notes, exp_amount
+                       duration_min, health_score, notes, exp_amount,
+                       activity_category, activity_code, activity_name
                 FROM workouts 
                 WHERE user_id = :uid 
                 ORDER BY performed_at DESC
