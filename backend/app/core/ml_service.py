@@ -22,11 +22,15 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
         try:
             print(f"[DEBUG HF CALL] Wysyłam sam URL do HF: {photo_url}")
 
-            # USUwamy api_name – Gradio Client sam domyślnie wybierze jedyną funkcję
             result = await asyncio.to_thread(
                 hf_client.predict,
-                photo_url
+                photo_url,
+                fn_index=0
             )
+
+            # result to lista: [top_class_name, weighted_avg, top, health_scores_probs]
+            health_score = int(result[2]) 
+            exp_amount = calculate_meal_exp(health_score)
 
             # result to lista: [top_class_name, weighted_avg, top, health_scores_probs]
             # Interesuje nas indeks 2 (czyli wartość 'top', np. 3, 4, 5)
