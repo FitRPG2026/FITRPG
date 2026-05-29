@@ -31,7 +31,7 @@ interface CalendarDay {
 export class ProgressComponent implements OnInit {
   // Tutaj podepnij serwis pobierający dane z GET /workouts
   workoutsList: Workout[] = []; 
-  
+  constructor(private api: ApiService) {}
   calendarDays: CalendarDay[] = [];
   currentMonth: Date = new Date();
   selectedDate: Date = new Date();
@@ -44,33 +44,20 @@ export class ProgressComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Dane demonstracyjne odwzorowujące strukturę z Twojego backendu
-    this.workoutsList = [
-      {
-        title: 'Poranny Rozruch',
-        workout_type: 'Strength',
-        performed_at: new Date().toISOString(),
-        duration_min: 45,
-        health_score: 8,
-        notes: 'Dobra pompa, progres ciężaru w przysiadach.',
-        exp_amount: 150,
-        activity_name: 'Trening Siłowy',
-        exercises_json: '[{"name": "Przysiad", "sets": 4}]'
+    // Pobieramy prawdziwe dane z Twojego backendu
+    this.api.getWorkouts().subscribe({
+      next: (workoutsFromDb) => {
+        // Zapisujemy to, co przyszło z bazy do naszej listy
+        this.workoutsList = workoutsFromDb;
+        
+        // Dopiero jak dane przyjdą, generujemy kalendarz i wybieramy dzisiejszą datę
+        this.generateCalendar();
+        this.selectDate(this.selectedDate);
       },
-      {
-        title: 'Bieganie w lesie',
-        workout_type: 'Cardio',
-        performed_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 dni temu
-        duration_min: 60,
-        health_score: 9,
-        notes: 'Świetne tempo, pogoda dopisała.',
-        exp_amount: 200,
-        activity_name: 'Bieganie'
+      error: (err) => {
+        console.error('Nie udało się pobrać historii treningów', err);
       }
-    ];
-
-    this.generateCalendar();
-    this.selectDate(this.selectedDate);
+    });
   }
 
   generateCalendar(): void {
