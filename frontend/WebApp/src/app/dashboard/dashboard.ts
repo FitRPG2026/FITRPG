@@ -175,10 +175,11 @@ export class DashboardComponent implements OnInit {
   }
 
   onMealSaved(response: LogMealResponse): void {
-    if (response.exp_granted > 0) {
-      this.notificationService.showXpToast(response.exp_granted);
+    const expGranted = response.exp_granted ?? 0;
+    if (expGranted > 0) {
+      this.notificationService.showXpToast(expGranted);
     }
-    for (const reward of response.rewards) {
+    for (const reward of response.rewards ?? []) {
       this.notificationService.showChallengeToast(reward.title, reward.points_earned);
     }
     this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
@@ -243,7 +244,7 @@ export class DashboardComponent implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('jwt_token');
     this.router.navigate(['/login']);
   }
 }

@@ -42,14 +42,24 @@ export interface LogMealRequest {
   meal_type: string;
   eaten_at: string;
   notes: string;
-  health_score: number;
+  photo_url?: string;
+  health_score?: number;
 }
 
 export interface LogMealResponse {
-  status: string;
+  message?: string;
+  status?: string;
+  meal_id?: number;
+  exp_granted?: number;
+  rewards?: ChallengeReward[];
+}
+
+export interface MealStatusResponse {
   meal_id: number;
+  status: 'pending' | 'completed' | 'failed' | string;
+  health_score: number | null;
+  photo_url: string | null;
   exp_granted: number;
-  rewards: ChallengeReward[];
 }
 
 export interface UserProfileData {
@@ -103,6 +113,10 @@ export class ApiService {
 
   logMeal(req: LogMealRequest): Observable<LogMealResponse> {
     return this.http.post<LogMealResponse>(`${this.baseUrl}/meals`, req, { headers: this.headers() });
+  }
+
+  getMealStatus(mealId: number): Observable<MealStatusResponse> {
+    return this.http.get<MealStatusResponse>(`${this.baseUrl}/meals/${mealId}`, { headers: this.headers() });
   }
 
   getProfile(): Observable<UserProfileData> {

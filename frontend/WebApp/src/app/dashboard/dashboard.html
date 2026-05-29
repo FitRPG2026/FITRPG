@@ -136,7 +136,7 @@
 
       <div class="training-layout">
         <app-workout-form (saved)="onWorkoutSaved($event)"></app-workout-form>
-        <app-meal-form    (saved)="onMealSaved($event)"></app-meal-form>
+        <app-meal-form [userId]="profile?.user_id || '1'" (saved)="onMealSaved($event)"></app-meal-form>
       </div>
     </div>
 

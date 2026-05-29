@@ -8,17 +8,19 @@
   --radius: 14px;
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   display: block;
-  padding: 24px;
+  padding: 0;
 }
 
 .meal-photo-upload {
-  width: min(100%, 560px);
-  background: var(--panel-bg);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  width: 100%;
+  background: #f8faf9;
+  border: 1px solid #e3ebe7;
+  border-radius: 12px;
+  box-shadow: none;
+  box-sizing: border-box;
   color: var(--text);
   font-family: 'Nunito', sans-serif;
-  padding: 22px;
+  padding: 16px;
 }
 
 @media (max-width: 640px) {

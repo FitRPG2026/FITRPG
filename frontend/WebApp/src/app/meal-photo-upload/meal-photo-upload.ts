@@ -1,14 +1,9 @@
 ﻿import { CommonModule } from '@angular/common';
-import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MealPhotoUploadService } from './meal-photo-upload.service';
 import { LocalMealReviewResult } from './meal-photo-upload.types';
-import { environment } from '../../environments/environment';
-
-import { interval, Subscription } from 'rxjs';
-import { switchMap, takeWhile } from 'rxjs/operators';
 
 @Component({
   selector: 'app-meal-photo-upload',
@@ -32,13 +27,9 @@ export class MealPhotoUploadComponent implements OnDestroy {
   dragging = false;
   errorMessage: string | null = null;
 
-  // Tutaj jest miejsce na zmienne klasowe
-  private pollingSub?: Subscription;
-
   constructor(
     private readonly uploadService: MealPhotoUploadService,
     private readonly changeDetector: ChangeDetectorRef,
-    private readonly http: HttpClient // Dodany HttpClient
   ) {}
 
   get isLocked(): boolean {
@@ -49,12 +40,8 @@ export class MealPhotoUploadComponent implements OnDestroy {
     return this.uploadService.isDebug;
   }
 
-  // Połączone usuwanie URL i czyszczenie subskrypcji w jednym ngOnDestroy
   ngOnDestroy(): void {
     this.revokePreviewUrl();
-    if (this.pollingSub) {
-      this.pollingSub.unsubscribe();
-    }
   }
 
   onFileSelected(event: Event): void {
@@ -102,9 +89,32 @@ export class MealPhotoUploadComponent implements OnDestroy {
     this.setSelectedFile(file);
   }
 
-  uploadSelectedImage(): void {
+  async uploadSelectedImage(): Promise<void> {
     if (!this.selectedFile || !this.previewUrl || this.loading) {
       return;
+    }
+
+    this.loading = true;
+    this.errorMessage = null;
+    this.statusMessage = null;
+
+    try {
+      const result = await this.uploadService.uploadMealPhoto(
+        this.selectedFile,
+        this.caption.trim(),
+        this.userId,
+      );
+
+      this.result = result;
+      this.statusMessage = result.message;
+      this.mealReviewCreated.emit(result);
+    } catch (error) {
+      this.errorMessage = error instanceof Error
+        ? error.message
+        : 'Nie udało się wysłać zdjęcia posiłku.';
+    } finally {
+      this.loading = false;
+      this.changeDetector.markForCheck();
     }
   }
   private setSelectedFile(file: File): void {

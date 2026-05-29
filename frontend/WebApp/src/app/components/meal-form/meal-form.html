@@ -1,11 +1,15 @@
 <div class="meal-panel">
   <div class="panel-header">
     <h2>Dodaj posiłek</h2>
-    <p class="hint">Zaloguj co zjadłeś i zdobądź XP za zdrowe jedzenie.</p>
+    <p class="hint">Zaloguj co zjadłeś i zdobywaj XP za zdrowe jedzenie.</p>
   </div>
 
-  <div class="msg msg-error"   *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
-  <div class="msg msg-success" *ngIf="successMessage">✅ {{ successMessage }}</div>
+  <div class="msg msg-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="msg msg-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="msg msg-info" *ngIf="aiMessage">
+    <span class="inline-spinner" *ngIf="isWaitingForAi"></span>
+    {{ aiMessage }}
+  </div>
 
   <div class="form-grid">
 
@@ -36,14 +40,23 @@
     </div>
 
     <div class="form-group full">
+      <label class="form-label">Zdjęcie posiłku (opcjonalne)</label>
+      <p class="photo-hint">Możemy ocenić posiłek ze zdjęcia. Dodaj zdjęcie, zapisz posiłek, a AI ustawi ocenę na skali.</p>
+      <app-meal-photo-upload
+        [userId]="userId"
+        (mealReviewCreated)="onMealPhotoUploaded($event)">
+      </app-meal-photo-upload>
+    </div>
+
+    <div class="form-group full">
       <label class="form-label">Notatki (opcjonalne)</label>
       <textarea class="form-input form-textarea" [(ngModel)]="notes"
-                rows="2" placeholder="Co zawierał posiłek?"></textarea>
+                rows="2" placeholder="Co zawiera posiłek?"></textarea>
     </div>
 
   </div>
 
-  <button class="save-btn" [disabled]="isSubmitting" (click)="submit()">
+  <button class="save-btn" [disabled]="isSubmitting || isWaitingForAi" (click)="submit()">
     <span class="btn-spinner" *ngIf="isSubmitting"></span>
     <span *ngIf="!isSubmitting">🍽️ Zapisz posiłek</span>
     <span *ngIf="isSubmitting">Zapisywanie…</span>
