@@ -254,23 +254,22 @@ async def log_workout(
         exp_granted=exp_amount,
         total_exp=progress["total_exp"] if progress else 0,
     )
-@router.get("/workouts", response_model=list[WorkoutResponse], tags=["Activity"], summary="Pobierz treningi użytkownika")
-@router.get("/workouts", response_model=list, tags=["Activity"], summary="Pobierz treningi użytkownika")
-@router.get("/workouts", response_model=list, tags=["Activity"], summary="Pobierz treningi użytkownika")
+@router.get("/workouts", response_model=list, tags=["Activity"])
 async def get_workouts(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Pobiera pełną historię treningów użytkownika na podstawie rzeczywistej struktury bazy danych.
+    Bezpieczna wersja testowa endpointu zwracająca listę treningów.
     """
     user_id = current_user["user_id"]
+    
     try:
+        # Pobieramy podstawowe kolumny. Jeśli któraś powoduje błąd bazy, 
+        # informacja o tym zostanie dokładnie przekazana w treści błędu.
         result = await db.execute(
             text("""
-                SELECT id, user_id, workout_type, title, performed_at, 
-                       duration_min, health_score, notes, exp_amount,
-                       activity_category, activity_code, activity_name
+                SELECT id, user_id, workout_type, title, performed_at, duration_min 
                 FROM workouts 
                 WHERE user_id = :uid 
                 ORDER BY performed_at DESC
@@ -278,13 +277,17 @@ async def get_workouts(
             {"uid": user_id}
         )
         
-        workouts = [dict(row) for row in result.mappings().all()]
-        return workouts
+        # Mapujemy surowe wiersze z bazy danych bezpośrednio na słowniki Pythona
+        raw_workouts = result.mappings().all()
+        workouts_list = [dict(row) for row in raw_workouts]
+        
+        return workouts_list
 
     except Exception as e:
+        # Zamiast ogólnego błędu 500, zwracamy dokładny komunikat o błędzie z bazy danych
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Błąd bazy danych podczas pobierania treningów: {str(e)}"
+            detail=f"Blad wykonania zapytania bazy danych: {str(e)}"
         )
 # ─── Meals ─────────────────────────────────────────────────────────────────────
 
