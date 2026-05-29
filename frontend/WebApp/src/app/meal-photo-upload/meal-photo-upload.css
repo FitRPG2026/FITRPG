@@ -36,9 +36,10 @@
 }
 
 @media (min-width: 900px) {
-  .meal-photo-upload {
+  .drop-zone.has-image {
     width: 50%;
     min-width: 520px;
+    margin: 0 auto;
   }
 }
 
