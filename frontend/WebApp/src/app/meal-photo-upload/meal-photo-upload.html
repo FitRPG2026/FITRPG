@@ -1,5 +1,5 @@
-<section class="meal-photo-upload">
-  <div class="panel-header">
+<section class="meal-photo-upload" [class.has-preview]="previewUrl">
+  <div class="panel-header" *ngIf="showTitle">
     <h2>Zdjęcie posiłku</h2>
   </div>
 
@@ -30,23 +30,25 @@
     <img *ngIf="previewUrl" [src]="previewUrl" alt="Podgląd wybranego posiłku" />
   </label>
 
-  <label class="field-label" for="meal-caption">Podpis</label>
-  <textarea
-    #captionInput
-    id="meal-caption"
-    class="caption-input"
-    rows="3"
-    [ngModel]="caption"
-    (ngModelChange)="onCaptionChange($event)"
-    (beforeinput)="blockCaptionEdit($event)"
-    (keydown)="blockCaptionEdit($event)"
-    (input)="blockCaptionEdit($event)"
-    (paste)="blockCaptionEdit($event)"
-    (drop)="blockCaptionEdit($event)"
-    [disabled]="isLocked"
-    [attr.disabled]="isLocked ? '' : null"
-    [attr.readonly]="isLocked ? '' : null"
-    placeholder="Np. owsianka z jogurtem i owocami"></textarea>
+  <ng-container *ngIf="showCaption">
+    <label class="field-label" for="meal-caption">Podpis</label>
+    <textarea
+      #captionInput
+      id="meal-caption"
+      class="caption-input"
+      rows="3"
+      [ngModel]="caption"
+      (ngModelChange)="onCaptionChange($event)"
+      (beforeinput)="blockCaptionEdit($event)"
+      (keydown)="blockCaptionEdit($event)"
+      (input)="blockCaptionEdit($event)"
+      (paste)="blockCaptionEdit($event)"
+      (drop)="blockCaptionEdit($event)"
+      [disabled]="isLocked"
+      [attr.disabled]="isLocked ? '' : null"
+      [attr.readonly]="isLocked ? '' : null"
+      placeholder="Np. owsianka z jogurtem i owocami"></textarea>
+  </ng-container>
 
   <div class="status-banner success" *ngIf="statusMessage">{{ statusMessage }}</div>
 
@@ -62,7 +64,7 @@
   </div>
 
   <button
-    *ngIf="!statusMessage"
+    *ngIf="showUploadButton && !statusMessage"
     type="button"
     class="upload-button"
     [disabled]="!selectedFile || loading"
