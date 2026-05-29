@@ -6,10 +6,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .exp import calculate_meal_exp
 from ..core.db import get_db
-from ..core.exp import calculate_meal_exp
 
-
-hf_token =  os.getenv("HF_TOKEN")
+hf_token = os.getenv("HF_TOKEN")
 
 if hf_token:
     hf_client = Client("stachtotalny/fitrpg", hf_token=hf_token)
@@ -22,14 +20,19 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
     # 1. Pobieramy nową sesję bazy danych dla zadania w tle
     async for db in get_db():
         try:
+            print(f"[DEBUG HF CALL] Wysyłam sam URL do HF: {photo_url}")
             # 2. Odpytujemy Hugging Face w osobnym wątku, żeby nie zablokować FastAPI!
+            # POPRAWKA 1 i 2: Przekazujemy argument pozycyjnie i używamy "/predict"
             result = await asyncio.to_thread(
                 hf_client.predict,
-                image_url=photo_url,
-                api_name="/predict_health"
+                photo_url, 
+                api_name="/predict" 
             )
 
-            health_score = int(result) 
+            # POPRAWKA 3: result to lista/krotka zwracana z HF: 
+            # [top_class_name, weighted_avg, top, health_scores_probs]
+            # Wyciągamy 'top', czyli element o indeksie 2
+            health_score = int(result[2]) 
             exp_amount = calculate_meal_exp(health_score)
             
             # 3. Zapisujemy SUKCES w bazie danych
@@ -38,7 +41,7 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
                 {"score": health_score, "meal_id": meal_id}
             )
             
-            # Aktualizacja EXP (zakładam, że exp trzymasz w user_progress jak w queries.py)
+            # Aktualizacja EXP
             await db.execute(
                 text("UPDATE user_progress SET total_exp = total_exp + :exp WHERE user_id = :uid"),
                 {"exp": exp_amount, "uid": user_id}
