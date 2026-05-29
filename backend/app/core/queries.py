@@ -299,22 +299,32 @@ async def get_user_progress(conn: AsyncSession, user_id: int) -> dict | None:
 # CHALLENGES
 # ─────────────────────────────────────────────────────────────
 
+async def get_last_activity_date(conn: AsyncSession, user_id: int):
+    row = await conn.execute(
+        text("SELECT last_activity_date FROM user_progress WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
+    result = row.mappings().one_or_none()
+    return result["last_activity_date"] if result else None
+
+
 async def get_active_challenges_for_trigger(
     conn: AsyncSession, user_id: int, trigger: str
 ) -> list[dict]:
     result = await conn.execute(
         text("""
-            SELECT uc.challenge_id, c.title, c.reward_exp
+            SELECT uc.challenge_id, c.title, c.reward_exp, c.mechanic_type,
+                   c.goal_value, uc.progress_value
             FROM user_challenges uc
             JOIN challenges c ON c.id = uc.challenge_id
             WHERE uc.user_id = :user_id
               AND uc.status = 'active'
               AND c.event_trigger = :trigger
+              AND (c.end_date IS NULL OR c.end_date >= NOW())
         """),
         {"user_id": user_id, "trigger": trigger},
     )
     return [dict(r) for r in result.mappings().all()]
-
 
 async def get_newly_completed_challenges(
     conn: AsyncSession, user_id: int, challenge_ids: list[int]

@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import text
@@ -16,6 +16,7 @@ from ..schemas import (
     RegisterRequest, LoginRequest, TokenResponse, MeResponse,
     UpsertProfileRequest, ProfileResponse,
     UpdateSettingsRequest, UserSettingsResponse,
+    ChallengeRewardItem,
     LogWorkoutRequest, WorkoutLoggedResponse,
     LogMealRequest, MealLoggedResponse, MealStatusResponse,
     ErrorResponse,
@@ -23,6 +24,27 @@ from ..schemas import (
 
 router = APIRouter()
 
+# ─── Helpers ───────────────────────────────────────────────────────────────────
+def _compute_challenge_delta(mechanic_type: str, last_activity_date, event_date) -> dict:
+    """
+    Zwraca słownik z kluczami delta lub progress_value do przekazania do proc_update_challenge_progress.
+    - count/accumulation: zawsze +1
+    - streak: +1 jeśli ostatnia aktywność była wczoraj, reset do 1 jeśli dawniej, 0 jeśli już dziś
+    """
+    today = event_date.date() if hasattr(event_date, 'date') else event_date
+
+    if mechanic_type == "streak":
+        if last_activity_date is None:
+            return {"progress_value": 1}
+        elif last_activity_date == today:
+            return None  # już policzone dziś, pomijamy
+        elif last_activity_date == today - timedelta(days=1):
+            return {"delta": 1}
+        else:
+            return {"progress_value": 1}  # reset
+    else:
+        # count, accumulation i inne
+        return {"delta": 1}
 
 # ─── System ────────────────────────────────────────────────────────────────────
 
@@ -222,11 +244,15 @@ async def log_workout(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    
     user_id = current_user["user_id"]
     performed_at = body.performed_at or datetime.now(timezone.utc)
     exp_amount = calculate_workout_exp(body.workout_type, body.duration_min, body.health_score)
     exercises_json = json.dumps([e.model_dump() for e in (body.exercises or [])])
+
+    last_activity_date = await queries.get_last_activity_date(db, user_id)
+    active_challenges = await queries.get_active_challenges_for_trigger(db, user_id, "workout_logged")
+    active_challenges += await queries.get_active_challenges_for_trigger(db, user_id, "activity_logged")
+    challenge_ids = [r["challenge_id"] for r in active_challenges]
 
     try:
         await queries.call_log_workout(
@@ -244,17 +270,64 @@ async def log_workout(
             activity_code=body.activity_code,
             activity_name=body.activity_name,
         )
-        await db.commit()
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e).split("\n")[0])
 
+    # Challenge tracking
+    for challenge in active_challenges:
+        delta_data = _compute_challenge_delta(
+            challenge["mechanic_type"], last_activity_date, performed_at
+        )
+        if delta_data is None:
+            continue
+        params = {"uid": user_id, "cid": challenge["challenge_id"], "ts": performed_at}
+        if "delta" in delta_data:
+            await db.execute(
+                text("CALL proc_update_challenge_progress(:uid, :cid, :delta, NULL, :ts, NULL)"),
+                {**params, "delta": delta_data["delta"]},
+            )
+        else:
+            await db.execute(
+                text("CALL proc_update_challenge_progress(:uid, :cid, NULL, :pval, :ts, NULL)"),
+                {**params, "pval": delta_data["progress_value"]},
+            )
+
+    row = await db.execute(
+        text("SELECT id FROM workouts WHERE user_id = :uid ORDER BY created_at DESC LIMIT 1"),
+        {"uid": user_id},
+    )
+    workout_id = row.scalar_one()
+
+    newly_completed = await queries.get_newly_completed_challenges(db, user_id, challenge_ids)
+
+    for r in newly_completed:
+        await db.execute(
+            text("CALL proc_claim_challenge_reward(:uid, :cid, :ts)"),
+            {"uid": user_id, "cid": r["challenge_id"], "ts": performed_at},
+        )
+
+    await db.commit()
+
     progress = await queries.get_user_progress(db, user_id)
+    rewards = [
+        ChallengeRewardItem(
+            challenge_id=r["challenge_id"],
+            title=r["title"],
+            points_earned=r["reward_exp"],
+        )
+        for r in newly_completed
+    ]
     return WorkoutLoggedResponse(
         message="Trening zapisany",
+        workout_id=workout_id,
         exp_granted=exp_amount,
         total_exp=progress["total_exp"] if progress else 0,
+        rewards=rewards,
     )
+
+
+
 @router.get("/workouts", response_model=list, tags=["Activity"])
 async def get_workouts(
     current_user: dict = Depends(get_current_user),
@@ -270,7 +343,9 @@ async def get_workouts(
         # informacja o tym zostanie dokładnie przekazana w treści błędu.
         result = await db.execute(
             text("""
-                SELECT id, user_id, workout_type, title, performed_at, duration_min 
+                SELECT id, user_id, workout_type, title, performed_at, 
+                    duration_min, health_score, notes,
+                    activity_category, activity_name
                 FROM workouts 
                 WHERE user_id = :uid 
                 ORDER BY performed_at DESC
@@ -301,6 +376,11 @@ async def log_meal(
 ):
     user_id = current_user["user_id"]
     eaten_at = body.eaten_at or datetime.now(timezone.utc)
+
+    last_activity_date = await queries.get_last_activity_date(db, user_id)
+    active_challenges = await queries.get_active_challenges_for_trigger(db, user_id, "meal_logged")
+    active_challenges += await queries.get_active_challenges_for_trigger(db, user_id, "activity_logged")
+    challenge_ids = [r["challenge_id"] for r in active_challenges]
 
     await db.execute(
         text("""
@@ -334,16 +414,53 @@ async def log_meal(
         {"uid": user_id},
     )
     meal_id = row.scalar_one()
+
+    # Challenge tracking
+    for challenge in active_challenges:
+        delta_data = _compute_challenge_delta(
+            challenge["mechanic_type"], last_activity_date, eaten_at
+        )
+        if delta_data is None:
+            continue
+        params = {"uid": user_id, "cid": challenge["challenge_id"], "ts": eaten_at}
+        if "delta" in delta_data:
+            await db.execute(
+                text("CALL proc_update_challenge_progress(:uid, :cid, :delta, NULL, :ts, NULL)"),
+                {**params, "delta": delta_data["delta"]},
+            )
+        else:
+            await db.execute(
+                text("CALL proc_update_challenge_progress(:uid, :cid, NULL, :pval, :ts, NULL)"),
+                {**params, "pval": delta_data["progress_value"]},
+            )
+
+    newly_completed = await queries.get_newly_completed_challenges(db, user_id, challenge_ids)
+
+    for r in newly_completed:
+        await db.execute(
+            text("CALL proc_claim_challenge_reward(:uid, :cid, :ts)"),
+            {"uid": user_id, "cid": r["challenge_id"], "ts": eaten_at},
+        )
+
     await db.commit()
 
     background_tasks.add_task(process_meal_with_ai, meal_id, body.photo_url, user_id)
 
+    rewards = [
+        ChallengeRewardItem(
+            challenge_id=r["challenge_id"],
+            title=r["title"],
+            points_earned=r["reward_exp"],
+        )
+        for r in newly_completed
+    ]
     return MealLoggedResponse(
         meal_id=meal_id,
         status="pending",
+        exp_granted=0,
+        rewards=rewards,
         message="Zdjęcie odebrane. AI analizuje posiłek...",
     )
-
 
 @router.get("/meals/{meal_id}", response_model=MealStatusResponse, tags=["Activity"], summary="Pobierz status posiłku")
 async def get_meal_status(
