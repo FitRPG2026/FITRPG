@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { environment } from '../../environments/environment';
+
 export interface ExerciseRow {
   exercise_name: string;
   exercise_order: number;
@@ -33,6 +35,19 @@ export interface LogWorkoutResponse {
   workout_id: number;
   exp_granted: number;
   rewards: ChallengeReward[];
+}
+export interface WorkoutData {
+  id?: number;                          
+  workout_type: string;
+  title: string;
+  performed_at: string;
+  duration_min: number | null;
+  health_score: number | null;
+  notes?: string | null;                
+  activity_category?: string | null;    
+  activity_name?: string | null;        
+  exp_amount?: number;
+  exercises_json?: string;
 }
 
 export interface LogMealRequest {
@@ -86,13 +101,16 @@ export interface UserSettingsData {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly baseUrl = 'http://localhost:8000/api';
+  private readonly baseUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) {}
 
   private headers(): HttpHeaders {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-    return new HttpHeaders({ Authorization: `Bearer ${token ?? ''}` });
+    let token = '';
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('jwt_token') || localStorage.getItem('access_token') || localStorage.getItem('token') || '';
+    }
+    return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
   logWorkout(req: LogWorkoutRequest): Observable<LogWorkoutResponse> {
@@ -117,5 +135,8 @@ export class ApiService {
 
   updateSettings(req: UserSettingsData): Observable<UserSettingsData> {
     return this.http.put<UserSettingsData>(`${this.baseUrl}/settings`, req, { headers: this.headers() });
+  }
+  getWorkouts(): Observable<WorkoutData[]> {
+    return this.http.get<WorkoutData[]>(`${this.baseUrl}/workouts`, { headers: this.headers() });
   }
 }

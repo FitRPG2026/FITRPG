@@ -1,10 +1,14 @@
 ﻿import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MealPhotoUploadService } from './meal-photo-upload.service';
 import { LocalMealReviewResult } from './meal-photo-upload.types';
+import { environment } from '../../environments/environment';
+
+import { interval, Subscription } from 'rxjs';
+import { switchMap, takeWhile } from 'rxjs/operators';
 
 @Component({
   selector: 'app-meal-photo-upload',
@@ -28,9 +32,13 @@ export class MealPhotoUploadComponent implements OnDestroy {
   dragging = false;
   errorMessage: string | null = null;
 
+  // Tutaj jest miejsce na zmienne klasowe
+  private pollingSub?: Subscription;
+
   constructor(
     private readonly uploadService: MealPhotoUploadService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly http: HttpClient // Dodany HttpClient
   ) {}
 
   get isLocked(): boolean {
@@ -41,8 +49,12 @@ export class MealPhotoUploadComponent implements OnDestroy {
     return this.uploadService.isDebug;
   }
 
+  // Połączone usuwanie URL i czyszczenie subskrypcji w jednym ngOnDestroy
   ngOnDestroy(): void {
     this.revokePreviewUrl();
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -63,20 +75,13 @@ export class MealPhotoUploadComponent implements OnDestroy {
 
   openFilePicker(event: Event): void {
     event.preventDefault();
-
-    if (this.isLocked) {
-      return;
-    }
-
+    if (this.isLocked) return;
     this.fileInput?.nativeElement.click();
   }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
-    if (this.isLocked) {
-      return;
-    }
-
+    if (this.isLocked) return;
     this.dragging = true;
   }
 
@@ -89,14 +94,10 @@ export class MealPhotoUploadComponent implements OnDestroy {
     event.preventDefault();
     this.dragging = false;
 
-    if (this.isLocked) {
-      return;
-    }
+    if (this.isLocked) return;
 
     const file = event.dataTransfer?.files?.[0] ?? null;
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     this.setSelectedFile(file);
   }
@@ -105,91 +106,11 @@ export class MealPhotoUploadComponent implements OnDestroy {
     if (!this.selectedFile || !this.previewUrl || this.loading) {
       return;
     }
-
-    const file = this.selectedFile;
-    const caption = this.caption.trim();
-
-    this.loading = true;
-    this.errorMessage = null;
-    this.result = null;
-    this.statusMessage = null;
-    this.captionInput?.nativeElement.blur();
-    console.log('mealPhotoUpload submit started', {
-      file_name: file.name,
-      caption,
-    });
-
-    this.uploadService.uploadMealPhoto(file, caption, this.userId)
-      .then((result) => {
-        this.loading = false;
-        this.result = result;
-        this.statusMessage = result.message;
-        console.log('mealReviewCreated', result);
-        this.mealReviewCreated.emit(result);
-        this.changeDetector.detectChanges();
-      })
-      .catch((error: unknown) => {
-        this.loading = false;
-        this.errorMessage = this.resolveErrorMessage(error);
-        this.changeDetector.detectChanges();
-      });
   }
-
-  onCaptionChange(value: string): void {
-    if (this.isLocked) {
-      return;
-    }
-
-    this.caption = value;
-  }
-
-  blockCaptionEdit(event: Event): void {
-    if (this.isLocked) {
-      event.preventDefault();
-      const input = this.captionInput?.nativeElement;
-      if (input) {
-        input.value = this.caption;
-        input.blur();
-      }
-    }
-  }
-
   private setSelectedFile(file: File): void {
-    this.resetResult();
     this.revokePreviewUrl();
     this.selectedFile = file;
-
-    if (!file.type.startsWith('image/')) {
-      this.selectedFile = null;
-      this.previewUrl = null;
-      this.errorMessage = 'Wybierz plik obrazu.';
-      return;
-    }
-
     this.previewUrl = URL.createObjectURL(file);
-  }
-
-  private resetResult(): void {
-    this.result = null;
-    this.statusMessage = null;
-    this.errorMessage = null;
-  }
-
-  private resolveErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
-        return 'Cloudinary nie odpowiedziało. Sprawdź upload preset i połączenie z internetem.';
-      }
-
-      const cloudinaryMessage = error.error?.error?.message || error.error?.message;
-      return cloudinaryMessage || `Cloudinary odrzuciło upload. Status: ${error.status}.`;
-    }
-
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    return 'Nie udało się wysłać zdjęcia. Spróbuj ponownie.';
   }
 
   private revokePreviewUrl(): void {
@@ -198,5 +119,16 @@ export class MealPhotoUploadComponent implements OnDestroy {
       this.previewUrl = null;
     }
   }
-}
 
+  // Obsługa zmiany tekstu w HTML
+  onCaptionChange(event: string): void {
+    this.caption = event;
+  }
+
+  // Blokowanie edycji pola (np. podczas ładowania)
+  blockCaptionEdit(event: Event): void {
+    if (this.isLocked) {
+      event.preventDefault();
+    }
+  }
+}

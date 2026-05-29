@@ -25,6 +25,10 @@ from ..schemas import (
     MealResponse, 
     ChallengeRewardItem
 )
+from fastapi import BackgroundTasks
+from ..core.ml_service import process_meal_with_ai
+
+
 
 #   Tutaj przechowywane beda endpointy
 router = APIRouter()
@@ -212,6 +216,7 @@ async def log_workout(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    
     user_id = current_user["user_id"]
     performed_at = body.performed_at or datetime.now(timezone.utc)
 
@@ -249,48 +254,167 @@ async def log_workout(
         exp_granted=exp_amount,
         total_exp=progress["total_exp"] if progress else 0,
     )
-
-
-# ─── Meals ─────────────────────────────────────────────────────────────────────
-
-@router.post("/meals", response_model=MealLoggedResponse, status_code=status.HTTP_201_CREATED)
-async def log_meal(
-    body: LogMealRequest,
+@router.get("/workouts", response_model=list, tags=["Activity"])
+async def get_workouts(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+):
+    """
+    Bezpieczna wersja testowa endpointu zwracająca listę treningów.
+    """
+    user_id = current_user["user_id"]
+    
+    try:
+        # Pobieramy podstawowe kolumny. Jeśli któraś powoduje błąd bazy, 
+        # informacja o tym zostanie dokładnie przekazana w treści błędu.
+        result = await db.execute(
+            text("""
+                SELECT id, user_id, workout_type, title, performed_at, duration_min 
+                FROM workouts 
+                WHERE user_id = :uid 
+                ORDER BY performed_at DESC
+            """),
+            {"uid": user_id}
+        )
+        
+        # Mapujemy surowe wiersze z bazy danych bezpośrednio na słowniki Pythona
+        raw_workouts = result.mappings().all()
+        workouts_list = [dict(row) for row in raw_workouts]
+        
+        return workouts_list
+
+    except Exception as e:
+        # Zamiast ogólnego błędu 500, zwracamy dokładny komunikat o błędzie z bazy danych
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Blad wykonania zapytania bazy danych: {str(e)}"
+        )
+# ─── Meals ─────────────────────────────────────────────────────────────────────
+
+# @router.post("/meals", response_model=MealLoggedResponse, status_code=status.HTTP_201_CREATED)
+# async def log_meal(
+#     body: LogMealRequest,
+#     current_user: dict = Depends(get_current_user),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     user_id = current_user["user_id"]
+#     eaten_at = body.eaten_at or datetime.now(timezone.utc)
+
+#     exp_amount = calculate_meal_exp(body.health_score)
+
+#     try:
+#         await queries.call_log_meal(
+#             db,
+#             user_id=user_id,
+#             meal_type=body.meal_type,
+#             eaten_at=eaten_at,
+#             title=body.title,
+#             photo_url=body.photo_url,
+#             notes=body.notes,
+#             health_score=body.health_score,
+#             ai_confidence=body.ai_confidence,
+#             exp_amount=exp_amount,
+#         )
+#         await db.commit()
+#     except Exception as e:
+#         await db.rollback()
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail=str(e).split("\n")[0],
+#         )
+
+#     progress = await queries.get_user_progress(db, user_id)
+#     return MealLoggedResponse(
+#         message="Posiłek zapisany",
+#         exp_granted=exp_amount,
+#         total_exp=progress["total_exp"] if progress else 0,
+#     )
+
+@router.get("/meals/{meal_id}", tags=["Activity"], summary="Pobierz status posiłku")
+async def get_meal_status(
+    meal_id: int, 
+    current_user: dict = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Endpoint wykorzystywany przez frontend do Polling'u.
+    Sprawdza, czy AI skończyło analizować posiłek.
+    """
+    user_id = current_user["user_id"]
+    
+    # Wyciągamy posiłek z bazy upewniając się, że należy do tego użytkownika
+    row = await db.execute(
+        text("SELECT id, status, health_score, photo_url FROM meals WHERE id = :meal_id AND user_id = :uid"),
+        {"meal_id": meal_id, "uid": user_id}
+    )
+    meal = row.mappings().one_or_none()
+    
+    if not meal:
+        raise HTTPException(status_code=404, detail="Posiłek nie znaleziony")
+        
+    # Obliczamy exp, jeśli analiza się zakończyła i jest wynik
+    exp_granted = 0
+    if meal["health_score"] is not None:
+        exp_granted = calculate_meal_exp(meal["health_score"])
+
+    return {
+        "meal_id": meal["id"],
+        "status": meal["status"],          # Zwraca 'pending', 'completed' lub 'failed'
+        "health_score": meal["health_score"],
+        "photo_url": meal["photo_url"],
+        "exp_granted": exp_granted
+    }
+
+
+@router.post("/meals", response_model=MealLoggedResponse, status_code=status.HTTP_202_ACCEPTED)
+async def log_meal(
+    body: LogMealRequest, 
+    background_tasks: BackgroundTasks, 
+    current_user: dict = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
 ):
     user_id = current_user["user_id"]
     eaten_at = body.eaten_at or datetime.now(timezone.utc)
 
-    exp_amount = calculate_meal_exp(body.health_score)
-
-    try:
-        await queries.call_log_meal(
-            db,
-            user_id=user_id,
-            meal_type=body.meal_type,
-            eaten_at=eaten_at,
-            title=body.title,
-            photo_url=body.photo_url,
-            notes=body.notes,
-            health_score=body.health_score,
-            ai_confidence=body.ai_confidence,
-            exp_amount=exp_amount,
-        )
-        await db.commit()
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e).split("\n")[0],
-        )
-
-    progress = await queries.get_user_progress(db, user_id)
-    return MealLoggedResponse(
-        message="Posiłek zapisany",
-        exp_granted=exp_amount,
-        total_exp=progress["total_exp"] if progress else 0,
+    # 1. Zapisujemy posiłek bez punktów i health_score
+    await db.execute(
+        text("""
+            CALL proc_log_meal(
+                p_user_id => :user_id, p_meal_type => :meal_type, p_eaten_at => :eaten_at,
+                p_title => :title, p_photo_url => :photo_url, p_notes => :notes,
+                p_health_score => NULL, p_ai_confidence => NULL, 
+                p_grant_exp => false, p_exp_amount => 0, p_exp_reason => 'Meal pending', p_exp_created_at => :eaten_at
+            )
+        """),
+        {
+            "user_id": user_id, "meal_type": body.meal_type, "eaten_at": eaten_at,
+            "title": body.title, "photo_url": body.photo_url, "notes": body.notes,
+        },
     )
+    
+    # 2. Pobieramy ID zapisanego posiłku
+    row = await db.execute(text("SELECT id FROM meals WHERE user_id = :uid ORDER BY created_at DESC LIMIT 1"), {"uid": user_id})
+    meal_id = row.scalar_one()
+    await db.commit()
+
+    # 3. Zlecamy zadanie w tle!
+    background_tasks.add_task(process_meal_with_ai, meal_id, body.photo_url, user_id)
+
+    # 4. Natychmiast odpowiadamy frontendowi
+    return MealLoggedResponse(
+        meal_id=meal_id,
+        status="pending",
+        message="Zdjęcie odebrane. AI analizuje posiłek..."
+    )
+
+
+
+
+
+
+
+
+
 
 # -----Profile----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -370,6 +494,8 @@ async def log_meal(
 #     )
 
 
+
+
 # ─── Settings ─────────────────────────────────────────────────────────────────
 
 @router.get("/settings", response_model=UserSettingsResponse, tags=["Profile"], summary="Pobierz ustawienia prywatności")
@@ -383,6 +509,10 @@ async def update_settings(body: UpdateSettingsRequest, current_user: dict = Depe
     await queries.upsert_user_settings(db, current_user["user_id"], body.data_processing_consent, body.profile_public)
     await db.commit()
     return UserSettingsResponse(data_processing_consent=body.data_processing_consent, profile_public=body.profile_public)
+
+
+
+
 
 
 # # ─── Workouts ─────────────────────────────────────────────────────────────────

@@ -1,0 +1,95 @@
+<div class="history-container">
+  
+  <div class="main-panel">
+    <div class="card calendar-card">
+      <div class="calendar-header">
+        <h2 class="section-title">{{ months[currentMonth.getMonth()] }} {{ currentMonth.getFullYear() }}</h2>
+        <div class="calendar-nav">
+          <button (click)="prevMonth()" class="btn-nav">←</button>
+          <button (click)="nextMonth()" class="btn-nav">→</button>
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+        <div class="weekday-label" *ngFor="let day of weekDays">{{ day }}</div>
+
+        <div 
+          *ngFor="let cell of calendarDays" 
+          class="calendar-day"
+          [ngClass]="{
+            'muted': !cell.isCurrentMonth,
+            'today': cell.isToday,
+            'has-workout': cell.hasWorkout,
+            'selected': isSameDate(cell.date, selectedDate)
+          }"
+          (click)="selectDate(cell.date)"
+        >
+          <span class="day-number">{{ cell.date.getDate() }}</span>
+          <span *ngIf="cell.hasWorkout" class="workout-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card details-card">
+      <h3 class="panel-subtitle">Treningi z dnia: {{ selectedDate | date:'dd.MM.yyyy' }}</h3>
+      
+      <div *ngIf="selectedWorkouts.length === 0" class="no-data">
+        Brak zarejestrowanych treningów w tym dniu.
+      </div>
+
+      <div class="workout-details-list" *ngIf="selectedWorkouts.length > 0">
+        <div class="workout-item-detail" *ngFor="let workout of selectedWorkouts">
+          <div class="workout-main-info">
+            <div>
+              <span class="workout-badge">{{ workout.workout_type }}</span>
+              <h4>{{ workout.title }}</h4>
+              <p class="workout-meta" *ngIf="workout.activity_name">{{ workout.activity_name }}</p>
+            </div>
+            <div class="xp-badge">+{{ workout.exp_amount }} XP</div>
+          </div>
+          
+          <div class="workout-stats">
+            <span><strong>Czas:</strong> {{ workout.duration_min }} min</span>
+            <span><strong>Samopoczucie:</strong> {{ workout.health_score }}/10</span>
+          </div>
+
+          <p class="workout-notes" *ngIf="workout.notes">
+            <em>Notatki:</em> {{ workout.notes }}
+          </p>
+
+          <div class="exercises-section" *ngIf="parseExercises(workout.exercises_json).length > 0">
+            <h5>Wykonane ćwiczenia:</h5>
+            <ul>
+              <li *ngFor="let ex of parseExercises(workout.exercises_json)">
+                {{ ex.name }} <span *ngIf="ex.sets">({{ ex.sets }} serii)</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="card list-card">
+      <h3 class="panel-subtitle font-cinzel">Wszystkie treningi</h3>
+      <div class="all-workouts-list">
+        <div class="compact-workout-item" *ngFor="let workout of workoutsList" (click)="selectDate(workout.performed_at)">
+          <div class="compact-date">
+            {{ workout.performed_at | date:'dd.MM' }}
+          </div>
+          <div class="compact-info">
+            <span class="compact-title">{{ workout.title }}</span>
+            <span class="compact-sub">{{ workout.duration_min }} min • {{ workout.workout_type }}</span>
+          </div>
+          <div class="compact-xp">+{{ workout.exp_amount }} XP</div>
+        </div>
+        <div *ngIf="workoutsList.length === 0" class="no-data">
+          Brak historii treningów.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
