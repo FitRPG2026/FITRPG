@@ -14,6 +14,7 @@ import { LocalMealReviewResult } from './meal-photo-upload.types';
 })
 export class MealPhotoUploadComponent implements OnDestroy {
   @Input() userId: string | number = '1';
+  @Input() showCaption = true;
   @Output() mealReviewCreated = new EventEmitter<LocalMealReviewResult>();
   @ViewChild('captionInput') private captionInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
