@@ -21,14 +21,17 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
     async for db in get_db():
         try:
             print(f"[DEBUG HF CALL] Wysyłam sam URL do HF: {photo_url}")
-            # 2. Odpytujemy Hugging Face w osobnym wątku, żeby nie zablokować FastAPI!
-            # POPRAWKA 1 i 2: Przekazujemy argument pozycyjnie i używamy "/predict"
+
+            # USUwamy api_name – Gradio Client sam domyślnie wybierze jedyną funkcję
             result = await asyncio.to_thread(
                 hf_client.predict,
-                photo_url, 
-                api_name="/predict" 
+                photo_url
             )
 
+            # result to lista: [top_class_name, weighted_avg, top, health_scores_probs]
+            # Interesuje nas indeks 2 (czyli wartość 'top', np. 3, 4, 5)
+            health_score = int(result[2]) 
+            exp_amount = calculate_meal_exp(health_score)
             # POPRAWKA 3: result to lista/krotka zwracana z HF: 
             # [top_class_name, weighted_avg, top, health_scores_probs]
             # Wyciągamy 'top', czyli element o indeksie 2
