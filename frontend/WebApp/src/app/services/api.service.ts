@@ -37,18 +37,17 @@ export interface LogWorkoutResponse {
   rewards: ChallengeReward[];
 }
 export interface WorkoutData {
-  id: number;
+  id?: number;                          
   workout_type: string;
   title: string;
   performed_at: string;
   duration_min: number | null;
   health_score: number | null;
-  notes: string | null;
-  activity_category: string | null;
-  activity_name: string | null;
+  notes?: string | null;                
+  activity_category?: string | null;    
+  activity_name?: string | null;        
   exp_amount?: number;
   exercises_json?: string;
-  
 }
 
 export interface LogMealRequest {
