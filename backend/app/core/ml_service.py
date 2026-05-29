@@ -9,12 +9,13 @@ from .exp import calculate_meal_exp
 from ..core.db import get_db
 
 # Wymuszamy pobranie tokenu z systemu
+# Wymuszamy pobranie tokenu z systemu
 hf_token = os.getenv("HF_TOKEN")
 
-# Inicjalizujemy klienta jawnie z tokenem lub bez
+# W nowej wersji gradio_client używamy argumentu 'token' zamiast 'hf_token'
 if hf_token:
     print("[DEBUG] Wykryto HF_TOKEN, inicjalizuję bezpieczne połączenie.")
-    hf_client = Client("stachtotalny/fitrpg", hf_token=hf_token)
+    hf_client = Client("stachtotalny/fitrpg", token=hf_token)  # <-- TUTAJ ZMIANA
 else:
     print("[WARNING] BRAK HF_TOKEN! Połączenie z prywatnym Space może się nie udać.")
     hf_client = Client("stachtotalny/fitrpg")
