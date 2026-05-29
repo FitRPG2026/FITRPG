@@ -106,8 +106,11 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   private headers(): HttpHeaders {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : '';
-    return new HttpHeaders({ Authorization: `Bearer ${token ?? ''}` });
+    let token = '';
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('jwt_token') || localStorage.getItem('access_token') || localStorage.getItem('token') || '';
+    }
+    return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
   logWorkout(req: LogWorkoutRequest): Observable<LogWorkoutResponse> {
