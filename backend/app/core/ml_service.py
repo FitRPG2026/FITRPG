@@ -33,6 +33,7 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
                 {"score": health_score, "meal_id": meal_id}
             )
             
+            # Aktualizacja EXP
             await db.execute(
                 text("UPDATE user_progress SET total_exp = total_exp + :exp WHERE user_id = :uid"),
                 {"exp": exp_amount, "uid": user_id}

@@ -6,6 +6,7 @@ import { mealPhotoUploadConfig } from './meal-photo-upload.config';
 import {
   CloudinaryUploadResponse,
   LocalMealReviewResult,
+  MealPhotoMetadata,
   MealPhotoStorageName,
 } from './meal-photo-upload.types';
 
@@ -23,19 +24,22 @@ export class MealPhotoUploadService {
     file: File,
     caption: string,
     userId: string | number = this.config.defaultUserId,
+    mealTitle = '',
   ): Promise<LocalMealReviewResult> {
     if (!this.config.cloudinaryCloudName || !this.config.cloudinaryUploadPreset) {
       throw new Error('Brakuje cloud name albo upload preset dla Cloudinary.');
     }
 
     const createdAt = new Date();
+    const metadata = this.createMealPhotoMetadata(mealTitle, caption);
     const storageName = this.createMealPhotoStorageName(
       file,
       createdAt,
       this.slugify(String(userId)) || this.config.defaultUserId,
+      metadata.meal_title,
     );
     const uploadFile = await this.compressImageIfNeeded(file);
-    const cloudinaryResponse = await this.uploadToCloudinary(uploadFile, storageName, caption);
+    const cloudinaryResponse = await this.uploadToCloudinary(uploadFile, storageName, metadata);
 
     return {
       success: true,
@@ -44,10 +48,11 @@ export class MealPhotoUploadService {
       meal_review: {
         image_name: cloudinaryResponse.public_id || storageName.public_id,
         created_at: cloudinaryResponse.created_at || createdAt.toISOString(),
-        caption,
+        caption: metadata.notes,
         url: cloudinaryResponse.secure_url,
         rating: null,
         storage: storageName,
+        metadata,
       },
     };
   }
@@ -55,14 +60,14 @@ export class MealPhotoUploadService {
   private async uploadToCloudinary(
     file: File | Blob,
     storageName: MealPhotoStorageName,
-    caption: string,
+    metadata: MealPhotoMetadata,
   ): Promise<CloudinaryUploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', this.config.cloudinaryUploadPreset);
     formData.append('folder', storageName.asset_folder);
     formData.append('public_id', storageName.public_id);
-    formData.append('context', this.createContextMetadata(caption));
+    formData.append('context', this.createContextMetadata(metadata));
 
     const url = `https://api.cloudinary.com/v1_1/${this.config.cloudinaryCloudName}/image/upload`;
     return firstValueFrom(this.http.post<CloudinaryUploadResponse>(url, formData));
@@ -124,7 +129,7 @@ export class MealPhotoUploadService {
     });
   }
 
-  private createMealPhotoStorageName(file: File, date: Date, userId: string): MealPhotoStorageName {
+  private createMealPhotoStorageName(file: File, date: Date, userId: string, mealTitle: string): MealPhotoStorageName {
     const year = String(date.getUTCFullYear());
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const timestamp = date.toISOString()
@@ -133,7 +138,8 @@ export class MealPhotoUploadService {
     const suffix = this.createShortId();
     const originalBaseName = this.stripExtension(file.name);
     const safeOriginalName = this.slugify(originalBaseName) || 'photo';
-    const publicId = `meal-${timestamp}-${suffix}`;
+    const safeMealTitle = this.slugify(mealTitle) || safeOriginalName || 'meal';
+    const publicId = `meal-${safeMealTitle}-${timestamp}-${suffix}`;
     const folder = [
       this.slugify(this.config.storageRoot) || 'fitrpg',
       this.slugify(this.config.storageEnvironment) || 'local',
@@ -148,7 +154,7 @@ export class MealPhotoUploadService {
       asset_folder: folder,
       public_id: publicId,
       public_id_prefix: folder,
-      display_name: `${safeOriginalName}-${publicId}`,
+      display_name: publicId,
       original_file_name: file.name,
     };
   }
@@ -169,10 +175,24 @@ export class MealPhotoUploadService {
     return `${this.stripExtension(fileName) || 'photo'}.${extension}`;
   }
 
-  private createContextMetadata(caption: string): string {
-    const description = caption.trim() || 'Zdjęcie posiłku';
-    const escapedDescription = this.escapeContextValue(description);
-    return `caption=${escapedDescription}|alt=${escapedDescription}`;
+  private createMealPhotoMetadata(mealTitle: string, notes: string): MealPhotoMetadata {
+    const normalizedTitle = mealTitle.trim();
+    const normalizedNotes = notes.trim();
+    const fallbackDescription = normalizedTitle || normalizedNotes || 'Zdjęcie posiłku';
+
+    return {
+      meal_title: normalizedTitle,
+      notes: normalizedNotes,
+      caption: normalizedNotes || fallbackDescription,
+      alt: fallbackDescription,
+    };
+  }
+
+  private createContextMetadata(metadata: MealPhotoMetadata): string {
+    return Object.entries(metadata)
+      .filter(([, value]) => value.trim().length > 0)
+      .map(([key, value]) => `${key}=${this.escapeContextValue(value)}`)
+      .join('|');
   }
 
   private escapeContextValue(value: string): string {

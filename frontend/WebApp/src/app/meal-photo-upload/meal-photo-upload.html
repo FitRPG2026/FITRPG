@@ -58,8 +58,11 @@
       <input type="text" [value]="review.url" readonly>
     </div>
     <div class="debug-field">
-      <label>Opis zdjęcia</label>
-      <textarea rows="2" readonly>{{ review.caption || 'Zdjęcie posiłku' }}</textarea>
+      <label>Metadane Cloudinary</label>
+      <textarea rows="4" readonly>caption={{ review.metadata.caption }}
+alt={{ review.metadata.alt }}
+notes={{ review.metadata.notes || '-' }}
+meal_title={{ review.metadata.meal_title || '-' }}</textarea>
     </div>
   </div>
 

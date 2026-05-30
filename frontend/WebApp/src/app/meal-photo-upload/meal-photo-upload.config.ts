@@ -11,7 +11,7 @@ export interface MealPhotoUploadConfig {
 }
 
 export const mealPhotoUploadConfig: MealPhotoUploadConfig = {
-  isDebug: 1,
+  isDebug: 0,
   cloudinaryCloudName: 'dxdmkv4bt',
   cloudinaryUploadPreset: 'fitrpg_meals_unsigned',
   defaultUserId: '1',
