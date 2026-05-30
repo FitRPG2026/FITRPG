@@ -113,6 +113,16 @@ class UserSettingsResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
+# CHALLENGES
+# ─────────────────────────────────────────────
+
+class ChallengeRewardItem(BaseModel):
+    challenge_id: int
+    title: str
+    points_earned: int
+
+    
+# ─────────────────────────────────────────────
 # WORKOUTS
 # ─────────────────────────────────────────────
 
@@ -179,9 +189,10 @@ class LogWorkoutRequest(BaseModel):
 
 class WorkoutLoggedResponse(BaseModel):
     message: str
+    workout_id: int
     exp_granted: int
     total_exp: int
-
+    rewards: List[ChallengeRewardItem] = []
 
 # ─────────────────────────────────────────────
 # MEALS
@@ -221,8 +232,9 @@ class LogMealRequest(BaseModel):
 class MealLoggedResponse(BaseModel):
     meal_id: int
     status: str
+    exp_granted: int = 0
+    rewards: List[ChallengeRewardItem] = []
     message: str
-
 
 class MealStatusResponse(BaseModel):
     meal_id: int
