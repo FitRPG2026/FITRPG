@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { NotificationService } from '../services/notification.service';
 import { ToastContainerComponent } from '../components/toast-container/toast-container';
 import { WorkoutFormComponent } from '../components/workout-form/workout-form';
 import { MealFormComponent } from '../components/meal-form/meal-form';
+import { ProgressComponent } from '../components/progress/progress'; 
 
 type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile';
 
@@ -20,11 +21,15 @@ type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'pro
     ToastContainerComponent,
     WorkoutFormComponent,
     MealFormComponent,
+    ProgressComponent
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })
 export class DashboardComponent implements OnInit {
+  
+  @ViewChild(ProgressComponent) progressComponent!: ProgressComponent;
+
   activeTab: Tab = 'dashboard';
 
   // ─── Mock-backed data (until those endpoints are built) ───
@@ -172,7 +177,21 @@ export class DashboardComponent implements OnInit {
       this.notificationService.showChallengeToast(reward.title, reward.points_earned);
     }
     this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
-  }
+
+    // Instrukcja dla Twojego komponentu ProgressComponent:
+    if (this.progressComponent) {
+      this.progressComponent.workoutsList.unshift({
+        title: 'Nowy Trening',
+        workout_type: 'Trening',
+        performed_at: new Date().toISOString(),
+        duration_min: 30,
+        health_score: 10,
+        exp_amount: response.exp_granted
+      });
+      this.progressComponent.generateCalendar();
+      this.progressComponent.selectDate(new Date());
+    }
+  } // <-- Upewnij się, że ta klamra zamyka onWorkoutSaved!
 
   onMealSaved(response: LogMealResponse): void {
     const expGranted = response.exp_granted ?? 0;
@@ -247,4 +266,4 @@ export class DashboardComponent implements OnInit {
     localStorage.removeItem('jwt_token');
     this.router.navigate(['/login']);
   }
-}
+} // <-- Ostatnia klamra zamykająca całą klasę Componentu

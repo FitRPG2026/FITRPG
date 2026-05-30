@@ -2,7 +2,6 @@ import json
 import asyncio
 import os
 from gradio_client import Client
-from sqlalchemy.orm import Session
 from sqlalchemy import text
 from .exp import calculate_meal_exp
 from ..core.db import get_db
@@ -10,32 +9,25 @@ from ..core.db import get_db
 hf_token = os.getenv("HF_TOKEN")
 
 if hf_token:
-    hf_client = Client("stachtotalny/fitrpg", hf_token=hf_token)
+    hf_client = Client("stachtotalny/fitrpg", token=hf_token)
 else:
     hf_client = Client("stachtotalny/fitrpg")
 
 async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
-    print(f"Rozpoczęto analizę AI dla posiłku {meal_id}")
-    
-    # 1. Pobieramy nową sesję bazy danych dla zadania w tle
     async for db in get_db():
         try:
-            print(f"[DEBUG HF CALL] Wysyłam sam URL do HF: {photo_url}")
-            # 2. Odpytujemy Hugging Face w osobnym wątku, żeby nie zablokować FastAPI!
-            # POPRAWKA 1 i 2: Przekazujemy argument pozycyjnie i używamy "/predict"
+            # Wysyłamy zapytanie do Hugging Face
             result = await asyncio.to_thread(
                 hf_client.predict,
-                photo_url, 
-                api_name="/predict" 
+                photo_url,
+                api_name="/predict_health"
             )
 
-            # POPRAWKA 3: result to lista/krotka zwracana z HF: 
-            # [top_class_name, weighted_avg, top, health_scores_probs]
-            # Wyciągamy 'top', czyli element o indeksie 2
+            # Wyciągamy ocenę i przeliczamy EXP
             health_score = int(result[2]) 
             exp_amount = calculate_meal_exp(health_score)
             
-            # 3. Zapisujemy SUKCES w bazie danych
+            # Aktualizacja bazy danych po sukcesie
             await db.execute(
                 text("UPDATE meals SET health_score = :score, status = 'completed' WHERE id = :meal_id"),
                 {"score": health_score, "meal_id": meal_id}
@@ -48,13 +40,10 @@ async def process_meal_with_ai(meal_id: int, photo_url: str, user_id: int):
             )
             
             await db.commit()
-            print(f"Sukces! Posiłek {meal_id} oceniony na {health_score}.")
             
-        except Exception as e:
-            print(f"Błąd analizy AI dla {meal_id}: {e}")
+        except Exception:
+            # W razie błędu wycofujemy zmiany i ustawiamy status 'failed'
             await db.rollback()
-            
-            # 4. Zapisujemy BŁĄD w bazie danych (żeby frontend mógł przerwać Polling)
             await db.execute(
                 text("UPDATE meals SET status = 'failed' WHERE id = :meal_id"),
                 {"meal_id": meal_id}

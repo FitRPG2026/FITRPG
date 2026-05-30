@@ -1,9 +1,7 @@
 <div class="app-shell">
 
-  <!-- TOAST NOTIFICATIONS (DEV-38, DEV-40) -->
   <app-toast-container></app-toast-container>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <span class="logo-icon">⚔️</span>
@@ -24,7 +22,7 @@
         <span class="nav-label">Questy</span>
         <span class="nav-badge" *ngIf="pendingQuests.length > 0">{{ pendingQuests.length }}</span>
       </button>
-      <button class="nav-item" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
+      <button class="nav-item" [class.active]="activeTab === 'achievements'" (class.active)="activeTab === 'achievements'" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
         <span class="nav-icon">🏆</span>
         <span class="nav-label">Osiągnięcia</span>
       </button>
@@ -47,10 +45,8 @@
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <main class="main-content">
 
-    <!-- ═══════════════ TAB: DASHBOARD ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'dashboard'">
       <div class="page-header">
         <h1>Witaj z powrotem,
@@ -127,7 +123,6 @@
       </div>
     </div>
 
-    <!-- ═══════════════ TAB: TRENING (DEV-45, DEV-48) ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'training'">
       <div class="page-header">
         <h1>🏋️ Trening & Posiłki</h1>
@@ -138,9 +133,17 @@
         <app-workout-form (saved)="onWorkoutSaved($event)"></app-workout-form>
         <app-meal-form [userId]="profile?.user_id || '1'" (saved)="onMealSaved($event)"></app-meal-form>
       </div>
+
+      <div class="history-section-wrapper" style="margin-top: 48px; border-top: 2px dashed #e6f4ed; padding-top: 32px; width: 100%;">
+        <div class="page-header" style="margin-bottom: 24px;">
+          <h2 style="font-family: 'Cinzel', serif; font-size: 22px; color: #1a2722; margin: 0;">📜 Historia Twoich Walk</h2>
+          <p class="page-subtitle" style="margin: 4px 0 0 0;">Przeglądaj zarejestrowane aktywności i śledź swoje postępy na osi czasu.</p>
+        </div>
+        
+        <app-progress></app-progress>
+      </div>
     </div>
 
-    <!-- ═══════════════ TAB: QUESTY ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'quests'">
       <div class="page-header">
         <h1>📜 Questy</h1>
@@ -210,7 +213,6 @@
       </div>
     </div>
 
-    <!-- ═══════════════ TAB: OSIĄGNIĘCIA ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'achievements'">
       <div class="page-header">
         <h1>🏆 Osiągnięcia</h1>
@@ -244,7 +246,6 @@
       </div>
     </div>
 
-    <!-- ═══════════════ TAB: STATYSTYKI ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'stats'">
       <div class="page-header">
         <h1>📊 Statystyki</h1>
@@ -289,7 +290,6 @@
       </div>
     </div>
 
-    <!-- ═══════════════ TAB: PROFIL (DEV-41) ═══════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'profile'">
       <div class="page-header">
         <h1>👤 Profil</h1>
@@ -303,7 +303,6 @@
 
       <div *ngIf="!loadingProfile && profile" class="profile-page">
 
-        <!-- Level / XP summary -->
         <div class="profile-hero-card">
           <div class="profile-hero-left">
             <div class="profile-avatar">{{ (profile.display_name || profile.username || 'G')[0].toUpperCase() }}</div>
@@ -322,7 +321,6 @@
           </div>
         </div>
 
-        <!-- Edit profile form -->
         <div class="panel profile-form-panel">
           <div class="panel-header"><h2>Dane osobowe</h2></div>
 
@@ -389,7 +387,6 @@
           </button>
         </div>
 
-        <!-- Privacy settings -->
         <div class="panel settings-panel" *ngIf="!loadingSettings">
           <div class="panel-header"><h2>Ustawienia prywatności</h2></div>
 
