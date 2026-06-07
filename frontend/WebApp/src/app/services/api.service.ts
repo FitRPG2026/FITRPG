@@ -1,8 +1,40 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+
+// ─── Domena grywalizacji (statystyki, questy, osiągnięcia) ───
+export interface Stat {
+  name: string;
+  value: number;
+  max: number;
+  icon: string;
+  color: string;
+}
+
+export interface Quest {
+  id: number;
+  title: string;
+  description: string;
+  xp: number;
+  completed: boolean;
+}
+
+export interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt: string | null;
+  locked: boolean;
+}
+
+export interface WeeklyActivity {
+  day: string;
+  workouts: number;
+  minutes: number;
+}
 
 export interface ExerciseRow {
   exercise_name: string;
@@ -138,5 +170,27 @@ export class ApiService {
   }
   getWorkouts(): Observable<WorkoutData[]> {
     return this.http.get<WorkoutData[]>(`${this.baseUrl}/workouts`, { headers: this.headers() });
+  }
+
+  // ─── Grywalizacja ───────────────────────────────────────────────────────────
+  // TODO(Dev-73): podmień na this.http.get<Stat[]>(`${this.baseUrl}/stats`, ...)
+  // gdy backend udostępni endpoint statystyk. Na razie wartości tymczasowe.
+  getStats(): Observable<Stat[]> {
+    return of<Stat[]>([
+      { name: 'Siła',         value: 74, max: 100, icon: '💪', color: '#e74c3c' },
+      { name: 'Wytrzymałość', value: 58, max: 100, icon: '🏃', color: '#2a8f5e' },
+      { name: 'Zwinność',     value: 43, max: 100, icon: '⚡', color: '#f39c12' },
+      { name: 'Wola',         value: 81, max: 100, icon: '🧠', color: '#9b59b6' },
+    ]);
+  }
+
+  // TODO(Dev-74): podmień na GET `${this.baseUrl}/quests` gdy backend wyzwań będzie gotowy.
+  getQuests(): Observable<Quest[]> {
+    return of<Quest[]>([]);
+  }
+
+  // TODO(Dev-74): podmień na GET `${this.baseUrl}/achievements` gdy backend wyzwań będzie gotowy.
+  getAchievements(): Observable<Achievement[]> {
+    return of<Achievement[]>([]);
   }
 }
