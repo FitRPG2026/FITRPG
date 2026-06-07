@@ -1,3 +1,4 @@
+import { NotificationService } from '../../services/notification.service';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -63,7 +64,7 @@ export class WorkoutFormComponent {
     { value: 'other',               label: 'Inne' },
   ];
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private notifications: NotificationService) {}
 
   get isGym(): boolean {
     return this.categoryKey === 'gym';
@@ -121,6 +122,16 @@ export class WorkoutFormComponent {
       next: (response) => {
         this.isSubmitting = false;
         this.successMessage = 'Trening zapisany!';
+        if (response.exp_granted > 0) {
+          this.notifications.showXpToast(response.exp_granted);
+        }
+
+        if (response.rewards && response.rewards.length > 0) {
+          response.rewards.forEach(reward => {
+            this.notifications.showChallengeToast(reward.title, reward.points_earned);
+          });
+        }
+
         this.saved.emit(response);
         this.resetForm();
         setTimeout(() => { this.successMessage = null; }, 3000);
