@@ -36,20 +36,43 @@ export interface LogWorkoutResponse {
   exp_granted: number;
   rewards: ChallengeReward[];
 }
+export interface WorkoutData {
+  id?: number;                          
+  workout_type: string;
+  title: string;
+  performed_at: string;
+  duration_min: number | null;
+  health_score: number | null;
+  notes?: string | null;                
+  activity_category?: string | null;    
+  activity_name?: string | null;        
+  exp_amount?: number;
+  exercises_json?: string;
+}
 
 export interface LogMealRequest {
   title: string;
   meal_type: string;
   eaten_at: string;
   notes: string;
-  health_score: number;
+  photo_url?: string;
+  health_score?: number;
 }
 
 export interface LogMealResponse {
-  status: string;
+  message?: string;
+  status?: string;
+  meal_id?: number;
+  exp_granted?: number;
+  rewards?: ChallengeReward[];
+}
+
+export interface MealStatusResponse {
   meal_id: number;
+  status: 'pending' | 'completed' | 'failed' | string;
+  health_score: number | null;
+  photo_url: string | null;
   exp_granted: number;
-  rewards: ChallengeReward[];
 }
 
 export interface UserProfileData {
@@ -93,8 +116,11 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   private headers(): HttpHeaders {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : '';
-    return new HttpHeaders({ Authorization: `Bearer ${token ?? ''}` });
+    let token = '';
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('jwt_token') || localStorage.getItem('access_token') || localStorage.getItem('token') || '';
+    }
+    return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
   logWorkout(req: LogWorkoutRequest): Observable<LogWorkoutResponse> {
@@ -103,6 +129,10 @@ export class ApiService {
 
   logMeal(req: LogMealRequest): Observable<LogMealResponse> {
     return this.http.post<LogMealResponse>(`${this.baseUrl}/meals`, req, { headers: this.headers() });
+  }
+
+  getMealStatus(mealId: number): Observable<MealStatusResponse> {
+    return this.http.get<MealStatusResponse>(`${this.baseUrl}/meals/${mealId}`, { headers: this.headers() });
   }
 
   getProfile(): Observable<UserProfileData> {
@@ -119,5 +149,8 @@ export class ApiService {
 
   updateSettings(req: UserSettingsData): Observable<UserSettingsData> {
     return this.http.put<UserSettingsData>(`${this.baseUrl}/settings`, req, { headers: this.headers() });
+  }
+  getWorkouts(): Observable<WorkoutData[]> {
+    return this.http.get<WorkoutData[]>(`${this.baseUrl}/workouts`, { headers: this.headers() });
   }
 }

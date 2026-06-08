@@ -6,6 +6,18 @@ export interface MealPhotoStorageName {
   original_file_name: string;
 }
 
+export interface MealPhotoMetadata {
+  meal_title: string;
+  notes: string;
+  caption: string;
+  alt: string;
+}
+
+export interface MealPhotoUploadMetadata {
+  mealTitle?: string;
+  notes?: string;
+}
+
 export interface MealReviewDraft {
   image_name: string;
   created_at: string;
@@ -13,6 +25,7 @@ export interface MealReviewDraft {
   url: string;
   rating: number | null;
   storage: MealPhotoStorageName;
+  metadata: MealPhotoMetadata;
 }
 
 export interface LocalMealReviewResult {
