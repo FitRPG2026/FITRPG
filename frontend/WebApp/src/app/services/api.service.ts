@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
 
@@ -174,15 +175,21 @@ export class ApiService {
 
   // ─── Grywalizacja ───────────────────────────────────────────────────────────
   // Statystyki (Stat[]) są wyliczane z historii treningów po stronie klienta
-  // (stats.util.ts) na podstawie tego endpointu — patrz Dev-73.
+  // (stats.util.ts) na podstawie endpointu /workouts — patrz Dev-73.
 
-  // TODO(Dev-74): podmień na GET `${this.baseUrl}/quests` gdy backend wyzwań będzie gotowy.
+  // Questy i osiągnięcia są już podpięte pod docelowe endpointy backendu
+  // wyzwań (Dev-74). Dopóki backend ich nie wystawi, odpowiedź błędna
+  // (404/500) jest mapowana na pustą listę i UI pokazuje stany puste —
+  // po starcie backendu dane pojawią się bez zmian we froncie.
   getQuests(): Observable<Quest[]> {
-    return of<Quest[]>([]);
+    return this.http
+      .get<Quest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
+      .pipe(catchError(() => of<Quest[]>([])));
   }
 
-  // TODO(Dev-74): podmień na GET `${this.baseUrl}/achievements` gdy backend wyzwań będzie gotowy.
   getAchievements(): Observable<Achievement[]> {
-    return of<Achievement[]>([]);
+    return this.http
+      .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
+      .pipe(catchError(() => of<Achievement[]>([])));
   }
 }
