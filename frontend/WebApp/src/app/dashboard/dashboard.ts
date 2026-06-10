@@ -15,6 +15,7 @@ import {
   WeeklyActivity,
 } from '../services/api.service';
 import { computeLevelProgress } from '../services/level.util';
+import { buildStats, buildWeeklyActivity } from '../services/stats.util';
 import { NotificationService } from '../services/notification.service';
 import { ToastContainerComponent } from '../components/toast-container/toast-container';
 import { WorkoutFormComponent } from '../components/workout-form/workout-form';
@@ -43,9 +44,9 @@ export class DashboardComponent implements OnInit {
 
   activeTab: Tab = 'dashboard';
 
-  // ─── Dane grywalizacji (przez ApiService) ───
-  // Statystyki to wartości tymczasowe (Dev-73), questy/osiągnięcia czekają na
-  // backend wyzwań (Dev-74) i na razie przychodzą puste.
+  // ─── Dane grywalizacji ───
+  // Statystyki i aktywność liczone z historii treningów (/workouts), questy
+  // i osiągnięcia czekają na backend wyzwań (Dev-74) i są na razie puste.
   stats: Stat[] = [];
   quests: Quest[] = [];
   achievements: Achievement[] = [];
@@ -55,6 +56,9 @@ export class DashboardComponent implements OnInit {
   loadingQuests = true;
   loadingAchievements = true;
   loadingActivity = true;
+
+  // Ostatnio pobrana historia treningów — źródło statystyk i wykresu tygodnia.
+  private lastWorkouts: WorkoutData[] = [];
 
   // ─── Profile (real API) ───
   profile: UserProfileData | null = null;
@@ -110,10 +114,9 @@ export class DashboardComponent implements OnInit {
 
     this.loadProfile();
     this.loadSettings();
-    this.loadStats();
+    this.loadWorkoutsDerived();
     this.loadQuests();
     this.loadAchievements();
-    this.loadWeeklyActivity();
   }
 
   // Przełączenie zakładki dociąga świeże dane, by stany (ukończone questy,
@@ -123,7 +126,7 @@ export class DashboardComponent implements OnInit {
     switch (tab) {
       case 'dashboard':
         this.loadProfile();
-        this.loadWeeklyActivity();
+        this.loadWorkoutsDerived();
         break;
       case 'quests':
         this.loadQuests();
@@ -133,7 +136,7 @@ export class DashboardComponent implements OnInit {
         break;
       case 'stats':
         this.loadProfile();
-        this.loadStats();
+        this.loadWorkoutsDerived();
         break;
     }
   }
@@ -145,6 +148,7 @@ export class DashboardComponent implements OnInit {
         this.profile = this.withLevelProgress(p);
         this.editProfile = { ...this.profile };
         this.loadingProfile = false;
+        this.recomputeDerived(); // passa wpływa na atrybut "Wola"
       },
       error: () => { this.loadingProfile = false; },
     });
@@ -154,13 +158,6 @@ export class DashboardComponent implements OnInit {
     this.api.getSettings().subscribe({
       next: (s) => { this.settings = s; this.loadingSettings = false; },
       error: () => { this.loadingSettings = false; },
-    });
-  }
-
-  private loadStats(): void {
-    this.api.getStats().subscribe({
-      next: (s) => { this.stats = s; this.loadingStats = false; },
-      error: () => { this.loadingStats = false; },
     });
   }
 
@@ -178,12 +175,26 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private loadWeeklyActivity(): void {
+  // Pobiera historię treningów i przelicza z niej statystyki oraz wykres
+  // aktywności tygodniowej — jedno źródło danych dla dashboardu i statystyk
+  // (Dev-73 / Dev-87).
+  private loadWorkoutsDerived(): void {
     this.loadingActivity = true;
+    this.loadingStats = true;
     this.api.getWorkouts().subscribe({
-      next: (workouts) => { this.weeklyActivity = this.buildWeeklyActivity(workouts); this.loadingActivity = false; },
-      error: () => { this.weeklyActivity = this.buildWeeklyActivity([]); this.loadingActivity = false; },
+      next: (workouts) => { this.lastWorkouts = workouts; this.recomputeDerived(); this.finishWorkoutLoading(); },
+      error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
     });
+  }
+
+  private finishWorkoutLoading(): void {
+    this.loadingActivity = false;
+    this.loadingStats = false;
+  }
+
+  private recomputeDerived(): void {
+    this.weeklyActivity = buildWeeklyActivity(this.lastWorkouts);
+    this.stats = buildStats(this.lastWorkouts, this.profile?.current_streak_days ?? 0);
   }
 
   // Wzbogaca profil o policzony lokalnie poziom i postęp XP, bo backend
@@ -198,31 +209,6 @@ export class DashboardComponent implements OnInit {
       xp_to_next_level: xpToNextLevel,
       longest_streak_days: profile.longest_streak_days ?? 0,
     };
-  }
-
-  // Buduje wykres aktywności bieżącego tygodnia z realnie zapisanych treningów,
-  // aby dashboard zgadzał się z ekranem "Historia Twoich Walk" (Dev-87).
-  private buildWeeklyActivity(workouts: WorkoutData[]): WeeklyActivity[] {
-    const labels = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
-    const week: WeeklyActivity[] = labels.map((day) => ({ day, workouts: 0, minutes: 0 }));
-    const weekStart = this.startOfWeek(new Date());
-
-    for (const workout of workouts) {
-      const performed = new Date(workout.performed_at);
-      if (performed < weekStart) continue;
-      const index = (performed.getDay() + 6) % 7; // 0 = poniedziałek
-      week[index].workouts += 1;
-      week[index].minutes += workout.duration_min ?? 0;
-    }
-    return week;
-  }
-
-  private startOfWeek(date: Date): Date {
-    const monday = new Date(date);
-    const offset = (monday.getDay() + 6) % 7;
-    monday.setDate(monday.getDate() - offset);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
   }
 
   // ─── XP helpers ───
@@ -269,7 +255,7 @@ export class DashboardComponent implements OnInit {
   // treningów, dzięki czemu dane aktualizują się bez przeładowania (Dev-86/87).
   private refreshAfterActivity(): void {
     this.loadProfile();
-    this.loadWeeklyActivity();
+    this.loadWorkoutsDerived();
     this.progressComponent?.loadWorkouts();
   }
 
@@ -291,10 +277,11 @@ export class DashboardComponent implements OnInit {
       activity_level: this.editProfile.activity_level ?? undefined,
     }).subscribe({
       next: (p) => {
-        this.profile = p;
-        this.editProfile = { ...p };
+        this.profile = this.withLevelProgress(p);
+        this.editProfile = { ...this.profile };
         this.savingProfile = false;
         this.profileSaveSuccess = true;
+        this.recomputeDerived();
         setTimeout(() => { this.profileSaveSuccess = false; }, 2500);
       },
       error: (err) => {
@@ -322,7 +309,7 @@ export class DashboardComponent implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('jwt_token');
     this.router.navigate(['/login']);
   }
 } // <-- Ostatnia klamra zamykająca całą klasę Componentu

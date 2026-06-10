@@ -173,16 +173,8 @@ export class ApiService {
   }
 
   // ─── Grywalizacja ───────────────────────────────────────────────────────────
-  // TODO(Dev-73): podmień na this.http.get<Stat[]>(`${this.baseUrl}/stats`, ...)
-  // gdy backend udostępni endpoint statystyk. Na razie wartości tymczasowe.
-  getStats(): Observable<Stat[]> {
-    return of<Stat[]>([
-      { name: 'Siła',         value: 74, max: 100, icon: '💪', color: '#e74c3c' },
-      { name: 'Wytrzymałość', value: 58, max: 100, icon: '🏃', color: '#2a8f5e' },
-      { name: 'Zwinność',     value: 43, max: 100, icon: '⚡', color: '#f39c12' },
-      { name: 'Wola',         value: 81, max: 100, icon: '🧠', color: '#9b59b6' },
-    ]);
-  }
+  // Statystyki (Stat[]) są wyliczane z historii treningów po stronie klienta
+  // (stats.util.ts) na podstawie tego endpointu — patrz Dev-73.
 
   // TODO(Dev-74): podmień na GET `${this.baseUrl}/quests` gdy backend wyzwań będzie gotowy.
   getQuests(): Observable<Quest[]> {
