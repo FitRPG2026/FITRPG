@@ -96,6 +96,21 @@ export class MealPhotoUploadComponent implements OnDestroy {
     return this.selectedFile !== null;
   }
 
+  reset(): void {
+    this.revokePreviewUrl();
+    this.selectedFile = null;
+    this.caption = '';
+    this.result = null;
+    this.statusMessage = null;
+    this.loading = false;
+    this.dragging = false;
+    this.errorMessage = null;
+
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
   async uploadSelectedImage(metadata: MealPhotoUploadMetadata = {}): Promise<LocalMealReviewResult | null> {
     if (this.result) {
       return this.result;

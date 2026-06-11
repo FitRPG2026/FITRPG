@@ -95,22 +95,26 @@ export class MealFormComponent implements OnDestroy {
       }
     }
 
+    const submittedPhotoUrl = this.photoUrl;
+
     const payload: LogMealRequest = {
       title: this.title.trim(),
       meal_type: this.mealType,
       eaten_at: new Date(this.eatenAt).toISOString(),
       notes: this.notes,
-      photo_url: this.photoUrl ?? undefined,
-      health_score: this.photoUrl ? undefined : this.healthScore,
+      photo_url: submittedPhotoUrl ?? undefined,
+      health_score: submittedPhotoUrl ? undefined : this.healthScore,
     };
 
     this.api.logMeal(payload).subscribe({
       next: (response) => {
         this.isSubmitting = false;
-        this.successMessage = response.message ?? 'Posiłek zapisany!';
+        this.successMessage = submittedPhotoUrl
+          ? response.message ?? 'Zdjęcie odebrane. AI analizuje posiłek...'
+          : 'Posiłek zapisany!';
         this.saved.emit(response);
 
-        if (this.photoUrl && response.meal_id) {
+        if (submittedPhotoUrl && response.meal_id) {
           this.startMealStatusPolling(response.meal_id);
           return;
         }
@@ -154,6 +158,7 @@ export class MealFormComponent implements OnDestroy {
             exp_granted: mealStatus.exp_granted,
             rewards: [],
           });
+          this.resetPhotoUpload();
           return;
         }
 
@@ -174,10 +179,15 @@ export class MealFormComponent implements OnDestroy {
     this.eatenAt = this.nowLocalIso();
     this.notes = '';
     this.healthScore = 3;
-    this.photoUrl = null;
-    this.photoCaption = '';
+    this.resetPhotoUpload();
     this.aiMessage = null;
     this.isWaitingForAi = false;
+  }
+
+  private resetPhotoUpload(): void {
+    this.photoUrl = null;
+    this.photoCaption = '';
+    this.photoUpload?.reset();
   }
 
   private nowLocalIso(): string {
