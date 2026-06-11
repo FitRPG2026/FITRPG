@@ -131,7 +131,7 @@
 
       <div class="training-layout">
         <app-workout-form (saved)="onWorkoutSaved($event)"></app-workout-form>
-        <app-meal-form    (saved)="onMealSaved($event)"></app-meal-form>
+        <app-meal-form [userId]="profile?.user_id || '1'" (saved)="onMealSaved($event)"></app-meal-form>
       </div>
 
       <div class="history-section-wrapper" style="margin-top: 48px; border-top: 2px dashed #e6f4ed; padding-top: 32px; width: 100%;">

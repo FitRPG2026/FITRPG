@@ -1,0 +1,92 @@
+name: Automatyczne Testy (CI)
+
+on:
+  pull_request:
+    branches: [ main, testowe ] 
+
+jobs:
+  # ==========================================
+  # 1. TESTY JEDNOSTKOWE BACKENDU (PYTHON)
+  # ==========================================
+  backend-tests:
+    name: Backend Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobranie kodu
+        uses: actions/checkout@v4
+        
+      - name: Instalacja Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Instalacja zależności i testy
+        working-directory: ./backend  # Wchodzi do folderu backendu!
+        run: |
+          pip install -r requirements.txt
+          pip install pytest httpx
+          pytest tests/
+
+  # ==========================================
+  # 2. TESTY E2E FRONTENDU (PLAYWRIGHT)
+  # ==========================================
+  e2e-tests:
+    name: Frontend Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobranie kodu
+        uses: actions/checkout@v4
+        
+      - name: Instalacja Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          
+      - name: Instalacja pakietów
+        working-directory: ./e2e
+        run: npm ci
+        
+      - name: Instalacja przeglądarek Playwright
+        working-directory: ./e2e
+        run: npx playwright install --with-deps
+        
+      - name: Uruchomienie testów
+        working-directory: ./e2e
+        run: npx playwright test
+        
+      - name: Zapisanie raportu (w razie błędu)
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 30
+
+
+# name: Playwright Tests
+# on:
+#   push:
+#     branches: [ main, master ]
+#   pull_request:
+#     branches: [ main, master ]
+# jobs:
+#   test:
+#     timeout-minutes: 60
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
+#     - uses: actions/setup-node@v4
+#       with:
+#         node-version: lts/*
+#     - name: Install dependencies
+#       run: npm ci
+#     - name: Install Playwright Browsers
+#       run: npx playwright install --with-deps
+#     - name: Run Playwright tests
+#       run: npx playwright test
+#     - uses: actions/upload-artifact@v4
+#       if: ${{ !cancelled() }}
+#       with:
+#         name: playwright-report
+#         path: playwright-report/
+#         retention-days: 30

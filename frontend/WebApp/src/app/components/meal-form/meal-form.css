@@ -36,6 +36,23 @@
 }
 .msg-error   { background: #fdecea; color: #c0392b; }
 .msg-success { background: #e8f5ee; color: #1e6b47; }
+.msg-info {
+  background: #eef6ff;
+  color: #1f5f93;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(31, 95, 147, 0.25);
+  border-top-color: #1f5f93;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
 
 .form-grid {
   display: grid;
@@ -84,6 +101,13 @@
   font-size: 11px;
   color: #a0b0a8;
   margin-top: 2px;
+}
+
+.photo-hint {
+  color: #6b7c74;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0 0 10px;
 }
 
 .save-btn {

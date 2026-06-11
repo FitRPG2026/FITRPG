@@ -1,21 +1,14 @@
-import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncConnection
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 # ─────────────────────────────────────────────────────────────
 # AUTH
 # ─────────────────────────────────────────────────────────────
 
-async def get_user_by_email(conn: AsyncConnection, email: str) -> dict | None:
-    """
-    Pobiera pełne dane użytkownika na podstawie jego adresu e-mail.
-    Łączy tabele:
-    - users (dane podstawowe)
-    - user_auth (hash hasła)
-    - user_profiles (nazwa wyświetlana)
-    """
+async def get_user_by_email(conn: AsyncSession, email: str) -> dict | None:
     row = await conn.execute(
         text("""
             SELECT
@@ -36,11 +29,7 @@ async def get_user_by_email(conn: AsyncConnection, email: str) -> dict | None:
     return dict(row) if row else None
 
 
-async def call_mark_login(conn: AsyncConnection, user_id: int, login_at: datetime) -> None:
-    """
-    Bezpośredni UPDATE zamiast proc_mark_login (stara procedura operowała
-    na kolumnach last_login_date / longest_login_streak_days których nie ma w tym schemacie).
-    """
+async def call_mark_login(conn: AsyncSession, user_id: int, login_at: datetime) -> None:
     row = await conn.execute(
         text("""
             SELECT last_login_at, current_login_streak_days
@@ -52,7 +41,6 @@ async def call_mark_login(conn: AsyncConnection, user_id: int, login_at: datetim
     if not auth:
         return
 
-    from datetime import timedelta
     prev = auth["last_login_at"]
     streak = auth["current_login_streak_days"] or 0
     today = login_at.date()
@@ -83,11 +71,11 @@ async def call_mark_login(conn: AsyncConnection, user_id: int, login_at: datetim
 # PROFILE
 # ─────────────────────────────────────────────────────────────
 
-async def get_profile(conn: AsyncConnection, user_id: int) -> dict | None:
+async def get_profile(conn: AsyncSession, user_id: int) -> dict | None:
     row = await conn.execute(
         text("""
             SELECT
-                u.id        AS user_id,
+                u.id                                    AS user_id,
                 u.email,
                 up.username,
                 up.display_name,
@@ -97,9 +85,10 @@ async def get_profile(conn: AsyncConnection, user_id: int) -> dict | None:
                 up.weight_kg,
                 up.goal,
                 up.activity_level,
-                COALESCE(pr.total_exp, 0)           AS total_exp,
-                COALESCE(pr.level, 1)               AS level,
-                COALESCE(pr.current_streak_days, 0) AS current_streak_days
+                COALESCE(pr.total_exp, 0)               AS total_exp,
+                COALESCE(pr.level, 1)                   AS level,
+                COALESCE(pr.current_streak_days, 0)     AS current_streak_days,
+                COALESCE(pr.longest_streak_days, 0)     AS longest_streak_days
             FROM users u
             LEFT JOIN user_profiles up ON up.user_id = u.id
             LEFT JOIN user_progress pr ON pr.user_id = u.id
@@ -112,7 +101,7 @@ async def get_profile(conn: AsyncConnection, user_id: int) -> dict | None:
 
 
 async def upsert_profile(
-    conn: AsyncConnection,
+    conn: AsyncSession,
     user_id: int,
     username: Optional[str],
     display_name: Optional[str],
@@ -130,7 +119,7 @@ async def upsert_profile(
                  height_cm, weight_kg, goal, activity_level)
             VALUES
                 (:user_id, :username, :display_name,
-                 CAST(:birth_date AS date), :gender,
+                 :birth_date, :gender,
                  :height_cm, :weight_kg, :goal, :activity_level)
             ON CONFLICT (user_id) DO UPDATE SET
                 username       = EXCLUDED.username,
@@ -158,11 +147,44 @@ async def upsert_profile(
 
 
 # ─────────────────────────────────────────────────────────────
+# SETTINGS
+# ─────────────────────────────────────────────────────────────
+
+async def get_user_settings(conn: AsyncSession, user_id: int) -> dict:
+    row = await conn.execute(
+        text("""
+            SELECT data_processing_consent, profile_public
+            FROM user_settings
+            WHERE user_id = :user_id
+        """),
+        {"user_id": user_id},
+    )
+    row = row.mappings().one_or_none()
+    return dict(row) if row else {"data_processing_consent": False, "profile_public": False}
+
+
+async def upsert_user_settings(
+    conn: AsyncSession, user_id: int, consent: bool, public: bool
+) -> None:
+    await conn.execute(
+        text("""
+            INSERT INTO user_settings (user_id, data_processing_consent, profile_public)
+            VALUES (:user_id, :consent, :public)
+            ON CONFLICT (user_id) DO UPDATE SET
+                data_processing_consent = EXCLUDED.data_processing_consent,
+                profile_public          = EXCLUDED.profile_public,
+                updated_at              = NOW()
+        """),
+        {"user_id": user_id, "consent": consent, "public": public},
+    )
+
+
+# ─────────────────────────────────────────────────────────────
 # WORKOUTS
 # ─────────────────────────────────────────────────────────────
 
 async def call_log_workout(
-    conn: AsyncConnection,
+    conn: AsyncSession,
     user_id: int,
     workout_type: Optional[str],
     title: Optional[str],
@@ -218,7 +240,7 @@ async def call_log_workout(
 # ─────────────────────────────────────────────────────────────
 
 async def call_log_meal(
-    conn: AsyncConnection,
+    conn: AsyncSession,
     user_id: int,
     meal_type: Optional[str],
     eaten_at: datetime,
@@ -229,24 +251,20 @@ async def call_log_meal(
     ai_confidence: Optional[float],
     exp_amount: int,
 ) -> None:
-    """
-    Wywołuje procedurę bazodanową rejestrującą datę i czas logowania użytkownika.
-    Pamiętaj o wykonaniu db.commit() po wywołaniu tej funkcji.
-    """
     await conn.execute(
         text("""
             CALL proc_log_meal(
-                p_user_id       => :user_id,
-                p_meal_type     => :meal_type,
-                p_eaten_at      => :eaten_at,
-                p_title         => :title,
-                p_photo_url     => :photo_url,
-                p_notes         => :notes,
-                p_health_score  => CAST(:health_score AS smallint),
-                p_ai_confidence => :ai_confidence,
-                p_grant_exp     => true,
-                p_exp_amount    => :exp_amount,
-                p_exp_reason    => 'Meal logged',
+                p_user_id        => :user_id,
+                p_meal_type      => :meal_type,
+                p_eaten_at       => :eaten_at,
+                p_title          => :title,
+                p_photo_url      => :photo_url,
+                p_notes          => :notes,
+                p_health_score   => CAST(:health_score AS smallint),
+                p_ai_confidence  => :ai_confidence,
+                p_grant_exp      => true,
+                p_exp_amount     => :exp_amount,
+                p_exp_reason     => 'Meal logged',
                 p_exp_created_at => :eaten_at
             )
         """),
@@ -268,101 +286,48 @@ async def call_log_meal(
 # PROGRESS
 # ─────────────────────────────────────────────────────────────
 
-async def get_user_progress(conn: AsyncConnection, user_id: int) -> dict | None:
+async def get_user_progress(conn: AsyncSession, user_id: int) -> dict | None:
     row = await conn.execute(
         text("SELECT total_exp, current_streak_days FROM user_progress WHERE user_id = :user_id"),
         {"user_id": user_id},
     )
     row = row.mappings().one_or_none()
     return dict(row) if row else None
-# PROFILE
-# ─────────────────────────────────────────────────────────────
-
-async def get_user_profile(conn: AsyncConnection, user_id: int) -> dict | None:
-    row = await conn.execute(
-        text("""
-            SELECT
-                u.id AS user_id,
-                up.username,
-                up.display_name,
-                up.birth_date,
-                up.sex,
-                up.height_cm,
-                up.weight_kg,
-                up.goal,
-                up.activity_level,
-                COALESCE(upr.total_exp, 0) AS total_exp,
-                COALESCE(upr.current_streak_days, 0) AS current_streak_days,
-                COALESCE(upr.longest_streak_days, 0) AS longest_streak_days
-            FROM users u
-            LEFT JOIN user_profiles up ON up.user_id = u.id
-            LEFT JOIN user_progress upr ON upr.user_id = u.id
-            WHERE u.id = :user_id
-        """),
-        {"user_id": user_id},
-    )
-    row = row.mappings().one_or_none()
-    return dict(row) if row else None
-
-
-# ─────────────────────────────────────────────────────────────
-# SETTINGS
-# ─────────────────────────────────────────────────────────────
-
-async def get_user_settings(conn: AsyncConnection, user_id: int) -> dict:
-    row = await conn.execute(
-        text("""
-            SELECT data_processing_consent, profile_public
-            FROM user_settings
-            WHERE user_id = :user_id
-        """),
-        {"user_id": user_id},
-    )
-    row = row.mappings().one_or_none()
-    if row:
-        return dict(row)
-    return {"data_processing_consent": False, "profile_public": False}
-
-
-async def upsert_user_settings(
-    conn: AsyncConnection, user_id: int, consent: bool, public: bool
-) -> None:
-    await conn.execute(
-        text("""
-            INSERT INTO user_settings (user_id, data_processing_consent, profile_public)
-            VALUES (:user_id, :consent, :public)
-            ON CONFLICT (user_id) DO UPDATE
-            SET data_processing_consent = EXCLUDED.data_processing_consent,
-                profile_public = EXCLUDED.profile_public,
-                updated_at = NOW()
-        """),
-        {"user_id": user_id, "consent": consent, "public": public},
-    )
 
 
 # ─────────────────────────────────────────────────────────────
 # CHALLENGES
 # ─────────────────────────────────────────────────────────────
 
+async def get_last_activity_date(conn: AsyncSession, user_id: int):
+    row = await conn.execute(
+        text("SELECT last_activity_date FROM user_progress WHERE user_id = :uid"),
+        {"uid": user_id},
+    )
+    result = row.mappings().one_or_none()
+    return result["last_activity_date"] if result else None
+
+
 async def get_active_challenges_for_trigger(
-    conn: AsyncConnection, user_id: int, trigger: str
+    conn: AsyncSession, user_id: int, trigger: str
 ) -> list[dict]:
     result = await conn.execute(
         text("""
-            SELECT uc.challenge_id, c.title, c.reward_exp
+            SELECT uc.challenge_id, c.title, c.reward_exp, c.mechanic_type,
+                   c.goal_value, uc.progress_value
             FROM user_challenges uc
             JOIN challenges c ON c.id = uc.challenge_id
             WHERE uc.user_id = :user_id
               AND uc.status = 'active'
               AND c.event_trigger = :trigger
+              AND (c.end_date IS NULL OR c.end_date >= NOW())
         """),
         {"user_id": user_id, "trigger": trigger},
     )
     return [dict(r) for r in result.mappings().all()]
 
-
 async def get_newly_completed_challenges(
-    conn: AsyncConnection, user_id: int, challenge_ids: list[int]
+    conn: AsyncSession, user_id: int, challenge_ids: list[int]
 ) -> list[dict]:
     if not challenge_ids:
         return []

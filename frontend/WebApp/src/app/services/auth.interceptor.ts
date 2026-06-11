@@ -3,6 +3,10 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  if (req.url.includes('api.cloudinary.com')) {
+    return next(req);
+  }
+
   // Wstrzykujemy identyfikator platformy, żeby sprawdzić, gdzie się znajdujemy
   const platformId = inject(PLATFORM_ID);
   

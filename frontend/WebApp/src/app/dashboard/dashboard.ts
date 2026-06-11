@@ -242,10 +242,11 @@ export class DashboardComponent implements OnInit {
   }
 
   onMealSaved(response: LogMealResponse): void {
-    if (response.exp_granted > 0) {
-      this.notificationService.showXpToast(response.exp_granted);
+    const expGranted = response.exp_granted ?? 0;
+    if (expGranted > 0) {
+      this.notificationService.showXpToast(expGranted);
     }
-    for (const reward of response.rewards) {
+    for (const reward of response.rewards ?? []) {
       this.notificationService.showChallengeToast(reward.title, reward.points_earned);
     }
     this.refreshAfterActivity();
