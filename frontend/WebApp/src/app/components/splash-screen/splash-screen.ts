@@ -6,8 +6,8 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-splash-screen',
   standalone: true,
-  templateUrl: './splash-screen.component.html',
-  styleUrl: './splash-screen.component.css'
+  templateUrl: './splash-screen.html',
+  styleUrl: './splash-screen.css'
 })
 export class SplashScreen implements OnInit, OnDestroy {
   private http = inject(HttpClient);
