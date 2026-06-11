@@ -2,8 +2,20 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MockDataService, Stat, Quest, Achievement, WeeklyActivity } from '../mock-service/mock-data.service';
-import { ApiService, UserProfileData, UserSettingsData, LogWorkoutResponse, LogMealResponse } from '../services/api.service';
+import {
+  ApiService,
+  UserProfileData,
+  UserSettingsData,
+  LogWorkoutResponse,
+  LogMealResponse,
+  WorkoutData,
+  Stat,
+  Quest,
+  Achievement,
+  WeeklyActivity,
+} from '../services/api.service';
+import { computeLevelProgress } from '../services/level.util';
+import { buildStats, buildWeeklyActivity } from '../services/stats.util';
 import { NotificationService } from '../services/notification.service';
 import { ToastContainerComponent } from '../components/toast-container/toast-container';
 import { WorkoutFormComponent } from '../components/workout-form/workout-form';
@@ -32,7 +44,9 @@ export class DashboardComponent implements OnInit {
 
   activeTab: Tab = 'dashboard';
 
-  // ─── Mock-backed data (until those endpoints are built) ───
+  // ─── Dane grywalizacji ───
+  // Statystyki i aktywność liczone z historii treningów (/workouts), questy
+  // i osiągnięcia czekają na backend wyzwań (Dev-74) i są na razie puste.
   stats: Stat[] = [];
   quests: Quest[] = [];
   achievements: Achievement[] = [];
@@ -43,9 +57,8 @@ export class DashboardComponent implements OnInit {
   loadingAchievements = true;
   loadingActivity = true;
 
-  savingQuestId: number | null = null;
-  saveSuccessId: number | null = null;
-  saveErrorMessage: string | null = null;
+  // Ostatnio pobrana historia treningów — źródło statystyk i wykresu tygodnia.
+  private lastWorkouts: WorkoutData[] = [];
 
   // ─── Profile (real API) ───
   profile: UserProfileData | null = null;
@@ -87,7 +100,6 @@ export class DashboardComponent implements OnInit {
   ];
 
   constructor(
-    private mockService: MockDataService,
     private api: ApiService,
     private notificationService: NotificationService,
     private router: Router,
@@ -100,33 +112,108 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
+    this.loadProfile();
+    this.loadSettings();
+    this.loadWorkoutsDerived();
+    this.loadQuests();
+    this.loadAchievements();
+  }
+
+  // Przełączenie zakładki dociąga świeże dane, by stany (ukończone questy,
+  // punkty, aktywność) nie wymagały ręcznego odświeżenia ekranu (Dev-86).
+  setTab(tab: Tab) {
+    this.activeTab = tab;
+    switch (tab) {
+      case 'dashboard':
+        this.loadProfile();
+        this.loadWorkoutsDerived();
+        break;
+      case 'quests':
+        this.loadQuests();
+        break;
+      case 'achievements':
+        this.loadAchievements();
+        break;
+      case 'stats':
+        this.loadProfile();
+        this.loadWorkoutsDerived();
+        break;
+    }
+  }
+
+  // ─── Ładowanie danych ───
+  private loadProfile(): void {
     this.api.getProfile().subscribe({
       next: (p) => {
-        this.profile = p;
-        this.editProfile = { ...p };
+        this.profile = this.withLevelProgress(p);
+        this.editProfile = { ...this.profile };
         this.loadingProfile = false;
+        this.recomputeDerived(); // passa wpływa na atrybut "Wola"
       },
-      error: () => {
-        this.loadingProfile = false;
-      },
+      error: () => { this.loadingProfile = false; },
     });
+  }
 
+  private loadSettings(): void {
     this.api.getSettings().subscribe({
       next: (s) => { this.settings = s; this.loadingSettings = false; },
       error: () => { this.loadingSettings = false; },
     });
-
-    this.mockService.getStats().subscribe(s => { this.stats = s; this.loadingStats = false; });
-    this.mockService.getQuests().subscribe(q => { this.quests = q; this.loadingQuests = false; });
-    this.mockService.getAchievements().subscribe(a => { this.achievements = a; this.loadingAchievements = false; });
-    this.mockService.getWeeklyActivity().subscribe(w => { this.weeklyActivity = w; this.loadingActivity = false; });
   }
 
-  setTab(tab: Tab) { this.activeTab = tab; }
+  private loadQuests(): void {
+    this.api.getQuests().subscribe({
+      next: (q) => { this.quests = q; this.loadingQuests = false; },
+      error: () => { this.quests = []; this.loadingQuests = false; },
+    });
+  }
+
+  private loadAchievements(): void {
+    this.api.getAchievements().subscribe({
+      next: (a) => { this.achievements = a; this.loadingAchievements = false; },
+      error: () => { this.achievements = []; this.loadingAchievements = false; },
+    });
+  }
+
+  // Pobiera historię treningów i przelicza z niej statystyki oraz wykres
+  // aktywności tygodniowej — jedno źródło danych dla dashboardu i statystyk
+  // (Dev-73 / Dev-87).
+  private loadWorkoutsDerived(): void {
+    this.loadingActivity = true;
+    this.loadingStats = true;
+    this.api.getWorkouts().subscribe({
+      next: (workouts) => { this.lastWorkouts = workouts; this.recomputeDerived(); this.finishWorkoutLoading(); },
+      error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
+    });
+  }
+
+  private finishWorkoutLoading(): void {
+    this.loadingActivity = false;
+    this.loadingStats = false;
+  }
+
+  private recomputeDerived(): void {
+    this.weeklyActivity = buildWeeklyActivity(this.lastWorkouts);
+    this.stats = buildStats(this.lastWorkouts, this.profile?.current_streak_days ?? 0);
+  }
+
+  // Wzbogaca profil o policzony lokalnie poziom i postęp XP, bo backend
+  // zwraca tylko total_exp. Dzięki temu pasek XP i etykieta poziomu są
+  // spójne między dashboardem a pozostałymi ekranami (Dev-87).
+  private withLevelProgress(profile: UserProfileData): UserProfileData {
+    const { level, xpInLevel, xpToNextLevel } = computeLevelProgress(profile.total_exp);
+    return {
+      ...profile,
+      level,
+      xp_in_level: xpInLevel,
+      xp_to_next_level: xpToNextLevel,
+      longest_streak_days: profile.longest_streak_days ?? 0,
+    };
+  }
 
   // ─── XP helpers ───
   get xpPercent(): number {
-    if (!this.profile) return 0;
+    if (!this.profile || !this.profile.xp_to_next_level) return 0;
     return Math.round((this.profile.xp_in_level / this.profile.xp_to_next_level) * 100);
   }
 
@@ -139,34 +226,9 @@ export class DashboardComponent implements OnInit {
   get lockedAchievements(): Achievement[]   { return this.achievements.filter(a => a.locked); }
 
   // ─── Activity chart helpers ───
-  get maxActivityXp(): number { return Math.max(...this.weeklyActivity.map(w => w.xp), 1); }
+  get maxActivityMinutes(): number { return Math.max(...this.weeklyActivity.map(w => w.minutes), 1); }
   getStatPercent(stat: Stat): number { return Math.round((stat.value / stat.max) * 100); }
-  getActivityBarHeight(day: WeeklyActivity): number { return Math.round((day.xp / this.maxActivityXp) * 100); }
-
-  // ─── Quest completion (still mock) ───
-  completeQuest(quest: Quest) {
-    if (quest.completed || this.savingQuestId !== null) return;
-    this.savingQuestId = quest.id;
-    this.saveErrorMessage = null;
-
-    this.mockService.saveQuestCompletion(quest.id).subscribe({
-      next: (result) => {
-        this.savingQuestId = null;
-        if (result.success) {
-          quest.completed = true;
-          this.saveSuccessId = quest.id;
-          if (this.profile && result.updatedXp) {
-            this.notificationService.showXpToast(result.updatedXp - this.profile.total_exp);
-          }
-          setTimeout(() => { this.saveSuccessId = null; }, 2500);
-        }
-      },
-      error: () => {
-        this.savingQuestId = null;
-        this.saveErrorMessage = 'Błąd zapisu. Spróbuj ponownie.';
-      },
-    });
-  }
+  getActivityBarHeight(day: WeeklyActivity): number { return Math.round((day.minutes / this.maxActivityMinutes) * 100); }
 
   // ─── Activity saved handlers (DEV-38, DEV-40) ───
   onWorkoutSaved(response: LogWorkoutResponse): void {
@@ -176,22 +238,8 @@ export class DashboardComponent implements OnInit {
     for (const reward of response.rewards) {
       this.notificationService.showChallengeToast(reward.title, reward.points_earned);
     }
-    this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
-
-    // Instrukcja dla Twojego komponentu ProgressComponent:
-    if (this.progressComponent) {
-      this.progressComponent.workoutsList.unshift({
-        title: 'Nowy Trening',
-        workout_type: 'Trening',
-        performed_at: new Date().toISOString(),
-        duration_min: 30,
-        health_score: 10,
-        exp_amount: response.exp_granted
-      });
-      this.progressComponent.generateCalendar();
-      this.progressComponent.selectDate(new Date());
-    }
-  } // <-- Upewnij się, że ta klamra zamyka onWorkoutSaved!
+    this.refreshAfterActivity();
+  }
 
   onMealSaved(response: LogMealResponse): void {
     const expGranted = response.exp_granted ?? 0;
@@ -201,7 +249,15 @@ export class DashboardComponent implements OnInit {
     for (const reward of response.rewards ?? []) {
       this.notificationService.showChallengeToast(reward.title, reward.points_earned);
     }
-    this.api.getProfile().subscribe(p => { this.profile = p; this.editProfile = { ...p }; });
+    this.refreshAfterActivity();
+  }
+
+  // Po zalogowaniu aktywności odświeża profil, wykres tygodnia oraz historię
+  // treningów, dzięki czemu dane aktualizują się bez przeładowania (Dev-86/87).
+  private refreshAfterActivity(): void {
+    this.loadProfile();
+    this.loadWorkoutsDerived();
+    this.progressComponent?.loadWorkouts();
   }
 
   // ─── Profile save ───
@@ -222,10 +278,11 @@ export class DashboardComponent implements OnInit {
       activity_level: this.editProfile.activity_level ?? undefined,
     }).subscribe({
       next: (p) => {
-        this.profile = p;
-        this.editProfile = { ...p };
+        this.profile = this.withLevelProgress(p);
+        this.editProfile = { ...this.profile };
         this.savingProfile = false;
         this.profileSaveSuccess = true;
+        this.recomputeDerived();
         setTimeout(() => { this.profileSaveSuccess = false; }, 2500);
       },
       error: (err) => {
@@ -250,16 +307,6 @@ export class DashboardComponent implements OnInit {
       },
       error: () => { this.savingSettings = false; },
     });
-  }
-
-  getCategoryColor(category: string): string {
-    const map: Record<string, string> = {
-      'Cardio':       '#e74c3c',
-      'Siła':         '#e67e22',
-      'Core':         '#f1c40f',
-      'Elastyczność': '#2a8f5e',
-    };
-    return map[category] || '#95a5a6';
   }
 
   logout() {

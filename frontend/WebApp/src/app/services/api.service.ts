@@ -1,8 +1,41 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
+
+// ─── Domena grywalizacji (statystyki, questy, osiągnięcia) ───
+export interface Stat {
+  name: string;
+  value: number;
+  max: number;
+  icon: string;
+  color: string;
+}
+
+export interface Quest {
+  id: number;
+  title: string;
+  description: string;
+  xp: number;
+  completed: boolean;
+}
+
+export interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt: string | null;
+  locked: boolean;
+}
+
+export interface WeeklyActivity {
+  day: string;
+  workouts: number;
+  minutes: number;
+}
 
 export interface ExerciseRow {
   exercise_name: string;
@@ -152,5 +185,25 @@ export class ApiService {
   }
   getWorkouts(): Observable<WorkoutData[]> {
     return this.http.get<WorkoutData[]>(`${this.baseUrl}/workouts`, { headers: this.headers() });
+  }
+
+  // ─── Grywalizacja ───────────────────────────────────────────────────────────
+  // Statystyki (Stat[]) są wyliczane z historii treningów po stronie klienta
+  // (stats.util.ts) na podstawie endpointu /workouts — patrz Dev-73.
+
+  // Questy i osiągnięcia są już podpięte pod docelowe endpointy backendu
+  // wyzwań (Dev-74). Dopóki backend ich nie wystawi, odpowiedź błędna
+  // (404/500) jest mapowana na pustą listę i UI pokazuje stany puste —
+  // po starcie backendu dane pojawią się bez zmian we froncie.
+  getQuests(): Observable<Quest[]> {
+    return this.http
+      .get<Quest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
+      .pipe(catchError(() => of<Quest[]>([])));
+  }
+
+  getAchievements(): Observable<Achievement[]> {
+    return this.http
+      .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
+      .pipe(catchError(() => of<Achievement[]>([])));
   }
 }

@@ -457,6 +457,18 @@
   font-size: 14px;
 }
 
+.empty-hint {
+  text-align: center;
+  padding: 28px 24px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--card-bg, #fff);
+  border: 1px dashed var(--border, #e6f4ed);
+  border-radius: 12px;
+}
+
 /* ─── Complete button ─── */
 .complete-btn {
   background: var(--green);

@@ -22,7 +22,7 @@
         <span class="nav-label">Questy</span>
         <span class="nav-badge" *ngIf="pendingQuests.length > 0">{{ pendingQuests.length }}</span>
       </button>
-      <button class="nav-item" [class.active]="activeTab === 'achievements'" (class.active)="activeTab === 'achievements'" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
+      <button class="nav-item" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
         <span class="nav-icon">🏆</span>
         <span class="nav-label">Osiągnięcia</span>
       </button>
@@ -95,10 +95,10 @@
           <div *ngIf="!loadingActivity" class="activity-chart">
             <div class="bar-group" *ngFor="let day of weeklyActivity">
               <div class="bar-track">
-                <div class="bar-fill" [style.height.%]="getActivityBarHeight(day)" [class.bar-empty]="day.xp === 0"></div>
+                <div class="bar-fill" [style.height.%]="getActivityBarHeight(day)" [class.bar-empty]="day.minutes === 0"></div>
               </div>
-              <div class="bar-xp" *ngIf="day.xp > 0">{{ day.xp }}</div>
-              <div class="bar-xp bar-xp-empty" *ngIf="day.xp === 0">—</div>
+              <div class="bar-xp" *ngIf="day.minutes > 0">{{ day.minutes }} min</div>
+              <div class="bar-xp bar-xp-empty" *ngIf="day.minutes === 0">—</div>
               <div class="bar-day">{{ day.day }}</div>
             </div>
           </div>
@@ -147,10 +147,8 @@
     <div class="tab-content" *ngIf="activeTab === 'quests'">
       <div class="page-header">
         <h1>📜 Questy</h1>
-        <p class="page-subtitle">Wykonuj zadania, zdobywaj XP i rozwijaj swojego bohatera.</p>
+        <p class="page-subtitle">Każdy trening i posiłek przybliża Cię do nowych wyzwań — działaj konsekwentnie, a questy zaczną się odblokowywać.</p>
       </div>
-
-      <div class="error-toast" *ngIf="saveErrorMessage">⚠️ {{ saveErrorMessage }}</div>
 
       <div *ngIf="loadingQuests" class="loading-state">
         <div class="spinner"></div>
@@ -159,10 +157,10 @@
 
       <div *ngIf="!loadingQuests">
         <div class="section-label">Do wykonania ({{ pendingQuests.length }})</div>
-        <div class="quests-table-wrap">
+        <div class="quests-table-wrap" *ngIf="pendingQuests.length > 0">
           <table class="quests-table">
             <thead>
-              <tr><th>Quest</th><th>Kategoria</th><th>Termin</th><th>XP</th><th>Akcja</th></tr>
+              <tr><th>Quest</th><th>XP</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let quest of pendingQuests" class="quest-row">
@@ -170,45 +168,32 @@
                   <div class="quest-title">{{ quest.title }}</div>
                   <div class="quest-desc">{{ quest.description }}</div>
                 </td>
-                <td>
-                  <span class="category-badge" [style.background]="getCategoryColor(quest.category)">{{ quest.category }}</span>
-                </td>
-                <td class="quest-due">{{ quest.dueDate }}</td>
                 <td class="quest-xp">+{{ quest.xp }} XP</td>
-                <td>
-                  <button class="complete-btn"
-                          [class.loading]="savingQuestId === quest.id"
-                          [class.success]="saveSuccessId === quest.id"
-                          [disabled]="savingQuestId !== null"
-                          (click)="completeQuest(quest)">
-                    <span *ngIf="savingQuestId === quest.id" class="btn-spinner"></span>
-                    <span *ngIf="savingQuestId !== quest.id && saveSuccessId !== quest.id">Zapisz ✓</span>
-                    <span *ngIf="saveSuccessId === quest.id">Ukończono! 🎉</span>
-                  </button>
-                </td>
-              </tr>
-              <tr *ngIf="pendingQuests.length === 0">
-                <td colspan="5" class="empty-row">🎉 Wszystkie questy ukończone na dziś!</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <div class="empty-hint" *ngIf="pendingQuests.length === 0">
+          🛠️ Wyzwania są w przygotowaniu — wkrótce pojawią się tu nowe questy. Trenuj dalej i zdobywaj XP!
+        </div>
 
         <div class="section-label completed-label">Ukończone ({{ completedQuests.length }})</div>
-        <div class="quests-table-wrap">
+        <div class="quests-table-wrap" *ngIf="completedQuests.length > 0">
           <table class="quests-table completed-table">
             <thead>
-              <tr><th>Quest</th><th>Kategoria</th><th>XP</th><th>Status</th></tr>
+              <tr><th>Quest</th><th>XP</th><th>Status</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let quest of completedQuests" class="quest-row quest-done">
                 <td><div class="quest-title">{{ quest.title }}</div></td>
-                <td><span class="category-badge" [style.background]="getCategoryColor(quest.category)">{{ quest.category }}</span></td>
                 <td class="quest-xp">+{{ quest.xp }} XP</td>
                 <td><span class="done-badge">✅ Ukończono</span></td>
               </tr>
             </tbody>
           </table>
+        </div>
+        <div class="empty-hint" *ngIf="completedQuests.length === 0">
+          Nie ukończono jeszcze żadnego questa. Twoja przygoda dopiero się rozkręca! 💪
         </div>
       </div>
     </div>
@@ -225,8 +210,8 @@
       </div>
 
       <div *ngIf="!loadingAchievements">
-        <div class="section-label">Odblokowane</div>
-        <div class="achievements-grid">
+        <div class="section-label">Już odblokowane</div>
+        <div class="achievements-grid" *ngIf="unlockedAchievements.length > 0">
           <div class="achievement-card unlocked" *ngFor="let ach of unlockedAchievements">
             <div class="ach-icon">{{ ach.icon }}</div>
             <div class="ach-title">{{ ach.title }}</div>
@@ -234,14 +219,20 @@
             <div class="ach-date">{{ ach.unlockedAt }}</div>
           </div>
         </div>
+        <div class="empty-hint" *ngIf="unlockedAchievements.length === 0">
+          Nie masz jeszcze odblokowanych osiągnięć — Twoja przygoda dopiero się zaczyna. 💪
+        </div>
 
-        <div class="section-label locked-label">Zablokowane</div>
-        <div class="achievements-grid">
+        <div class="section-label locked-label">Dostępne</div>
+        <div class="achievements-grid" *ngIf="lockedAchievements.length > 0">
           <div class="achievement-card locked" *ngFor="let ach of lockedAchievements">
             <div class="ach-icon locked-icon">🔒</div>
             <div class="ach-title locked-text">{{ ach.title }}</div>
             <div class="ach-desc locked-text">{{ ach.description }}</div>
           </div>
+        </div>
+        <div class="empty-hint" *ngIf="lockedAchievements.length === 0">
+          🏆 Wyzwania są w przygotowaniu. Wkrótce pojawią się tu nowe osiągnięcia do zdobycia!
         </div>
       </div>
     </div>

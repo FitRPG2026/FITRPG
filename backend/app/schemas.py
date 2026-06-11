@@ -245,6 +245,62 @@ class MealStatusResponse(BaseModel):
 
 
 # ─────────────────────────────────────────────
+# QUESTS & CHALLENGES
+# ─────────────────────────────────────────────
+
+from typing import Any
+
+class QuestResponse(BaseModel):
+    id: int
+    code: str
+    title: str
+    description: Optional[str] = None
+    quest_type: str
+    progression_mode: str
+    quest_series_code: Optional[str] = None
+    sequence_order: Optional[int] = None
+    target_value: float
+    reward_exp: int
+    mechanic_type: str
+    event_trigger: str
+    conditions: Any = {}
+
+
+class ChallengeResponse(BaseModel):
+    id: int
+    code: str
+    title: str
+    description: Optional[str] = None
+    quest_type: str          # challenges table uses the same column name
+    goal_value: float
+    reward_exp: int
+    mechanic_type: str
+    event_trigger: str
+    end_date: Optional[datetime] = None
+
+
+class UserQuestResponse(BaseModel):
+    quest: QuestResponse
+    status: str              # active | completed | failed
+    progress_value: float
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+
+class UserChallengeResponse(BaseModel):
+    challenge: ChallengeResponse
+    status: str
+    progress_value: float
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+
+class GameContentResponse(BaseModel):
+    quests: List[UserQuestResponse]
+    challenges: List[UserChallengeResponse]
+    
+
+# ─────────────────────────────────────────────
 # ERROR
 # ─────────────────────────────────────────────
 
