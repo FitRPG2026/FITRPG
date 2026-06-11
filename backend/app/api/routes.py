@@ -23,7 +23,10 @@ from ..schemas import (
     WorkoutResponse, 
     MealRequest, 
     MealResponse, 
-    ChallengeRewardItem
+    ChallengeRewardItem,
+    QuestResponse, ChallengeResponse,
+    UserQuestResponse, UserChallengeResponse,
+    GameContentResponse,
 )
 from fastapi import BackgroundTasks
 from ..core.ml_service import process_meal_with_ai
@@ -511,6 +514,135 @@ async def update_settings(body: UpdateSettingsRequest, current_user: dict = Depe
     return UserSettingsResponse(data_processing_consent=body.data_processing_consent, profile_public=body.profile_public)
 
 
+
+
+# ─── Quests & Challenges ───────────────────────────────────────────────────────
+
+@router.get(
+    "/quests",
+    response_model=list[UserQuestResponse],
+    tags=["Progress"],
+    summary="Pobierz questy użytkownika",
+)
+async def get_quests(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = await queries.get_user_quests(db, current_user["user_id"])
+    return [
+        UserQuestResponse(
+            quest=QuestResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                progression_mode=r["progression_mode"],
+                quest_series_code=r.get("quest_series_code"),
+                sequence_order=r.get("sequence_order"),
+                target_value=float(r["target_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                conditions=r["conditions"],
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/challenges",
+    response_model=list[UserChallengeResponse],
+    tags=["Progress"],
+    summary="Pobierz wyzwania użytkownika",
+)
+async def get_challenges(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = await queries.get_user_challenges(db, current_user["user_id"])
+    return [
+        UserChallengeResponse(
+            challenge=ChallengeResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                goal_value=float(r["goal_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                end_date=r.get("end_date"),
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/game-content",
+    response_model=GameContentResponse,
+    tags=["Progress"],
+    summary="Pobierz questy i wyzwania naraz",
+)
+async def get_game_content(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Single endpoint returning both quests and challenges — useful for mobile app startup."""
+    quest_rows = await queries.get_user_quests(db, current_user["user_id"])
+    challenge_rows = await queries.get_user_challenges(db, current_user["user_id"])
+
+    quests = [
+        UserQuestResponse(
+            quest=QuestResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                progression_mode=r["progression_mode"],
+                quest_series_code=r.get("quest_series_code"),
+                sequence_order=r.get("sequence_order"),
+                target_value=float(r["target_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                conditions=r["conditions"],
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in quest_rows
+    ]
+
+    challenges = [
+        UserChallengeResponse(
+            challenge=ChallengeResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                goal_value=float(r["goal_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                end_date=r.get("end_date"),
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in challenge_rows
+    ]
+
+    return GameContentResponse(quests=quests, challenges=challenges)
 
 
 

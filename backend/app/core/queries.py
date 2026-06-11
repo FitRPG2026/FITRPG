@@ -379,3 +379,47 @@ async def get_newly_completed_challenges(
     )
     return [dict(r) for r in result.mappings().all()]
 
+
+
+# ─────────────────────────────────────────────────────────────
+# QUESTS
+# ─────────────────────────────────────────────────────────────
+
+async def get_user_quests(conn: AsyncSession, user_id: int) -> list[dict]:
+    result = await conn.execute(
+        text("""
+            SELECT
+                q.id, q.code, q.title, q.description,
+                q.quest_type, q.progression_mode,
+                q.quest_series_code, q.sequence_order,
+                q.target_value, q.reward_exp,
+                q.mechanic_type, q.event_trigger, q.conditions,
+                uq.status, uq.progress_value,
+                uq.started_at, uq.completed_at
+            FROM user_quests uq
+            JOIN quests q ON q.id = uq.quest_id
+            WHERE uq.user_id = :user_id
+            ORDER BY uq.status, q.sequence_order NULLS LAST, q.id
+        """),
+        {"user_id": user_id},
+    )
+    return [dict(r) for r in result.mappings().all()]
+
+
+async def get_user_challenges(conn: AsyncSession, user_id: int) -> list[dict]:
+    result = await conn.execute(
+        text("""
+            SELECT
+                c.id, c.code, c.title, c.description,
+                c.quest_type, c.goal_value, c.reward_exp,
+                c.mechanic_type, c.event_trigger, c.end_date,
+                uc.status, uc.progress_value,
+                uc.started_at, uc.completed_at
+            FROM user_challenges uc
+            JOIN challenges c ON c.id = uc.challenge_id
+            WHERE uc.user_id = :user_id
+            ORDER BY uc.status, c.id
+        """),
+        {"user_id": user_id},
+    )
+    return [dict(r) for r in result.mappings().all()]
