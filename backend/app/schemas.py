@@ -59,6 +59,34 @@ class MeResponse(BaseModel):
 # PROFILE
 # ─────────────────────────────────────────────
 
+class UpdateProfileRequest(BaseModel):
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    birth_date: Optional[str] = None        # "YYYY-MM-DD"
+    sex: Optional[str] = None               
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    goal: Optional[str] = None
+    activity_level: Optional[str] = None
+
+class UserProfileResponse(BaseModel):
+    user_id: int
+    username: Optional[str] = None
+    display_name: Optional[str] = None
+    birth_date: Optional[str] = None
+    sex: Optional[str] = None
+    height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    goal: Optional[str] = None
+    activity_level: Optional[str] = None
+
+    total_exp: int = 0
+    level: int = 1
+    xp_in_level: int = 0
+    xp_to_next_level: int = 0
+    current_streak_days: int = 0
+    longest_streak_days: int = 0
+
 class UpsertProfileRequest(BaseModel):
     username: Optional[str] = None
     display_name: Optional[str] = None
@@ -194,6 +222,22 @@ class WorkoutLoggedResponse(BaseModel):
     total_exp: int
     rewards: List[ChallengeRewardItem] = []
 
+
+class WorkoutRequest(BaseModel):
+    workout_type: Optional[str] = None
+    title: Optional[str] = None
+    performed_at: Optional[datetime] = None
+    duration_min: Optional[int] = None
+    notes: Optional[str] = None
+    exercises: Optional[List["ExerciseInput"]] = []
+    activity_category: Optional[str] = None
+
+
+class WorkoutResponse(BaseModel):
+    workout_id: int
+    exp_granted: int
+    rewards: List["ChallengeRewardItem"] = []
+    
 # ─────────────────────────────────────────────
 # MEALS
 # ─────────────────────────────────────────────
@@ -228,6 +272,25 @@ class LogMealRequest(BaseModel):
             raise ValueError("ai_confidence musi być w zakresie 0–1")
         return v
 
+
+class MealRequest(BaseModel):
+    meal_type: Optional[str] = None
+    eaten_at: Optional[datetime] = None
+    title: Optional[str] = None
+    notes: Optional[str] = None
+    health_score: Optional[int] = None
+
+class MealResponse(BaseModel):
+    meal_id: int
+    exp_granted: int
+    rewards: List["ChallengeRewardItem"] = []
+
+class MealStatusResponse(BaseModel):
+    meal_id: int
+    status: str
+    health_score: Optional[int] = None
+    photo_url: Optional[str] = None
+    exp_granted: int = 0
 
 class MealLoggedResponse(BaseModel):
     meal_id: int
