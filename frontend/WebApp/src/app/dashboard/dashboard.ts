@@ -158,7 +158,25 @@ export class DashboardComponent implements OnInit {
   //     error: () => { this.loadingProfile = false; },
   //   });
   // }
-  private loadProfile(): void {
+//   private loadProfile(): void {
+//   this.api.getProfile()
+//     .pipe(
+//       timeout(15000),
+//       catchError(() => of(null)),
+//     )
+//     .subscribe({
+//       next: (p) => {
+//         if (p) {
+//           this.profile = this.withLevelProgress(p);
+//           this.editProfile = { ...this.profile };
+//           this.recomputeDerived();
+//         }
+//         this.loadingProfile = false;
+//       },
+//       error: () => { this.loadingProfile = false; },
+//     });
+// }
+private loadProfile(): void {
   this.api.getProfile()
     .pipe(
       timeout(15000),
@@ -167,11 +185,16 @@ export class DashboardComponent implements OnInit {
     .subscribe({
       next: (p) => {
         if (p) {
-          this.profile = this.withLevelProgress(p);
-          this.editProfile = { ...this.profile };
-          this.recomputeDerived();
+          try {
+            this.profile = this.withLevelProgress(p);
+            this.editProfile = { ...this.profile };
+            this.recomputeDerived();
+          } catch (e) {
+            console.error("Błąd podczas przeliczania danych profilu:", e);
+          }
         }
-        this.loadingProfile = false;
+        // Gwarancja zamknięcia loadera
+        this.loadingProfile = false; 
       },
       error: () => { this.loadingProfile = false; },
     });
