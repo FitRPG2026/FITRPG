@@ -200,7 +200,7 @@ private loadProfile(): void {
     });
 }
 
-  private loadSettings(): void {
+private loadSettings(): void {
     this.api.getSettings().subscribe({
       next: (s) => { this.settings = s; this.loadingSettings = false; },
       error: () => { this.loadingSettings = false; },
@@ -232,25 +232,28 @@ private loadProfile(): void {
   //     error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
   //   });
   // }
- private loadWorkoutsDerived(): void {
-    console.log("[DEBUG] 1. Start pobierania treningów z API...");
-    this.loadingActivity = true;
-    this.loadingStats = true;
-    
-    // Usunięto timeout i catchError, by zobaczyć czystą reakcję RxJS
-    this.api.getWorkouts().subscribe({
-      next: (workouts) => { 
-        console.log("[DEBUG] 2. Treningi pobrane z sukcesem:", workouts);
-        this.lastWorkouts = workouts || []; 
-        this.recomputeDerived(); 
-      },
-      error: (err) => { 
-        console.error("[DEBUG] 2. Błąd API przy pobieraniu treningów:", err);
-        this.lastWorkouts = []; 
-        this.recomputeDerived(); 
-      }
-    });
-  }
+private isReloading = false; // Dodaj tę zmienną na początku klasy
+
+private loadWorkoutsDerived(): void {
+  if (this.isReloading) return; // Zabezpieczenie przed pętlą
+  this.isReloading = true;
+  
+  this.loadingActivity = true;
+  this.loadingStats = true;
+  
+  this.api.getWorkouts().subscribe({
+    next: (workouts) => {
+      this.lastWorkouts = workouts;
+      this.recomputeDerived();
+      this.isReloading = false; // Odblokuj po zakończeniu
+    },
+    error: () => {
+      this.lastWorkouts = [];
+      this.recomputeDerived();
+      this.isReloading = false;
+    }
+  });
+}
 
   private recomputeDerived(): void {
     console.log("[DEBUG] 3. Rozpoczynam przeliczanie statystyk (recomputeDerived)...");
