@@ -125,13 +125,13 @@ export class DashboardComponent implements OnInit {
       next: (p) => {
         this.profile = this.withLevelProgress(p);
         this.loadingProfile = false;
-        
         // Dopiero gdy mamy profil, ładujemy resztę zależną od profilu
         this.loadSettings();
+        this.loadWeeklyActivity();
         this.loadWorkoutsDerived();
         this.loadQuests();
         this.loadChallenges();
-        this.loadWeeklyActivity();
+
       },
       error: () => { 
         this.loadingProfile = false; 
@@ -191,14 +191,18 @@ private loadProfile(): void {
 }
   
 private loadWeeklyActivity(): void {
-    this.api.getWeeklyActivity().subscribe({
-      next: (data) => {
-        this.weeklyChartData = data;
-        const max = Math.max(...data.map(d => d.workouts_count + d.meals_count));
-        this.maxActivityCount = max > 0 ? max : 1;
-      },
-      error: () => { this.weeklyChartData = []; }
-    });
+    this.loadingActivity = true; // Włączamy loader wykresu
+    
+    this.api.getWeeklyActivity()
+      .pipe(finalize(() => this.loadingActivity = false)) // Wyłączamy natychmiast po pobraniu!
+      .subscribe({
+        next: (data) => {
+          this.weeklyChartData = data;
+          const max = Math.max(...data.map(d => d.workouts_count + d.meals_count));
+          this.maxActivityCount = max > 0 ? max : 1;
+        },
+        error: () => { this.weeklyChartData = []; }
+      });
   }
 
   getDayLabel(dateStr: string): string {
@@ -233,7 +237,7 @@ private loadSettings(): void {
   // (Dev-73 / Dev-87).
 // 1. Zabezpieczona metoda ładująca treningi i statystyki
   private loadWorkoutsDerived(): void {
-    this.loadingActivity = true;
+    //this.loadingActivity = true;
     this.loadingStats = true;
     
     this.api.getWorkouts()
@@ -246,7 +250,7 @@ private loadSettings(): void {
         finalize(() => {
           // GWARANCJA 1: Wykonuje się zawsze po zakończeniu Observable
           this.loadingStats = false;
-          this.loadingActivity = false;
+          //this.loadingActivity = false;
         })
       )
       .subscribe({
@@ -261,7 +265,7 @@ private loadSettings(): void {
     // wyłączenie kółka ładowania równo po 1.5 sekundy.
     setTimeout(() => {
       this.loadingStats = false;
-      this.loadingActivity = false;
+      //this.loadingActivity = false;
       this.loadingProfile = false; // Profil gasimy przy okazji
     }, 1500);
   }
@@ -275,12 +279,12 @@ private loadSettings(): void {
       const safeWorkouts = this.lastWorkouts || [];
       
       this.stats = buildStats(safeWorkouts, streak);
-      this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
+      //this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
     } catch (e) {
       console.error("Błąd w recomputeDerived:", e);
     } finally {
       this.loadingStats = false;
-      this.loadingActivity = false;
+      //this.loadingActivity = false;
       this.isRefreshing = false; // Reset flagi pętli
       console.log("[DEBUG] Loadery wyłączone na sztywno.");
     }
@@ -296,10 +300,10 @@ private loadSettings(): void {
     // Używamy setTimeout, żeby odświeżanie nastąpiło po zakończeniu obecnego cyklu Angulara
     setTimeout(() => {
       this.loadProfile();
+      this.loadWeeklyActivity();
       this.loadWorkoutsDerived();
       this.loadQuests();
       this.loadChallenges();
-      this.loadWeeklyActivity();
       this.progressComponent?.loadWorkouts();
       this.isRefreshing = false;
     }, 500);
