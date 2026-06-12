@@ -349,30 +349,33 @@ async def get_newly_completed_challenges(
 # ─────────────────────────────────────────────────────────────
 # QUESTS
 # ─────────────────────────────────────────────────────────────
+
+
 async def get_user_quests(conn: AsyncSession, user_id: int) -> list[dict]:
     result = await conn.execute(
         text("""
             SELECT
                 q.id, 
-                'quest_' || CAST(q.id AS text) AS code, -- ZMIANA: sztucznie generowany kod
-                COALESCE(q.title, 'Brak tytułu') AS title, 
+                'quest_' || CAST(q.id AS text) AS code, -- Sztuczny kod dla Pydantica
+                q.title, 
                 q.description,
-                COALESCE(q.quest_type, 'main') AS quest_type, 
-                COALESCE(q.progression_mode, 'auto') AS progression_mode,
-                q.quest_series_code, 
-                q.sequence_order,
-                COALESCE(q.target_value, 1.0) AS target_value, 
-                COALESCE(q.reward_exp, 0) AS reward_exp,
-                COALESCE(q.mechanic_type, 'unknown') AS mechanic_type, 
-                COALESCE(q.event_trigger, 'unknown') AS event_trigger, 
+                q.challenge_type AS quest_type,         -- Mapowanie challenge_type -> quest_type
+                'auto' AS progression_mode,             -- Sztuczne pole
+                NULL AS quest_series_code,              -- Sztuczne pole
+                NULL AS sequence_order,                 -- Sztuczne pole
+                q.goal_value AS target_value,           -- Mapowanie goal_value -> target_value
+                q.reward_exp,
+                q.mechanic_type, 
+                q.event_trigger, 
                 q.conditions,
                 COALESCE(uq.status, 'active') AS status, 
                 COALESCE(uq.progress_value, 0.0) AS progress_value,
-                uq.started_at, uq.completed_at
+                uq.started_at, 
+                uq.completed_at
             FROM user_quests uq
             JOIN quests q ON q.id = uq.quest_id
             WHERE uq.user_id = :user_id
-            ORDER BY uq.status, q.sequence_order NULLS LAST, q.id
+            ORDER BY uq.status, q.id
         """),
         {"user_id": user_id},
     )
@@ -384,18 +387,19 @@ async def get_user_challenges(conn: AsyncSession, user_id: int) -> list[dict]:
         text("""
             SELECT
                 c.id, 
-                'challenge_' || CAST(c.id AS text) AS code, -- ZMIANA: sztucznie generowany kod
-                COALESCE(c.title, 'Brak tytułu') AS title, 
+                'challenge_' || CAST(c.id AS text) AS code, -- Sztuczny kod dla Pydantica
+                c.title, 
                 c.description,
-                COALESCE(c.quest_type, 'challenge') AS quest_type, 
-                COALESCE(c.goal_value, 1.0) AS goal_value, 
-                COALESCE(c.reward_exp, 0) AS reward_exp,
-                COALESCE(c.mechanic_type, 'unknown') AS mechanic_type, 
-                COALESCE(c.event_trigger, 'unknown') AS event_trigger, 
+                c.challenge_type AS quest_type,             -- Mapowanie challenge_type -> quest_type
+                c.goal_value, 
+                c.reward_exp,
+                c.mechanic_type, 
+                c.event_trigger, 
                 c.end_date,
                 COALESCE(uc.status, 'active') AS status, 
                 COALESCE(uc.progress_value, 0.0) AS progress_value,
-                uc.started_at, uc.completed_at
+                uc.started_at, 
+                uc.completed_at
             FROM user_challenges uc
             JOIN challenges c ON c.id = uc.challenge_id
             WHERE uc.user_id = :user_id
@@ -404,6 +408,64 @@ async def get_user_challenges(conn: AsyncSession, user_id: int) -> list[dict]:
         {"user_id": user_id},
     )
     return [dict(r) for r in result.mappings().all()]
+
+
+    
+# async def get_user_quests(conn: AsyncSession, user_id: int) -> list[dict]:
+#     result = await conn.execute(
+#         text("""
+#             SELECT
+#                 q.id, 
+#                 'quest_' || CAST(q.id AS text) AS code, -- ZMIANA: sztucznie generowany kod
+#                 COALESCE(q.title, 'Brak tytułu') AS title, 
+#                 q.description,
+#                 COALESCE(q.quest_type, 'main') AS quest_type, 
+#                 COALESCE(q.progression_mode, 'auto') AS progression_mode,
+#                 q.quest_series_code, 
+#                 q.sequence_order,
+#                 COALESCE(q.target_value, 1.0) AS target_value, 
+#                 COALESCE(q.reward_exp, 0) AS reward_exp,
+#                 COALESCE(q.mechanic_type, 'unknown') AS mechanic_type, 
+#                 COALESCE(q.event_trigger, 'unknown') AS event_trigger, 
+#                 q.conditions,
+#                 COALESCE(uq.status, 'active') AS status, 
+#                 COALESCE(uq.progress_value, 0.0) AS progress_value,
+#                 uq.started_at, uq.completed_at
+#             FROM user_quests uq
+#             JOIN quests q ON q.id = uq.quest_id
+#             WHERE uq.user_id = :user_id
+#             ORDER BY uq.status, q.sequence_order NULLS LAST, q.id
+#         """),
+#         {"user_id": user_id},
+#     )
+#     return [dict(r) for r in result.mappings().all()]
+
+
+# async def get_user_challenges(conn: AsyncSession, user_id: int) -> list[dict]:
+#     result = await conn.execute(
+#         text("""
+#             SELECT
+#                 c.id, 
+#                 'challenge_' || CAST(c.id AS text) AS code, -- ZMIANA: sztucznie generowany kod
+#                 COALESCE(c.title, 'Brak tytułu') AS title, 
+#                 c.description,
+#                 COALESCE(c.quest_type, 'challenge') AS quest_type, 
+#                 COALESCE(c.goal_value, 1.0) AS goal_value, 
+#                 COALESCE(c.reward_exp, 0) AS reward_exp,
+#                 COALESCE(c.mechanic_type, 'unknown') AS mechanic_type, 
+#                 COALESCE(c.event_trigger, 'unknown') AS event_trigger, 
+#                 c.end_date,
+#                 COALESCE(uc.status, 'active') AS status, 
+#                 COALESCE(uc.progress_value, 0.0) AS progress_value,
+#                 uc.started_at, uc.completed_at
+#             FROM user_challenges uc
+#             JOIN challenges c ON c.id = uc.challenge_id
+#             WHERE uc.user_id = :user_id
+#             ORDER BY uc.status, c.id
+#         """),
+#         {"user_id": user_id},
+#     )
+#     return [dict(r) for r in result.mappings().all()]
 
 
 # async def get_user_quests(conn: AsyncSession, user_id: int) -> list[dict]:
