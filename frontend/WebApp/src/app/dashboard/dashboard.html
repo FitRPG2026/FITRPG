@@ -97,7 +97,7 @@
         </div>
       </div>
 
-      <div class="bottom-row">
+      <!-- <div class="bottom-row">
         <div class="panel activity-panel">
           <div class="panel-header"><h2>Aktywność tygodniowa</h2></div>
           <div *ngIf="loadingActivity" class="panel-skeleton"></div>
@@ -109,6 +109,37 @@
               <div class="bar-xp" *ngIf="day.minutes > 0">{{ day.minutes }} min</div>
               <div class="bar-xp bar-xp-empty" *ngIf="day.minutes === 0">—</div>
               <div class="bar-day">{{ day.day }}</div>
+            </div>
+          </div>
+        </div> -->
+      <div class="panel activity-panel">
+          <div class="panel-header"><h2>Aktywność tygodniowa</h2></div>
+          <div *ngIf="loadingActivity" class="panel-skeleton"></div>
+          
+          <div *ngIf="!loadingActivity" class="activity-chart">
+            <div class="bar-group" *ngFor="let day of weeklyChartData">
+              <div class="bar-track" style="display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;">
+                <div class="bar-fill" 
+                     *ngIf="day.meals_count > 0"
+                     [style.height.%]="(day.meals_count / maxActivityCount) * 100" 
+                     style="background-color: #2ecc71; width: 100%; border-radius: 4px 4px 0 0;">
+                </div>
+                <div class="bar-fill" 
+                     *ngIf="day.workouts_count > 0"
+                     [style.height.%]="(day.workouts_count / maxActivityCount) * 100" 
+                     style="background-color: #3498db; width: 100%; border-radius: 0 0 4px 4px;">
+                </div>
+              </div>
+              <div class="bar-day">{{ getDayLabel(day.date) }}</div>
+            </div>
+          </div>
+
+          <div *ngIf="!loadingActivity" class="chart-legend" style="display: flex; gap: 16px; justify-content: center; margin-top: 15px; font-size: 13px; font-weight: 500; color: #7f8c8d;">
+            <div style="display: flex; align-items: center;">
+              <span style="display: inline-block; width: 12px; height: 12px; background: #3498db; margin-right: 6px; border-radius: 3px;"></span> Treningi
+            </div>
+            <div style="display: flex; align-items: center;">
+              <span style="display: inline-block; width: 12px; height: 12px; background: #2ecc71; margin-right: 6px; border-radius: 3px;"></span> Posiłki
             </div>
           </div>
         </div>
