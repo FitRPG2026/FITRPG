@@ -147,8 +147,8 @@ export class DashboardComponent implements OnInit {
     switch (tab) {
       case 'dashboard':
         this.loadProfile();
-        this.loadWorkoutsDerived();
         this.loadWeeklyActivity();
+        this.loadWorkoutsDerived();
         break;
       case 'quests':
         this.loadQuests();
