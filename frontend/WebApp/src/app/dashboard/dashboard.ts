@@ -131,6 +131,7 @@ export class DashboardComponent implements OnInit {
         this.loadWorkoutsDerived();
         this.loadQuests();
         this.loadChallenges();
+        this.loadWeeklyActivity();
       },
       error: () => { 
         this.loadingProfile = false; 
@@ -147,6 +148,7 @@ export class DashboardComponent implements OnInit {
       case 'dashboard':
         this.loadProfile();
         this.loadWorkoutsDerived();
+        this.loadWeeklyActivity();
         break;
       case 'quests':
         this.loadQuests();
