@@ -23,13 +23,29 @@ export function buildWeeklyActivity(workouts: WorkoutData[]): WeeklyActivity[] {
   const weekStart = startOfWeek(new Date());
 
   for (const workout of workouts) {
+    // Jeśli z bazy przyjdzie pusty string lub null, pomijamy ten trening
+    if (!workout.performed_at) continue; 
+    
     const performed = new Date(workout.performed_at);
+    // Jeśli data jest w złym formacie (np. samo słowo zamiast daty ISO), pomijamy
+    if (isNaN(performed.getTime())) continue; 
+    // -------------------------------
+
     if (performed < weekStart) continue;
+    
     const index = (performed.getDay() + 6) % 7;
     week[index].workouts += 1;
     week[index].minutes += workout.duration_min ?? 0;
   }
   return week;
+  // for (const workout of workouts) {
+  //   const performed = new Date(workout.performed_at);
+  //   if (performed < weekStart) continue;
+  //   const index = (performed.getDay() + 6) % 7;
+  //   week[index].workouts += 1;
+  //   week[index].minutes += workout.duration_min ?? 0;
+  // }
+  // return week;
 }
 
 /**
