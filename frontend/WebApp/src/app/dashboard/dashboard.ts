@@ -159,35 +159,7 @@ export class DashboardComponent implements OnInit {
   }
 
   // ─── Ładowanie danych ───
-  // private loadProfile(): void {
-  //   this.api.getProfile().subscribe({
-  //     next: (p) => {
-  //       this.profile = this.withLevelProgress(p);
-  //       this.editProfile = { ...this.profile };
-  //       this.loadingProfile = false;
-  //       this.recomputeDerived(); // passa wpływa na atrybut "Wola"
-  //     },
-  //     error: () => { this.loadingProfile = false; },
-  //   });
-  // }
-//   private loadProfile(): void {
-//   this.api.getProfile()
-//     .pipe(
-//       timeout(15000),
-//       catchError(() => of(null)),
-//     )
-//     .subscribe({
-//       next: (p) => {
-//         if (p) {
-//           this.profile = this.withLevelProgress(p);
-//           this.editProfile = { ...this.profile };
-//           this.recomputeDerived();
-//         }
-//         this.loadingProfile = false;
-//       },
-//       error: () => { this.loadingProfile = false; },
-//     });
-// }
+
 private loadProfile(): void {
   this.api.getProfile()
     .pipe(
@@ -236,14 +208,6 @@ private loadSettings(): void {
   // Pobiera historię treningów i przelicza z niej statystyki oraz wykres
   // aktywności tygodniowej — jedno źródło danych dla dashboardu i statystyk
   // (Dev-73 / Dev-87).
-  // private loadWorkoutsDerived(): void {
-  //   this.loadingActivity = true;
-  //   this.loadingStats = true;
-  //   this.api.getWorkouts().subscribe({
-  //     next: (workouts) => { this.lastWorkouts = workouts; this.recomputeDerived(); this.finishWorkoutLoading(); },
-  //     error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
-  //   });
-  // }
 // 1. Zabezpieczona metoda ładująca treningi i statystyki
   private loadWorkoutsDerived(): void {
     this.loadingActivity = true;
@@ -278,27 +242,7 @@ private loadSettings(): void {
       this.loadingProfile = false; // Profil gasimy przy okazji
     }, 1500);
   }
-  // private loadWorkoutsDerived(): void {
-  //   this.loadingActivity = true;
-  //   this.loadingStats = true;
-    
-  //   this.api.getWorkouts()
-  //     .pipe(
-  //       timeout(15000),
-  //       catchError(() => of([] as WorkoutData[]))
-  //     )
-  //     .subscribe({
-  //       next: (workouts) => {
-  //         this.lastWorkouts = workouts || [];
-  //         this.recomputeDerived();
-  //       },
-  //       error: (err) => {
-  //         console.error("Błąd ładowania treningów:", err);
-  //         this.lastWorkouts = [];
-  //         this.recomputeDerived();
-  //       }
-  //     });
-  // }
+
 
 
   // 2. Metoda przeliczająca - BEZ wywołań settimeoutów czy innych pułapek
@@ -312,7 +256,6 @@ private loadSettings(): void {
     } catch (e) {
       console.error("Błąd w recomputeDerived:", e);
     } finally {
-      // TO JEST KLUCZOWE: Zawsze wyłączamy loadery na koniec
       this.loadingStats = false;
       this.loadingActivity = false;
       this.isRefreshing = false; // Reset flagi pętli
@@ -365,13 +308,21 @@ private loadSettings(): void {
   }
 
   // ─── Quest helpers ───
-  get completedQuests(): UserQuest[] { return this.quests.filter(q => q.status === 'completed'); }
-  get pendingQuests(): UserQuest[]   { return this.quests.filter(q => q.status !== 'completed'); }
+// ─── Quest helpers ───
+  get completedQuests(): UserQuest[] { 
+    return this.quests.filter(q => q.status === 'completed' || q.status === 'claimed'); 
+  }
+  get pendingQuests(): UserQuest[] { 
+    return this.quests.filter(q => q.status !== 'completed' && q.status !== 'claimed'); 
+  }
 
   // ─── Challenge helpers ───
-  get completedChallenges(): UserChallenge[] { return this.challenges.filter(c => c.status === 'completed'); }
-  get activeChallenges(): UserChallenge[]    { return this.challenges.filter(c => c.status !== 'completed'); }
-
+  get completedChallenges(): UserChallenge[] { 
+    return this.challenges.filter(c => c.status === 'completed' || c.status === 'claimed'); 
+  }
+  get activeChallenges(): UserChallenge[] { 
+    return this.challenges.filter(c => c.status !== 'completed' && c.status !== 'claimed' && c.status !== 'failed'); 
+  }
   getQuestProgressPercent(q: UserQuest): number {
     if (!q.quest.target_value) return 0;
     return Math.min(100, Math.round((q.progress_value / q.quest.target_value) * 100));
