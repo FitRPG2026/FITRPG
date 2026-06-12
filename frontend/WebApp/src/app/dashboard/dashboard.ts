@@ -245,44 +245,44 @@ private loadSettings(): void {
   //   });
   // }
 // 1. Zabezpieczona metoda ładująca treningi i statystyki
-  // private loadWorkoutsDerived(): void {
-  //   this.loadingActivity = true;
-  //   this.loadingStats = true;
+  private loadWorkoutsDerived(): void {
+    this.loadingActivity = true;
+    this.loadingStats = true;
     
-  //   this.api.getWorkouts()
-  //     .pipe(
-  //       timeout(15000),
-  //       catchError(() => of([] as WorkoutData[]))
-  //     )
-  //     .subscribe({
-  //       next: (workouts) => {
-  //         this.lastWorkouts = workouts || [];
-  //         this.recomputeDerived();
-  //       },
-  //       error: (err) => {
-  //         console.error("Błąd ładowania treningów:", err);
-  //         this.lastWorkouts = [];
-  //         this.recomputeDerived();
-  //       }
-  //     });
-  // }
-  private recomputeDerived(): void {
-    try {
-      const streak = this.profile?.current_streak_days ?? 0;
-      const safeWorkouts = this.lastWorkouts || [];
-      
-      this.stats = buildStats(safeWorkouts, streak);
-      this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
-    } catch (e) {
-      console.error("Błąd w recomputeDerived:", e);
-    } finally {
-      // TU JEST KLUCZ: Wyłączamy absolutnie wszystko
-      this.loadingStats = false;
-      this.loadingActivity = false;
-      this.isRefreshing = false;
-      console.log("[DEBUG] Loadery wyłączone na sztywno.");
-    }
+    this.api.getWorkouts()
+      .pipe(
+        timeout(15000),
+        catchError(() => of([] as WorkoutData[]))
+      )
+      .subscribe({
+        next: (workouts) => {
+          this.lastWorkouts = workouts || [];
+          this.recomputeDerived();
+        },
+        error: (err) => {
+          console.error("Błąd ładowania treningów:", err);
+          this.lastWorkouts = [];
+          this.recomputeDerived();
+        }
+      });
   }
+  // private recomputeDerived(): void {
+  //   try {
+  //     const streak = this.profile?.current_streak_days ?? 0;
+  //     const safeWorkouts = this.lastWorkouts || [];
+      
+  //     this.stats = buildStats(safeWorkouts, streak);
+  //     this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
+  //   } catch (e) {
+  //     console.error("Błąd w recomputeDerived:", e);
+  //   } finally {
+  //     // TU JEST KLUCZ: Wyłączamy absolutnie wszystko
+  //     this.loadingStats = false;
+  //     this.loadingActivity = false;
+  //     this.isRefreshing = false;
+  //     console.log("[DEBUG] Loadery wyłączone na sztywno.");
+  //   }
+  // }
 
   // 2. Metoda przeliczająca - BEZ wywołań settimeoutów czy innych pułapek
   private recomputeDerived(): void {
