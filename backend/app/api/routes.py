@@ -503,86 +503,50 @@ async def get_meal_status(
     )
 
 
+    @router.get(
+    "/weekly-activity", 
+    response_model=list[dict], 
+    tags=["Activity"], 
+    summary="Pobierz aktywność z ostatnich 7 dni"
+)
+async def get_weekly_activity(
+    current_user: dict = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
+    user_id = current_user["user_id"]
+    query = text("""
+        WITH dates AS (
+            SELECT current_date - i AS d
+            FROM generate_series(0, 6) i
+        ),
+        w_counts AS (
+            SELECT DATE(performed_at) AS d, COUNT(*) as w_count
+            FROM workouts
+            WHERE user_id = :uid AND performed_at >= current_date - interval '7 days'
+            GROUP BY 1
+        ),
+        m_counts AS (
+            SELECT DATE(eaten_at) AS d, COUNT(*) as m_count
+            FROM meals
+            WHERE user_id = :uid AND eaten_at >= current_date - interval '7 days'
+            GROUP BY 1
+        )
+        SELECT
+            to_char(dates.d, 'YYYY-MM-DD') AS date,
+            COALESCE(w_counts.w_count, 0) AS workouts_count,
+            COALESCE(m_counts.m_count, 0) AS meals_count
+        FROM dates
+        LEFT JOIN w_counts ON dates.d = w_counts.d
+        LEFT JOIN m_counts ON dates.d = m_counts.d
+        ORDER BY dates.d ASC
+    """)
+    result = await db.execute(query, {"uid": user_id})
+    return [dict(r) for r in result.mappings().all()]
 
 
 
 
-# -----Profile----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# @router.get("/profile", response_model=UserProfileResponse, tags=["Profile"], summary="Pobierz profil użytkownika")
-# async def get_profile(current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-#     user_id = current_user["user_id"]
-#     profile = await queries.get_user_profile(db, user_id)
-#     if not profile:
-#         raise HTTPException(status_code=404, detail="Profil nie istnieje")
-#     level_data = compute_level(profile["total_exp"])
-#     birth = profile.get("birth_date")
-#     return UserProfileResponse(
-#         user_id=profile["user_id"],
-#         username=profile.get("username"),
-#         display_name=profile.get("display_name"),
-#         birth_date=str(birth) if birth else None,
-#         sex=profile.get("sex"),
-#         height_cm=float(profile["height_cm"]) if profile.get("height_cm") is not None else None,
-#         weight_kg=float(profile["weight_kg"]) if profile.get("weight_kg") is not None else None,
-#         goal=profile.get("goal"),
-#         activity_level=profile.get("activity_level"),
-#         total_exp=profile["total_exp"],
-#         level=level_data["level"],
-#         xp_in_level=level_data["xp_in_level"],
-#         xp_to_next_level=level_data["xp_to_next_level"],
-#         current_streak_days=profile["current_streak_days"],
-#         longest_streak_days=profile["longest_streak_days"],
-#     )
-
-
-# @router.put("/profile", response_model=UserProfileResponse, tags=["Profile"], summary="Zaktualizuj profil użytkownika")
-# async def update_profile(body: UpdateProfileRequest, current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-#     user_id = current_user["user_id"]
-#     from datetime import date
-#     birth_date = None
-#     if body.birth_date:
-#         try:
-#             birth_date = date.fromisoformat(body.birth_date)
-#         except ValueError:
-#             raise HTTPException(status_code=422, detail="Nieprawidłowy format daty urodzenia (oczekiwano YYYY-MM-DD)")
-
-#     await db.execute(
-#         text("CALL proc_upsert_user_profile(:uid, :username, :display_name, :birth_date, :sex, :height_cm, :weight_kg, :goal, :activity_level)"),
-#         {
-#             "uid": user_id,
-#             "username": body.username,
-#             "display_name": body.display_name,
-#             "birth_date": birth_date,
-#             "sex": body.sex,
-#             "height_cm": body.height_cm,
-#             "weight_kg": body.weight_kg,
-#             "goal": body.goal,
-#             "activity_level": body.activity_level,
-#         },
-#     )
-#     await db.commit()
-
-#     profile = await queries.get_user_profile(db, user_id)
-#     level_data = compute_level(profile["total_exp"])
-#     birth = profile.get("birth_date")
-#     return UserProfileResponse(
-#         user_id=profile["user_id"],
-#         username=profile.get("username"),
-#         display_name=profile.get("display_name"),
-#         birth_date=str(birth) if birth else None,
-#         sex=profile.get("sex"),
-#         height_cm=float(profile["height_cm"]) if profile.get("height_cm") is not None else None,
-#         weight_kg=float(profile["weight_kg"]) if profile.get("weight_kg") is not None else None,
-#         goal=profile.get("goal"),
-#         activity_level=profile.get("activity_level"),
-#         total_exp=profile["total_exp"],
-#         level=level_data["level"],
-#         xp_in_level=level_data["xp_in_level"],
-#         xp_to_next_level=level_data["xp_to_next_level"],
-#         current_streak_days=profile["current_streak_days"],
-#         longest_streak_days=profile["longest_streak_days"],
-#     )
 
 
 
