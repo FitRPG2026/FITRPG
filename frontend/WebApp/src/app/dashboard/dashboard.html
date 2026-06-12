@@ -256,7 +256,7 @@
         <p>Ładowanie statystyk…</p>
       </div>
 
-      <div *ngIf="!loadingStats && !loadingProfile && profile" class="stats-page">
+      <div *ngIf="profile" class="stats-page">
         <div class="profile-summary-card">
           <div class="summary-info">
             <div class="summary-name">{{ profile.display_name || profile.username || 'Gracz' }}</div>
