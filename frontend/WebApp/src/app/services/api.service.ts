@@ -16,11 +16,28 @@ export interface Stat {
 
 export interface Quest {
   id: number;
+  code: string;
   title: string;
-  description: string;
-  xp: number;
-  completed: boolean;
+  description: string | null;
+  quest_type: string;
+  progression_mode: string;
+  quest_series_code: string | null;
+  sequence_order: number | null;
+  target_value: number;
+  reward_exp: number;
+  mechanic_type: string;
+  event_trigger: string;
+  conditions: Record<string, unknown>;
 }
+ 
+export interface UserQuest {
+  quest: Quest;
+  status: 'active' | 'completed' | 'failed' | string;
+  progress_value: number;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
 
 export interface Achievement {
   id: number;
@@ -29,6 +46,34 @@ export interface Achievement {
   icon: string;
   unlockedAt: string | null;
   locked: boolean;
+}
+ 
+// ─── Wyzwania ────────────────────────────────────────────────────────────────
+ 
+export interface Challenge {
+  id: number;
+  code: string;
+  title: string;
+  description: string | null;
+  quest_type: string;
+  goal_value: number;
+  reward_exp: number;
+  mechanic_type: string;
+  event_trigger: string;
+  end_date: string | null;
+}
+ 
+export interface UserChallenge {
+  challenge: Challenge;
+  status: 'active' | 'completed' | 'failed' | string;
+  progress_value: number;
+  started_at: string | null;
+  completed_at: string | null;
+}
+ 
+export interface GameContent {
+  quests: UserQuest[];
+  challenges: UserChallenge[];
 }
 
 export interface WeeklyActivity {
@@ -195,15 +240,40 @@ export class ApiService {
   // wyzwań (Dev-74). Dopóki backend ich nie wystawi, odpowiedź błędna
   // (404/500) jest mapowana na pustą listę i UI pokazuje stany puste —
   // po starcie backendu dane pojawią się bez zmian we froncie.
-  getQuests(): Observable<Quest[]> {
-    return this.http
-      .get<Quest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
-      .pipe(catchError(() => of<Quest[]>([])));
-  }
+  // getQuests(): Observable<Quest[]> {
+  //   return this.http
+  //     .get<Quest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
+  //     .pipe(catchError(() => of<Quest[]>([])));
+  // }
 
+  // getAchievements(): Observable<Achievement[]> {
+  //   return this.http
+  //     .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
+  //     .pipe(catchError(() => of<Achievement[]>([])));
+  // }
+
+  getQuests(): Observable<UserQuest[]> {
+    return this.http
+      .get<UserQuest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
+      .pipe(catchError(() => of<UserQuest[]>([])));
+  }
+ 
+  getChallenges(): Observable<UserChallenge[]> {
+    return this.http
+      .get<UserChallenge[]>(`${this.baseUrl}/challenges`, { headers: this.headers() })
+      .pipe(catchError(() => of<UserChallenge[]>([])));
+  }
+ 
+  /** Pobiera questy i wyzwania jednym żądaniem (mobile-friendly). */
+  getGameContent(): Observable<GameContent> {
+    return this.http
+      .get<GameContent>(`${this.baseUrl}/game-content`, { headers: this.headers() })
+      .pipe(catchError(() => of<GameContent>({ quests: [], challenges: [] })));
+  }
+ 
   getAchievements(): Observable<Achievement[]> {
     return this.http
       .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
       .pipe(catchError(() => of<Achievement[]>([])));
-  }
+  } 
 }
