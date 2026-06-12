@@ -22,7 +22,7 @@ import { WorkoutFormComponent } from '../components/workout-form/workout-form';
 import { MealFormComponent } from '../components/meal-form/meal-form';
 import { ProgressComponent } from '../components/progress/progress'; 
 
-import { timeout, catchError } from 'rxjs/operators';
+import { timeout, catchError,finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 
@@ -252,37 +252,54 @@ private loadSettings(): void {
     this.api.getWorkouts()
       .pipe(
         timeout(15000),
-        catchError(() => of([] as WorkoutData[]))
+        catchError((err) => {
+          console.error("Błąd API treningów:", err);
+          return of([] as WorkoutData[]);
+        }),
+        finalize(() => {
+          // GWARANCJA 1: Wykonuje się zawsze po zakończeniu Observable
+          this.loadingStats = false;
+          this.loadingActivity = false;
+        })
       )
       .subscribe({
         next: (workouts) => {
           this.lastWorkouts = workouts || [];
           this.recomputeDerived();
-        },
-        error: (err) => {
-          console.error("Błąd ładowania treningów:", err);
-          this.lastWorkouts = [];
-          this.recomputeDerived();
         }
       });
+
+    // GWARANCJA 2: "Opcja Nuklearna"
+    // Jeżeli RxJS z jakiegoś powodu zostanie zamrożony, ten zegar wymusi
+    // wyłączenie kółka ładowania równo po 1.5 sekundy.
+    setTimeout(() => {
+      this.loadingStats = false;
+      this.loadingActivity = false;
+      this.loadingProfile = false; // Profil gasimy przy okazji
+    }, 1500);
   }
-  // private recomputeDerived(): void {
-  //   try {
-  //     const streak = this.profile?.current_streak_days ?? 0;
-  //     const safeWorkouts = this.lastWorkouts || [];
-      
-  //     this.stats = buildStats(safeWorkouts, streak);
-  //     this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
-  //   } catch (e) {
-  //     console.error("Błąd w recomputeDerived:", e);
-  //   } finally {
-  //     // TU JEST KLUCZ: Wyłączamy absolutnie wszystko
-  //     this.loadingStats = false;
-  //     this.loadingActivity = false;
-  //     this.isRefreshing = false;
-  //     console.log("[DEBUG] Loadery wyłączone na sztywno.");
-  //   }
+  // private loadWorkoutsDerived(): void {
+  //   this.loadingActivity = true;
+  //   this.loadingStats = true;
+    
+  //   this.api.getWorkouts()
+  //     .pipe(
+  //       timeout(15000),
+  //       catchError(() => of([] as WorkoutData[]))
+  //     )
+  //     .subscribe({
+  //       next: (workouts) => {
+  //         this.lastWorkouts = workouts || [];
+  //         this.recomputeDerived();
+  //       },
+  //       error: (err) => {
+  //         console.error("Błąd ładowania treningów:", err);
+  //         this.lastWorkouts = [];
+  //         this.recomputeDerived();
+  //       }
+  //     });
   // }
+
 
   // 2. Metoda przeliczająca - BEZ wywołań settimeoutów czy innych pułapek
   private recomputeDerived(): void {
@@ -299,6 +316,7 @@ private loadSettings(): void {
       this.loadingStats = false;
       this.loadingActivity = false;
       this.isRefreshing = false; // Reset flagi pętli
+      console.log("[DEBUG] Loadery wyłączone na sztywno.");
     }
   }
 
