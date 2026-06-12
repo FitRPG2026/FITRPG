@@ -22,6 +22,10 @@ import { WorkoutFormComponent } from '../components/workout-form/workout-form';
 import { MealFormComponent } from '../components/meal-form/meal-form';
 import { ProgressComponent } from '../components/progress/progress'; 
 
+import { timeout, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+
+
 type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile';
 
 @Component({
@@ -142,17 +146,35 @@ export class DashboardComponent implements OnInit {
   }
 
   // ─── Ładowanie danych ───
+  // private loadProfile(): void {
+  //   this.api.getProfile().subscribe({
+  //     next: (p) => {
+  //       this.profile = this.withLevelProgress(p);
+  //       this.editProfile = { ...this.profile };
+  //       this.loadingProfile = false;
+  //       this.recomputeDerived(); // passa wpływa na atrybut "Wola"
+  //     },
+  //     error: () => { this.loadingProfile = false; },
+  //   });
+  // }
   private loadProfile(): void {
-    this.api.getProfile().subscribe({
+  this.api.getProfile()
+    .pipe(
+      timeout(15000),
+      catchError(() => of(null)),
+    )
+    .subscribe({
       next: (p) => {
-        this.profile = this.withLevelProgress(p);
-        this.editProfile = { ...this.profile };
+        if (p) {
+          this.profile = this.withLevelProgress(p);
+          this.editProfile = { ...this.profile };
+          this.recomputeDerived();
+        }
         this.loadingProfile = false;
-        this.recomputeDerived(); // passa wpływa na atrybut "Wola"
       },
       error: () => { this.loadingProfile = false; },
     });
-  }
+}
 
   private loadSettings(): void {
     this.api.getSettings().subscribe({
@@ -178,14 +200,27 @@ export class DashboardComponent implements OnInit {
   // Pobiera historię treningów i przelicza z niej statystyki oraz wykres
   // aktywności tygodniowej — jedno źródło danych dla dashboardu i statystyk
   // (Dev-73 / Dev-87).
+  // private loadWorkoutsDerived(): void {
+  //   this.loadingActivity = true;
+  //   this.loadingStats = true;
+  //   this.api.getWorkouts().subscribe({
+  //     next: (workouts) => { this.lastWorkouts = workouts; this.recomputeDerived(); this.finishWorkoutLoading(); },
+  //     error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
+  //   });
+  // }
   private loadWorkoutsDerived(): void {
-    this.loadingActivity = true;
-    this.loadingStats = true;
-    this.api.getWorkouts().subscribe({
+  this.loadingActivity = true;
+  this.loadingStats = true;
+  this.api.getWorkouts()
+    .pipe(
+      timeout(15000),
+      catchError(() => of([] as WorkoutData[])),
+    )
+    .subscribe({
       next: (workouts) => { this.lastWorkouts = workouts; this.recomputeDerived(); this.finishWorkoutLoading(); },
       error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
     });
-  }
+}
 
   private finishWorkoutLoading(): void {
     this.loadingActivity = false;
