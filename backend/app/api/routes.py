@@ -651,7 +651,10 @@ async def get_challenges(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    rows = await queries.get_user_challenges(db, current_user["user_id"])
+    try:
+        rows = await queries.get_user_challenges(db, current_user["user_id"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Błąd bazy: {str(e)}")
     return [
         UserChallengeResponse(
             challenge=ChallengeResponse(
@@ -671,6 +674,8 @@ async def get_challenges(
         )
         for r in rows
     ]
+
+        
 
 
 @router.get(

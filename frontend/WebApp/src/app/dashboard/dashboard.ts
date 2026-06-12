@@ -209,7 +209,7 @@ export class DashboardComponent implements OnInit {
   //     error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
   //   });
   // }
-  private loadWorkoutsDerived(): void {
+ private loadWorkoutsDerived(): void {
   this.loadingActivity = true;
   this.loadingStats = true;
   this.api.getWorkouts()
@@ -218,8 +218,22 @@ export class DashboardComponent implements OnInit {
       catchError(() => of([] as WorkoutData[])),
     )
     .subscribe({
-      next: (workouts) => { this.lastWorkouts = workouts; this.recomputeDerived(); this.finishWorkoutLoading(); },
-      error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
+      next: (workouts) => { 
+        this.lastWorkouts = workouts; 
+        try {
+          // Tutaj prawdopodobnie wywala błąd przeliczania dat!
+          this.recomputeDerived(); 
+        } catch (e) {
+          console.error("Błąd podczas generowania statystyk z historii treningów:", e);
+        } finally {
+          // Gwarancja, że loader zniknie, nawet jak statystyki są zepsute
+          this.finishWorkoutLoading(); 
+        }
+      },
+      error: () => { 
+        this.lastWorkouts = []; 
+        this.finishWorkoutLoading(); 
+      },
     });
 }
 
