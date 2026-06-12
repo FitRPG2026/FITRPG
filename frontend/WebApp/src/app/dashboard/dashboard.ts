@@ -56,6 +56,9 @@ export class DashboardComponent implements OnInit {
   challenges: UserChallenge[] = [];
   weeklyActivity: WeeklyActivity[] = [];
 
+  weeklyChartData: WeeklyActivityChartData[] = [];
+  maxActivityCount = 1;
+
   loadingStats = true;
   loadingQuests = true;
   loadingChallenges = true;
@@ -183,7 +186,24 @@ private loadProfile(): void {
       error: () => { this.loadingProfile = false; },
     });
 }
+  
+private loadWeeklyActivity(): void {
+    this.api.getWeeklyActivity().subscribe({
+      next: (data) => {
+        this.weeklyChartData = data;
+        const max = Math.max(...data.map(d => d.workouts_count + d.meals_count));
+        this.maxActivityCount = max > 0 ? max : 1;
+      },
+      error: () => { this.weeklyChartData = []; }
+    });
+  }
 
+  getDayLabel(dateStr: string): string {
+    const d = new Date(dateStr);
+    const days = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
+    return days[d.getDay()];
+  }
+  
 private loadSettings(): void {
     this.api.getSettings().subscribe({
       next: (s) => { this.settings = s; this.loadingSettings = false; },
@@ -276,6 +296,7 @@ private loadSettings(): void {
       this.loadWorkoutsDerived();
       this.loadQuests();
       this.loadChallenges();
+      this.loadWeeklyActivity();
       this.progressComponent?.loadWorkouts();
       this.isRefreshing = false;
     }, 500);
