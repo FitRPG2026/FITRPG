@@ -503,12 +503,8 @@ async def get_meal_status(
     )
 
 
-    @router.get(
-    "/weekly-activity", 
-    response_model=list[dict], 
-    tags=["Activity"], 
-    summary="Pobierz aktywność z ostatnich 7 dni"
-)
+
+@router.get("/weekly-activity", response_model=list[dict], tags=["Activity"], summary="Pobierz aktywność z ostatnich 7 dni")
 async def get_weekly_activity(
     current_user: dict = Depends(get_current_user), 
     db: AsyncSession = Depends(get_db)
