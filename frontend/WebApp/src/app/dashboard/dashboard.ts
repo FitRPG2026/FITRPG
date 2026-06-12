@@ -232,48 +232,64 @@ private loadSettings(): void {
   //     error: () => { this.lastWorkouts = []; this.recomputeDerived(); this.finishWorkoutLoading(); },
   //   });
   // }
-private isReloading = false; // Dodaj tę zmienną na początku klasy
+// 1. Zabezpieczona metoda ładująca treningi i statystyki
+  private loadWorkoutsDerived(): void {
+    this.loadingActivity = true;
+    this.loadingStats = true;
+    
+    this.api.getWorkouts()
+      .pipe(
+        timeout(15000),
+        catchError(() => of([] as WorkoutData[]))
+      )
+      .subscribe({
+        next: (workouts) => {
+          this.lastWorkouts = workouts || [];
+          this.recomputeDerived();
+        },
+        error: (err) => {
+          console.error("Błąd ładowania treningów:", err);
+          this.lastWorkouts = [];
+          this.recomputeDerived();
+        }
+      });
+  }
 
-private loadWorkoutsDerived(): void {
-  if (this.isReloading) return; // Zabezpieczenie przed pętlą
-  this.isReloading = true;
-  
-  this.loadingActivity = true;
-  this.loadingStats = true;
-  
-  this.api.getWorkouts().subscribe({
-    next: (workouts) => {
-      this.lastWorkouts = workouts;
-      this.recomputeDerived();
-      this.isReloading = false; // Odblokuj po zakończeniu
-    },
-    error: () => {
-      this.lastWorkouts = [];
-      this.recomputeDerived();
-      this.isReloading = false;
-    }
-  });
-}
-
+  // 2. Metoda przeliczająca - BEZ wywołań settimeoutów czy innych pułapek
   private recomputeDerived(): void {
-    console.log("[DEBUG] 3. Rozpoczynam przeliczanie statystyk (recomputeDerived)...");
     try {
       const streak = this.profile?.current_streak_days ?? 0;
       const safeWorkouts = this.lastWorkouts || [];
       
       this.stats = buildStats(safeWorkouts, streak);
       this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
-      
-      console.log("[DEBUG] 4. Matematyka w stats.util zakończona sukcesem.");
     } catch (e) {
-      console.error("[DEBUG] 4. BŁĄD KRYTYCZNY w trakcie liczenia statystyk:", e);
+      console.error("Błąd w recomputeDerived:", e);
     } finally {
+      // TO JEST KLUCZOWE: Zawsze wyłączamy loadery na koniec
       this.loadingStats = false;
       this.loadingActivity = false;
-      console.log("[DEBUG] 5. Zgaszono kółka ładowania! (loadingStats = false)");
+      this.isRefreshing = false; // Reset flagi pętli
     }
   }
 
+  // 3. Dodaj flagę do klasy
+  private isRefreshing = false;
+
+  private refreshAfterActivity(): void {
+    if (this.isRefreshing) return;
+    this.isRefreshing = true;
+    
+    // Używamy setTimeout, żeby odświeżanie nastąpiło po zakończeniu obecnego cyklu Angulara
+    setTimeout(() => {
+      this.loadProfile();
+      this.loadWorkoutsDerived();
+      this.loadQuests();
+      this.loadChallenges();
+      this.progressComponent?.loadWorkouts();
+      this.isRefreshing = false;
+    }, 500);
+  }
   private finishWorkoutLoading(): void {
     this.loadingActivity = false;
     this.loadingStats = false;
@@ -346,15 +362,7 @@ private loadWorkoutsDerived(): void {
     this.refreshAfterActivity();
   }
 
-  // Po zalogowaniu aktywności odświeża profil, wykres tygodnia oraz historię
-  // treningów, dzięki czemu dane aktualizują się bez przeładowania (Dev-86/87).
-  private refreshAfterActivity(): void {
-    this.loadProfile();
-    this.loadWorkoutsDerived();
-    this.loadQuests();
-    this.loadChallenges();
-    this.progressComponent?.loadWorkouts();
-  }
+
 
   // ─── Profile save ───
   saveProfile(): void {
