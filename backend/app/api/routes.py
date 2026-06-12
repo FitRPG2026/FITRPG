@@ -68,6 +68,10 @@ def connection_check():
 
 @router.get("/health", tags=["System"], summary="Sprawdzenie połączenia z bazą")
 async def health(db: AsyncSession = Depends(get_db)):
+
+    import asyncio
+    await asyncio.sleep(20)
+
     try:
         await db.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
