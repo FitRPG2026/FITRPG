@@ -70,7 +70,7 @@ def connection_check():
 async def health(db: AsyncSession = Depends(get_db)):
 
     import asyncio
-    await asyncio.sleep(20)
+    await asyncio.sleep(120)
 
     try:
         await db.execute(text("SELECT 1"))
