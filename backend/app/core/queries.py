@@ -359,11 +359,11 @@ async def get_user_quests(conn: AsyncSession, user_id: int) -> list[dict]:
                 'quest_' || CAST(q.id AS text) AS code, -- Sztuczny kod dla Pydantica
                 q.title, 
                 q.description,
-                q.challenge_type AS quest_type,         -- Mapowanie challenge_type -> quest_type
+                q.quest_type,                           -- ZMIANA: Powrót do poprawnej nazwy
                 'auto' AS progression_mode,             -- Sztuczne pole
                 NULL AS quest_series_code,              -- Sztuczne pole
                 NULL AS sequence_order,                 -- Sztuczne pole
-                q.goal_value AS target_value,           -- Mapowanie goal_value -> target_value
+                q.target_value,                         -- ZMIANA: Powrót do poprawnej nazwy
                 q.reward_exp,
                 q.mechanic_type, 
                 q.event_trigger, 
