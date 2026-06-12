@@ -354,7 +354,7 @@ async def get_user_quests(conn: AsyncSession, user_id: int) -> list[dict]:
         text("""
             SELECT
                 q.id, 
-                COALESCE(q.code, 'quest') AS code, 
+                'quest_' || CAST(q.id AS text) AS code, -- ZMIANA: sztucznie generowany kod
                 COALESCE(q.title, 'Brak tytułu') AS title, 
                 q.description,
                 COALESCE(q.quest_type, 'main') AS quest_type, 
@@ -384,7 +384,7 @@ async def get_user_challenges(conn: AsyncSession, user_id: int) -> list[dict]:
         text("""
             SELECT
                 c.id, 
-                COALESCE(c.code, 'challenge') AS code, 
+                'challenge_' || CAST(c.id AS text) AS code, -- ZMIANA: sztucznie generowany kod
                 COALESCE(c.title, 'Brak tytułu') AS title, 
                 c.description,
                 COALESCE(c.quest_type, 'challenge') AS quest_type, 
