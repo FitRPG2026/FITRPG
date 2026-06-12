@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal, output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { timer, switchMap, catchError, of, filter, take, Subscription } from 'rxjs';
+import { timer, switchMap, catchError, of, filter, take, Subscription, forkJoin } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -31,14 +31,18 @@ export class SplashScreen implements OnInit, OnDestroy {
       })
     );
 
+    const minimumTime$ = timer(1500);
+
+    const serverPing$ = timer(0, 5000).pipe(
+      switchMap(() => this.http.get(`${environment.apiUrl}/api/health`, { responseType: 'text' }).pipe(
+        catchError(() => of(null))
+      )),
+      filter(response => response !== null),
+      take(1)
+    );
+
     this.subs.add(
-      timer(0, 5000).pipe(
-        switchMap(() => this.http.get(`${environment.apiUrl}/api/health`, { responseType: 'text' }).pipe(
-          catchError(() => of(null))
-        )),
-        filter(response => response !== null),
-        take(1)
-      ).subscribe(() => {
+      forkJoin([minimumTime$, serverPing$]).subscribe(() => {
         this.serverReady.emit();
       })
     );
