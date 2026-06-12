@@ -892,3 +892,20 @@
   .profile-form-grid { grid-template-columns: 1fr; }
   .profile-hero-card { flex-direction: column; align-items: flex-start; }
 }
+
+.pf-header-section {
+  margin-bottom: 24px;
+}
+
+.pf-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #ffffff; /* Dostosuj do Waszego motywu */
+}
+
+.pf-subtitle {
+  font-size: 0.9rem;
+  color: #aaaaaa; /* Szary, wyblakły kolor, żeby nie odciągał uwagi */
+  margin: 0;
+}

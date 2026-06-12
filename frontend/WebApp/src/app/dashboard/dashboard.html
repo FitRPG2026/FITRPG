@@ -313,7 +313,10 @@
         </div>
 
         <div class="panel profile-form-panel">
-          <div class="panel-header"><h2>Dane osobowe</h2></div>
+          <div class="panel-header">
+            <h2>Dane osobowe</h2>
+            <p class="pf-subtitle">Dane służą do lepszej i bardziej sprawiedliwej punktacji.</p>
+          </div>
 
           <div class="msg msg-error"   *ngIf="profileSaveError">⚠️ {{ profileSaveError }}</div>
           <div class="msg msg-success" *ngIf="profileSaveSuccess">✅ Profil zapisany pomyślnie!</div>
