@@ -182,6 +182,12 @@ export interface UpdateProfileRequest {
   activity_level?: string;
 }
 
+export interface WeeklyActivityChartData {
+  date: string;
+  workouts_count: number;
+  meals_count: number;
+}
+
 export interface UserSettingsData {
   data_processing_consent: boolean;
   profile_public: boolean;
@@ -236,21 +242,11 @@ export class ApiService {
   // Statystyki (Stat[]) są wyliczane z historii treningów po stronie klienta
   // (stats.util.ts) na podstawie endpointu /workouts — patrz Dev-73.
 
-  // Questy i osiągnięcia są już podpięte pod docelowe endpointy backendu
-  // wyzwań (Dev-74). Dopóki backend ich nie wystawi, odpowiedź błędna
-  // (404/500) jest mapowana na pustą listę i UI pokazuje stany puste —
-  // po starcie backendu dane pojawią się bez zmian we froncie.
-  // getQuests(): Observable<Quest[]> {
-  //   return this.http
-  //     .get<Quest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
-  //     .pipe(catchError(() => of<Quest[]>([])));
-  // }
 
-  // getAchievements(): Observable<Achievement[]> {
-  //   return this.http
-  //     .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
-  //     .pipe(catchError(() => of<Achievement[]>([])));
-  // }
+  getWeeklyActivity(): Observable<WeeklyActivityChartData[]> {
+  return this.http.get<WeeklyActivityChartData[]>(`${this.baseUrl}/weekly-activity`, { headers: this.headers() });
+  }
+
 
   getQuests(): Observable<UserQuest[]> {
     return this.http
