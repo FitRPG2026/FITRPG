@@ -43,17 +43,6 @@ class MeResponse(BaseModel):
 # PROFILE
 # ─────────────────────────────────────────────
 
-class UpdateProfileRequest(BaseModel):
-    username: Optional[str] = None
-    display_name: Optional[str] = None
-    birth_date: Optional[str] = None
-    sex: Optional[str] = None   # ⚠️ różnica: first code uses sex
-    height_cm: Optional[float] = None
-    weight_kg: Optional[float] = None
-    goal: Optional[str] = None
-    activity_level: Optional[str] = None
-
-
 
 class UpsertProfileRequest(BaseModel):
     username: Optional[str] = None
@@ -327,6 +316,13 @@ class MealResponse(BaseModel):
     exp_granted: int
     rewards: List[ChallengeRewardItem] = []
 
+
+class MealStatusResponse(BaseModel):
+    meal_id: int
+    status: str
+    health_score: Optional[int] = None
+    photo_url: Optional[str] = None
+    exp_granted: int = 0
 
 # ─────────────────────────────────────────────
 # QUESTS & CHALLENGES
