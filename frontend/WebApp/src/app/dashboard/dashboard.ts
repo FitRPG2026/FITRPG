@@ -266,8 +266,23 @@ private loadProfile(): void {
   }
 
   private recomputeDerived(): void {
-    this.weeklyActivity = buildWeeklyActivity(this.lastWorkouts);
-    this.stats = buildStats(this.lastWorkouts, this.profile?.current_streak_days ?? 0);
+    try {
+      // Zabezpieczenie przed pustym profilem
+      const streak = this.profile?.current_streak_days ?? 0;
+      
+      // Zabezpieczenie przed niezainicjalizowaną listą treningów ( || [] )
+      const safeWorkouts = this.lastWorkouts || [];
+      
+      this.stats = buildStats(safeWorkouts, streak);
+      this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
+      
+    } catch (e) {
+      console.error("Błąd podczas przeliczania statystyk:", e);
+    } finally {
+      // ULTIMATE FAIL-SAFE: Bezwzględnie wyłączamy kółka ładowania!
+      this.loadingStats = false;
+      this.loadingActivity = false;
+    }
   }
 
   // Wzbogaca profil o policzony lokalnie poziom i postęp XP, bo backend
