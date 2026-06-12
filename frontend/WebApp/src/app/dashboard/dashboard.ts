@@ -109,18 +109,30 @@ export class DashboardComponent implements OnInit {
     private router: Router,
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt_token') : null;
     if (!token) {
       this.router.navigate(['/login']);
       return;
     }
 
-    this.loadProfile();
-    this.loadSettings();
-    this.loadWorkoutsDerived();
-    this.loadQuests();
-    this.loadChallenges();
+    // Ładujemy profil jako priorytet
+    this.api.getProfile().subscribe({
+      next: (p) => {
+        this.profile = this.withLevelProgress(p);
+        this.loadingProfile = false;
+        
+        // Dopiero gdy mamy profil, ładujemy resztę zależną od profilu
+        this.loadSettings();
+        this.loadWorkoutsDerived();
+        this.loadQuests();
+        this.loadChallenges();
+      },
+      error: () => { 
+        this.loadingProfile = false; 
+        // Opcjonalnie: przekierowanie do login, jeśli token wygasł
+      }
+    });
   }
 
   // Przełączenie zakładki dociąga świeże dane, by stany (ukończone questy,
