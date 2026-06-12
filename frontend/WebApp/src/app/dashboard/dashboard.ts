@@ -13,6 +13,7 @@ import {
   UserQuest,
   UserChallenge,
   WeeklyActivity,
+  WeeklyActivityChartData,
 } from '../services/api.service';
 import { computeLevelProgress } from '../services/level.util';
 import { buildStats, buildWeeklyActivity } from '../services/stats.util';
