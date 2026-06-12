@@ -64,6 +64,7 @@ export class DashboardComponent implements OnInit {
   loadingQuests = true;
   loadingChallenges = true;
   loadingActivity = true;
+  loadingChart = true;
 
   // Ostatnio pobrana historia treningów — źródło statystyk i wykresu tygodnia.
   private lastWorkouts: WorkoutData[] = [];
@@ -191,7 +192,7 @@ private loadProfile(): void {
 }
   
 private loadWeeklyActivity(): void {
-    this.loadingActivity = true; // Włączamy loader wykresu
+    this.loadingChart = true; // Włączamy loader wykresu
     
     this.api.getWeeklyActivity()
       .pipe(finalize(() => this.loadingActivity = false)) // Wyłączamy natychmiast po pobraniu!
