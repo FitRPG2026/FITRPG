@@ -195,7 +195,7 @@ private loadWeeklyActivity(): void {
     this.loadingChart = true; // Włączamy loader wykresu
     
     this.api.getWeeklyActivity()
-      .pipe(finalize(() => this.loadingActivity = false)) // Wyłączamy natychmiast po pobraniu!
+      .pipe(finalize(() => this.loadingChart = false)) // Wyłączamy natychmiast po pobraniu!
       .subscribe({
         next: (data) => {
           this.weeklyChartData = data;
