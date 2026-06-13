@@ -101,9 +101,9 @@
         <div class="panel activity-panel">
           <div class="panel-header"><h2>Aktywność tygodniowa</h2></div>
           
-          <div *ngIf="loadingChart" class="panel-skeleton"></div>
+          <div *ngIf="loadingChart" class="panel-skeleton" style="height: 150px;" ></div>
           
-          <div *ngIf="!loadingChart" class="activity-chart">
+          <div *ngIf="!loadingChart" class="activity-chart" style="display: flex; justify-content: space-around; align-items: flex-end; height: 150px; padding-top: 20px; gap: 8px;" >
             <div class="bar-group" *ngFor="let day of weeklyChartData">
               <div class="bar-track" style="display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;">
                 <div class="bar-fill" 
@@ -117,7 +117,8 @@
                      style="background-color: #3498db; width: 100%; border-radius: 0 0 4px 4px;">
                 </div>
               </div>
-              <div class="bar-day">{{ getDayLabel(day.date) }}</div>
+              <div class="bar-day" style="font-size: 11px; margin-top: 8px; color: #a0b2ab; font-weight: 500;">
+                {{ getDayLabel(day.date) }}</div>
             </div>
           </div>
 
