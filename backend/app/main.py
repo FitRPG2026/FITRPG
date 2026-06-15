@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
 from app.api.routes import router
+from app.core.security_headers import SecurityHeadersMiddleware
 
 app = FastAPI(
     title='FITRPG Backend Api',
@@ -24,6 +25,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 @app.exception_handler(HTTPException)
 async def not_found_handler(request: Request, exc: HTTPException):
