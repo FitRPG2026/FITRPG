@@ -36,5 +36,8 @@ async def not_found_handler(request: Request, exc: HTTPException):
 async def validation_error_handler(reques: Request, exc: RequestValidationError):
     return JSONResponse(status_code=422, content={"error": "Nieprawidlowe dane wejsciowe"})
 
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"status": "ok", "service": "FITRPG Backend API"}
 
 app.include_router(router, prefix='/api')
