@@ -22,6 +22,11 @@ jobs:
           
       - name: Instalacja zależności i testy
         working-directory: ./backend  # Wchodzi do folderu backendu!
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          NEON_URL: ${{ secrets.NEON_URL }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           pip install -r requirements.txt
           pip install pytest httpx
