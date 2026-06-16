@@ -389,6 +389,8 @@ async def log_meal(
 ):
     user_id = current_user["user_id"]
     eaten_at = body.eaten_at or datetime.now(timezone.utc)
+    has_photo = bool(body.photo_url)
+    exp_amount = 0 if has_photo else calculate_meal_exp(body.health_score)
 
     last_activity_date = await queries.get_last_activity_date(db, user_id)
     active_challenges = await queries.get_active_challenges_for_trigger(db, user_id, "meal_logged")
@@ -404,11 +406,11 @@ async def log_meal(
                 p_title          => :title,
                 p_photo_url      => :photo_url,
                 p_notes          => :notes,
-                p_health_score   => NULL,
+                p_health_score   => CAST(:health_score AS smallint),
                 p_ai_confidence  => NULL,
-                p_grant_exp      => false,
-                p_exp_amount     => 0,
-                p_exp_reason     => 'Meal pending',
+                p_grant_exp      => :grant_exp,
+                p_exp_amount     => :exp_amount,
+                p_exp_reason     => :exp_reason,
                 p_exp_created_at => :eaten_at
             )
         """),
@@ -419,6 +421,10 @@ async def log_meal(
             "title": body.title,
             "photo_url": body.photo_url,
             "notes": body.notes,
+            "health_score": None if has_photo else body.health_score,
+            "grant_exp": not has_photo,
+            "exp_amount": exp_amount,
+            "exp_reason": "Meal pending" if has_photo else "Meal logged",
         },
     )
 
@@ -427,6 +433,12 @@ async def log_meal(
         {"uid": user_id},
     )
     meal_id = row.scalar_one()
+
+    if not has_photo:
+        await db.execute(
+            text("UPDATE meals SET status = 'completed' WHERE id = :meal_id"),
+            {"meal_id": meal_id},
+        )
 
     # Challenge tracking
     for challenge in active_challenges:
@@ -457,7 +469,8 @@ async def log_meal(
 
     await db.commit()
 
-    background_tasks.add_task(process_meal_with_ai, meal_id, body.photo_url, user_id)
+    if has_photo:
+        background_tasks.add_task(process_meal_with_ai, meal_id, body.photo_url, user_id)
 
     rewards = [
         ChallengeRewardItem(
@@ -469,10 +482,10 @@ async def log_meal(
     ]
     return MealLoggedResponse(
         meal_id=meal_id,
-        status="pending",
-        exp_granted=0,
+        status="pending" if has_photo else "completed",
+        exp_granted=exp_amount,
         rewards=rewards,
-        message="Zdjęcie odebrane. AI analizuje posiłek...",
+        message="Zdjęcie odebrane. AI analizuje posiłek..." if has_photo else "Posiłek zapisany",
     )
 
 @router.get("/meals/{meal_id}", response_model=MealStatusResponse, tags=["Activity"], summary="Pobierz status posiłku")

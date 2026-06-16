@@ -127,6 +127,26 @@ async def test_log_meal_with_mock_ai(client, logged_in_headers):
     assert "meal_id" in response.json()
 
 @pytest.mark.asyncio
+async def test_log_meal_without_photo_does_not_start_ai(client, logged_in_headers):
+    with patch("app.api.routes.process_meal_with_ai") as mock_ai:
+        response = await client.post(
+            "/api/meals",
+            headers=logged_in_headers,
+            json={
+                "meal_type": "breakfast",
+                "title": "Breakfast",
+                "health_score": 4,
+                "notes": "Oats"
+            }
+        )
+
+    assert response.status_code == 202
+    data = response.json()
+    assert data["status"] == "completed"
+    assert data["exp_granted"] > 0
+    mock_ai.assert_not_called()
+
+@pytest.mark.asyncio
 async def test_profile_updates_after_workout(client, logged_in_headers):
     profile_res_before = await client.get("/api/profile", headers=logged_in_headers)
     exp_before = profile_res_before.json()["total_exp"]
