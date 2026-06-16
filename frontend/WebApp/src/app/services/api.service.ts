@@ -1,8 +1,86 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
+
+// ─── Domena grywalizacji (statystyki, questy, osiągnięcia) ───
+export interface Stat {
+  name: string;
+  value: number;
+  max: number;
+  icon: string;
+  color: string;
+}
+
+export interface Quest {
+  id: number;
+  code: string;
+  title: string;
+  description: string | null;
+  quest_type: string;
+  progression_mode: string;
+  quest_series_code: string | null;
+  sequence_order: number | null;
+  target_value: number;
+  reward_exp: number;
+  mechanic_type: string;
+  event_trigger: string;
+  conditions: Record<string, unknown>;
+}
+ 
+export interface UserQuest {
+  quest: Quest;
+  status: 'active' | 'completed' | 'failed' | string;
+  progress_value: number;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
+
+export interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt: string | null;
+  locked: boolean;
+}
+ 
+// ─── Wyzwania ────────────────────────────────────────────────────────────────
+ 
+export interface Challenge {
+  id: number;
+  code: string;
+  title: string;
+  description: string | null;
+  quest_type: string;
+  goal_value: number;
+  reward_exp: number;
+  mechanic_type: string;
+  event_trigger: string;
+  end_date: string | null;
+}
+ 
+export interface UserChallenge {
+  challenge: Challenge;
+  status: 'active' | 'completed' | 'failed' | string;
+  progress_value: number;
+  started_at: string | null;
+  completed_at: string | null;
+}
+ 
+export interface GameContent {
+  quests: UserQuest[];
+  challenges: UserChallenge[];
+}
+
+export interface WeeklyActivity {
+  day: string;
+  workouts: number;
+  minutes: number;
+}
 
 export interface ExerciseRow {
   exercise_name: string;
@@ -104,6 +182,12 @@ export interface UpdateProfileRequest {
   activity_level?: string;
 }
 
+export interface WeeklyActivityChartData {
+  date: string;
+  workouts_count: number;
+  meals_count: number;
+}
+
 export interface UserSettingsData {
   data_processing_consent: boolean;
   profile_public: boolean;
@@ -153,4 +237,39 @@ export class ApiService {
   getWorkouts(): Observable<WorkoutData[]> {
     return this.http.get<WorkoutData[]>(`${this.baseUrl}/workouts`, { headers: this.headers() });
   }
+
+  // ─── Grywalizacja ───────────────────────────────────────────────────────────
+  // Statystyki (Stat[]) są wyliczane z historii treningów po stronie klienta
+  // (stats.util.ts) na podstawie endpointu /workouts — patrz Dev-73.
+
+
+  getWeeklyActivity(): Observable<WeeklyActivityChartData[]> {
+  return this.http.get<WeeklyActivityChartData[]>(`${this.baseUrl}/weekly-activity`, { headers: this.headers() });
+  }
+
+
+  getQuests(): Observable<UserQuest[]> {
+    return this.http
+      .get<UserQuest[]>(`${this.baseUrl}/quests`, { headers: this.headers() })
+      .pipe(catchError(() => of<UserQuest[]>([])));
+  }
+ 
+  getChallenges(): Observable<UserChallenge[]> {
+    return this.http
+      .get<UserChallenge[]>(`${this.baseUrl}/challenges`, { headers: this.headers() })
+      .pipe(catchError(() => of<UserChallenge[]>([])));
+  }
+ 
+  /** Pobiera questy i wyzwania jednym żądaniem (mobile-friendly). */
+  getGameContent(): Observable<GameContent> {
+    return this.http
+      .get<GameContent>(`${this.baseUrl}/game-content`, { headers: this.headers() })
+      .pipe(catchError(() => of<GameContent>({ quests: [], challenges: [] })));
+  }
+ 
+  getAchievements(): Observable<Achievement[]> {
+    return this.http
+      .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
+      .pipe(catchError(() => of<Achievement[]>([])));
+  } 
 }

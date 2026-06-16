@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException, RequestValidationError
 from app.api.routes import router
+from app.core.security_headers import SecurityHeadersMiddleware
 
 app = FastAPI(
     title='FITRPG Backend Api',
@@ -25,6 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
+
 @app.exception_handler(HTTPException)
 async def not_found_handler(request: Request, exc: HTTPException):
     return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
@@ -33,5 +36,8 @@ async def not_found_handler(request: Request, exc: HTTPException):
 async def validation_error_handler(reques: Request, exc: RequestValidationError):
     return JSONResponse(status_code=422, content={"error": "Nieprawidlowe dane wejsciowe"})
 
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"status": "ok", "service": "FITRPG Backend API"}
 
 app.include_router(router, prefix='/api')

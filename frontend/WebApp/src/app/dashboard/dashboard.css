@@ -457,6 +457,18 @@
   font-size: 14px;
 }
 
+.empty-hint {
+  text-align: center;
+  padding: 28px 24px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--card-bg, #fff);
+  border: 1px dashed var(--border, #e6f4ed);
+  border-radius: 12px;
+}
+
 /* ─── Complete button ─── */
 .complete-btn {
   background: var(--green);
@@ -879,4 +891,21 @@
   .summary-xp { width: 100%; }
   .profile-form-grid { grid-template-columns: 1fr; }
   .profile-hero-card { flex-direction: column; align-items: flex-start; }
+}
+
+.pf-header-section {
+  margin-bottom: 24px;
+}
+
+.pf-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #ffffff; /* Dostosuj do Waszego motywu */
+}
+
+.pf-subtitle {
+  font-size: 0.9rem;
+  color: #aaaaaa; /* Szary, wyblakły kolor, żeby nie odciągał uwagi */
+  margin: 0;
 }

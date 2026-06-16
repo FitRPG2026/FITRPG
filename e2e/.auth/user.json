@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://fitrpg2026.vercel.app",
+      "localStorage": [
+        {
+          "name": "jwt_token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MyIsImVtYWlsIjoidGVzdF9nbG9iYWxueUBleGFtcGxlLmNvbSIsImV4cCI6MTc3OTk5Mzk3MH0.QGotyfZGzprdalGZbpzV2LM2zfGP70T6KP6ETmiZlBM"
+        }
+      ]
+    }
+  ]
+}

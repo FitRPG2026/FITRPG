@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  sut:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: fitrpg_test_runner
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      

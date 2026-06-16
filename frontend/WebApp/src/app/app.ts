@@ -1,12 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ToastContainerComponent } from './components/toast-container/toast-container';
+import { SplashScreen } from './components/splash-screen/splash-screen';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ToastContainerComponent],
+  imports: [RouterOutlet, SplashScreen],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class AppComponent { }
+export class AppComponent {
+
+  isServerReady = signal(false);
+
+  onServerReady() {
+    this.isServerReady.set(true);
+  }
+
+ }

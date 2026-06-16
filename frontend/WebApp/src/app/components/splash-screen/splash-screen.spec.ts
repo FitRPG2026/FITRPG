@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RegisterComponent } from './register';
+import { SplashScreen } from './splash-screen';
 
-describe('RegisterComponent', () => {
-  let component: RegisterComponent;
-  let fixture: ComponentFixture<RegisterComponent>;
+describe('SplashScreen', () => {
+  let component: SplashScreen;
+  let fixture: ComponentFixture<SplashScreen>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RegisterComponent],
+      imports: [SplashScreen],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(RegisterComponent);
+    fixture = TestBed.createComponent(SplashScreen);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

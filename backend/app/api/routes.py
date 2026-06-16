@@ -13,10 +13,23 @@ from ..core.exp_utils import compute_level
 from ..core.ml_service import process_meal_with_ai
 from ..core.security import hash_password, verify_password, create_access_token, get_current_user
 from ..schemas import (
-    RegisterRequest, LoginRequest, TokenResponse, MeResponse,
-    UpsertProfileRequest, ProfileResponse,
-    UpdateSettingsRequest, UserSettingsResponse,
+    RegisterRequest, 
+    LoginRequest, 
+    TokenResponse, 
+    MeResponse, 
+    UpdateProfileRequest, 
+    UserProfileResponse, 
+    UpdateSettingsRequest, 
+    UserSettingsResponse, 
+    WorkoutRequest, 
+    WorkoutResponse, 
+    MealRequest, 
+    MealResponse, 
     ChallengeRewardItem,
+    QuestResponse, ChallengeResponse,
+    UserQuestResponse, UserChallengeResponse,
+    GameContentResponse,
+    UpsertProfileRequest, ProfileResponse,
     LogWorkoutRequest, WorkoutLoggedResponse,
     LogMealRequest, MealLoggedResponse, MealStatusResponse,
     ErrorResponse,
@@ -376,6 +389,8 @@ async def log_meal(
 ):
     user_id = current_user["user_id"]
     eaten_at = body.eaten_at or datetime.now(timezone.utc)
+    has_photo = bool(body.photo_url)
+    exp_amount = 0 if has_photo else calculate_meal_exp(body.health_score)
 
     last_activity_date = await queries.get_last_activity_date(db, user_id)
     active_challenges = await queries.get_active_challenges_for_trigger(db, user_id, "meal_logged")
@@ -391,11 +406,11 @@ async def log_meal(
                 p_title          => :title,
                 p_photo_url      => :photo_url,
                 p_notes          => :notes,
-                p_health_score   => NULL,
+                p_health_score   => CAST(:health_score AS smallint),
                 p_ai_confidence  => NULL,
-                p_grant_exp      => false,
-                p_exp_amount     => 0,
-                p_exp_reason     => 'Meal pending',
+                p_grant_exp      => :grant_exp,
+                p_exp_amount     => :exp_amount,
+                p_exp_reason     => :exp_reason,
                 p_exp_created_at => :eaten_at
             )
         """),
@@ -406,6 +421,10 @@ async def log_meal(
             "title": body.title,
             "photo_url": body.photo_url,
             "notes": body.notes,
+            "health_score": None if has_photo else body.health_score,
+            "grant_exp": not has_photo,
+            "exp_amount": exp_amount,
+            "exp_reason": "Meal pending" if has_photo else "Meal logged",
         },
     )
 
@@ -414,6 +433,12 @@ async def log_meal(
         {"uid": user_id},
     )
     meal_id = row.scalar_one()
+
+    if not has_photo:
+        await db.execute(
+            text("UPDATE meals SET status = 'completed' WHERE id = :meal_id"),
+            {"meal_id": meal_id},
+        )
 
     # Challenge tracking
     for challenge in active_challenges:
@@ -444,7 +469,8 @@ async def log_meal(
 
     await db.commit()
 
-    background_tasks.add_task(process_meal_with_ai, meal_id, body.photo_url, user_id)
+    if has_photo:
+        background_tasks.add_task(process_meal_with_ai, meal_id, body.photo_url, user_id)
 
     rewards = [
         ChallengeRewardItem(
@@ -456,10 +482,10 @@ async def log_meal(
     ]
     return MealLoggedResponse(
         meal_id=meal_id,
-        status="pending",
-        exp_granted=0,
+        status="pending" if has_photo else "completed",
+        exp_granted=exp_amount,
         rewards=rewards,
-        message="Zdjęcie odebrane. AI analizuje posiłek...",
+        message="Zdjęcie odebrane. AI analizuje posiłek..." if has_photo else "Posiłek zapisany",
     )
 
 @router.get("/meals/{meal_id}", response_model=MealStatusResponse, tags=["Activity"], summary="Pobierz status posiłku")
@@ -480,7 +506,7 @@ async def get_meal_status(
         raise HTTPException(status_code=404, detail="Posiłek nie znaleziony")
 
     exp_granted = calculate_meal_exp(meal["health_score"]) if meal["health_score"] is not None else 0
-
+    
     return MealStatusResponse(
         meal_id=meal["id"],
         status=meal["status"],
@@ -488,3 +514,322 @@ async def get_meal_status(
         photo_url=meal["photo_url"],
         exp_granted=exp_granted,
     )
+
+
+
+@router.get("/weekly-activity", response_model=list[dict], tags=["Activity"], summary="Pobierz aktywność z ostatnich 7 dni")
+async def get_weekly_activity(
+    current_user: dict = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
+    user_id = current_user["user_id"]
+    query = text("""
+        WITH dates AS (
+            SELECT current_date - i AS d
+            FROM generate_series(0, 6) i
+        ),
+        w_counts AS (
+            SELECT DATE(performed_at) AS d, COUNT(*) as w_count
+            FROM workouts
+            WHERE user_id = :uid AND performed_at >= current_date - interval '7 days'
+            GROUP BY 1
+        ),
+        m_counts AS (
+            SELECT DATE(eaten_at) AS d, COUNT(*) as m_count
+            FROM meals
+            WHERE user_id = :uid AND eaten_at >= current_date - interval '7 days'
+            GROUP BY 1
+        )
+        SELECT
+            to_char(dates.d, 'YYYY-MM-DD') AS date,
+            COALESCE(w_counts.w_count, 0) AS workouts_count,
+            COALESCE(m_counts.m_count, 0) AS meals_count
+        FROM dates
+        LEFT JOIN w_counts ON dates.d = w_counts.d
+        LEFT JOIN m_counts ON dates.d = m_counts.d
+        ORDER BY dates.d ASC
+    """)
+    result = await db.execute(query, {"uid": user_id})
+    return [dict(r) for r in result.mappings().all()]
+
+
+
+
+
+
+
+
+
+# ─── Settings ─────────────────────────────────────────────────────────────────
+
+@router.get("/settings", response_model=UserSettingsResponse, tags=["Profile"], summary="Pobierz ustawienia prywatności")
+async def get_settings(current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    settings = await queries.get_user_settings(db, current_user["user_id"])
+    return UserSettingsResponse(**settings)
+
+
+@router.put("/settings", response_model=UserSettingsResponse, tags=["Profile"], summary="Zaktualizuj ustawienia prywatności")
+async def update_settings(body: UpdateSettingsRequest, current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    await queries.upsert_user_settings(db, current_user["user_id"], body.data_processing_consent, body.profile_public)
+    await db.commit()
+    return UserSettingsResponse(data_processing_consent=body.data_processing_consent, profile_public=body.profile_public)
+
+
+
+
+# ─── Quests & Challenges ───────────────────────────────────────────────────────
+
+@router.get(
+    "/quests",
+    response_model=list[UserQuestResponse],
+    tags=["Progress"],
+    summary="Pobierz questy użytkownika",
+)
+async def get_quests(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    rows = await queries.get_user_quests(db, current_user["user_id"])
+    return [
+        UserQuestResponse(
+            quest=QuestResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                progression_mode=r["progression_mode"],
+                quest_series_code=r.get("quest_series_code"),
+                sequence_order=r.get("sequence_order"),
+                target_value=float(r["target_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                conditions=r["conditions"],
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/challenges",
+    response_model=list[UserChallengeResponse],
+    tags=["Progress"],
+    summary="Pobierz wyzwania użytkownika",
+)
+async def get_challenges(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        rows = await queries.get_user_challenges(db, current_user["user_id"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Błąd bazy: {str(e)}")
+    return [
+        UserChallengeResponse(
+            challenge=ChallengeResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                goal_value=float(r["goal_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                end_date=r.get("end_date"),
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in rows
+    ]
+
+        
+
+
+@router.get(
+    "/game-content",
+    response_model=GameContentResponse,
+    tags=["Progress"],
+    summary="Pobierz questy i wyzwania naraz",
+)
+async def get_game_content(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Single endpoint returning both quests and challenges — useful for mobile app startup."""
+    quest_rows = await queries.get_user_quests(db, current_user["user_id"])
+    challenge_rows = await queries.get_user_challenges(db, current_user["user_id"])
+
+    quests = [
+        UserQuestResponse(
+            quest=QuestResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                progression_mode=r["progression_mode"],
+                quest_series_code=r.get("quest_series_code"),
+                sequence_order=r.get("sequence_order"),
+                target_value=float(r["target_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                conditions=r["conditions"],
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in quest_rows
+    ]
+
+    challenges = [
+        UserChallengeResponse(
+            challenge=ChallengeResponse(
+                id=r["id"], code=r["code"], title=r["title"],
+                description=r.get("description"),
+                quest_type=r["quest_type"],
+                goal_value=float(r["goal_value"]),
+                reward_exp=r["reward_exp"],
+                mechanic_type=r["mechanic_type"],
+                event_trigger=r["event_trigger"],
+                end_date=r.get("end_date"),
+            ),
+            status=r["status"],
+            progress_value=float(r["progress_value"]),
+            started_at=r.get("started_at"),
+            completed_at=r.get("completed_at"),
+        )
+        for r in challenge_rows
+    ]
+
+    return GameContentResponse(quests=quests, challenges=challenges)
+
+
+
+
+# # ─── Workouts ─────────────────────────────────────────────────────────────────
+
+# @router.post("/workouts", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED, tags=["Activity"], summary="Zapisz trening")
+# async def log_workout(body: WorkoutRequest, current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+#     user_id = current_user["user_id"]
+#     performed_at = body.performed_at or datetime.now(timezone.utc)
+#     exp_amount = compute_workout_exp(body.duration_min, body.workout_type)
+
+#     active_challenges = await queries.get_active_challenges_for_trigger(db, user_id, "workout_logged")
+#     challenge_ids = [r["challenge_id"] for r in active_challenges]
+
+#     import json
+#     exercises_json = json.dumps([
+#         {
+#             "exercise_name": e.exercise_name,
+#             "exercise_order": e.exercise_order,
+#             "exercise_group": e.exercise_group,
+#             "sets": e.sets,
+#             "reps": e.reps,
+#             "weight_kg": float(e.weight_kg) if e.weight_kg is not None else None,
+#             "notes": e.notes,
+#         }
+#         for e in body.exercises
+#     ])
+
+#     await db.execute(
+#         text("""
+#             CALL proc_log_workout(
+#                 :user_id, :workout_type, :title, :performed_at,
+#                 :duration_min, NULL, :notes, CAST(:exercises AS jsonb),
+#                 TRUE, :exp_amount, 'Workout logged', NULL,
+#                 :activity_category, NULL, NULL
+#             )
+#         """),
+#         {
+#             "user_id": user_id,
+#             "workout_type": body.workout_type,
+#             "title": body.title,
+#             "performed_at": performed_at,
+#             "duration_min": body.duration_min,
+#             "notes": body.notes or "",
+#             "exercises": exercises_json,
+#             "exp_amount": exp_amount,
+#             "activity_category": body.activity_category,
+#         },
+#     )
+
+#     for cid in challenge_ids:
+#         await db.execute(
+#             text("CALL proc_update_challenge_progress(:uid, :cid, :delta, NULL, :ts, NULL)"),
+#             {"uid": user_id, "cid": cid, "delta": 1, "ts": performed_at},
+#         )
+
+#     row = await db.execute(
+#         text("SELECT id FROM workouts WHERE user_id = :uid ORDER BY created_at DESC LIMIT 1"),
+#         {"uid": user_id},
+#     )
+#     workout_id = row.scalar_one()
+
+#     newly_completed = await queries.get_newly_completed_challenges(db, user_id, challenge_ids)
+#     await db.commit()
+
+#     rewards = [
+#         ChallengeRewardItem(challenge_id=r["challenge_id"], title=r["title"], points_earned=r["reward_exp"])
+#         for r in newly_completed
+#     ]
+#     return WorkoutResponse(workout_id=workout_id, exp_granted=exp_amount, rewards=rewards)
+
+
+# # ─── Meals ────────────────────────────────────────────────────────────────────
+
+# @router.post("/meals", response_model=MealResponse, status_code=status.HTTP_201_CREATED, tags=["Activity"], summary="Zapisz posiłek")
+# async def log_meal(body: MealRequest, current_user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+#     user_id = current_user["user_id"]
+#     eaten_at = body.eaten_at or datetime.now(timezone.utc)
+#     exp_amount = compute_meal_exp(body.health_score)
+
+#     active_challenges = await queries.get_active_challenges_for_trigger(db, user_id, "meal_logged")
+#     challenge_ids = [r["challenge_id"] for r in active_challenges]
+
+#     await db.execute(
+#         text("""
+#             CALL proc_log_meal(
+#                 :user_id, :meal_type, :eaten_at, :title,
+#                 NULL, :notes, :health_score, NULL,
+#                 TRUE, :exp_amount, 'Meal logged', NULL
+#             )
+#         """),
+#         {
+#             "user_id": user_id,
+#             "meal_type": body.meal_type,
+#             "eaten_at": eaten_at,
+#             "title": body.title,
+#             "notes": body.notes or "",
+#             "health_score": body.health_score,
+#             "exp_amount": exp_amount,
+#         },
+#     )
+
+#     for cid in challenge_ids:
+#         await db.execute(
+#             text("CALL proc_update_challenge_progress(:uid, :cid, :delta, NULL, :ts, NULL)"),
+#             {"uid": user_id, "cid": cid, "delta": 1, "ts": eaten_at},
+#         )
+
+#     row = await db.execute(
+#         text("SELECT id FROM meals WHERE user_id = :uid ORDER BY created_at DESC LIMIT 1"),
+#         {"uid": user_id},
+#     )
+#     meal_id = row.scalar_one()
+
+#     newly_completed = await queries.get_newly_completed_challenges(db, user_id, challenge_ids)
+#     await db.commit()
+
+#     rewards = [
+#         ChallengeRewardItem(challenge_id=r["challenge_id"], title=r["title"], points_earned=r["reward_exp"])
+#         for r in newly_completed
+#     ]
+#     return MealResponse(meal_id=meal_id, exp_granted=exp_amount, rewards=rewards)
+
