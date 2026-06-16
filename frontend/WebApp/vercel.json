@@ -1,5 +1,5 @@
 {
-  "outputDirectory": "dist/my-login-app/browser",
+  "outputDirectory": "dist/fitrpg2026/browser",
   "rewrites": [
     {
       "source": "/(.*)",
