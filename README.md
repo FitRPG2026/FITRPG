@@ -3,9 +3,9 @@
 > **Web app for health created by students.** > FITRPG to aplikacja webowa łącząca dbanie o zdrowy styl życia z elementami grywalizacji. Trenuj, jedz zdrowo, zdobywaj punkty i podejmuj wyzwania!
 
 
-*Produkcja:* fitrpg-mocha.vercel.app
+*Produkcja:* [fitrpg-mocha.vercel.app]
 
-*Stagging:* fitrpg2026.vercel.app
+*Stagging:* [fitrpg2026.vercel.app]
 
 Przygotowana przez:
 - Maciej Dąbrowski
