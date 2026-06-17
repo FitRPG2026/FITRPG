@@ -192,19 +192,22 @@ private loadProfile(): void {
 }
   
 private loadWeeklyActivity(): void {
-    this.loadingChart = true; // Włączamy loader wykresu
+    this.loadingChart = true;
     
     this.api.getWeeklyActivity()
-      .pipe(finalize(() => this.loadingChart = false)) // Wyłączamy natychmiast po pobraniu!
+      .pipe(finalize(() => this.loadingChart = false))
       .subscribe({
         next: (data) => {
           this.weeklyChartData = data;
-          const max = Math.max(...data.map(d => d.workouts_count + d.meals_count));
+          const max = Math.max(...data.map(d => (d.workouts_count || 0) + (d.meals_count || 0)));
           this.maxActivityCount = max > 0 ? max : 1;
         },
-        error: () => { this.weeklyChartData = []; }
+        error: () => { 
+          this.weeklyChartData = []; 
+          this.loadingChart = false;
+        }
       });
-  }
+}
 
   getDayLabel(dateStr: string): string {
     const d = new Date(dateStr);
