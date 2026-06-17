@@ -8,15 +8,17 @@
 *Stagging:* [https://fitrpg2026.vercel.app](https://fitrpg2026.vercel.app)
 
 Przygotowana przez:
-- Maciej Dąbrowski
-- Jakub Dąbrowski
-- Jakub Rosa
-- Maja Szerszeń
-- Joanna Dagil
-- Stanisław Mierzejewski
-- Semion Lisichik
-- Antoni Szymański
-- Wojciech Seńko
+- Maciej Dąbrowski ( PM, Tech Lead) [ Zarządzanie projektem i zespołem, Architektura i DevOps, Full-Stack Development]
+- Jakub Rosa ( Backend developer) [endpointy, logika, bezpieczeństwo, łączenie chmur, rozbudowanie logowania]
+- Maja Szerszeń ( Backend dev., DB enginner) [logowanie z jwt, logika, łączenie z bazą, wdrożenie bazy, wyzwania, podstawy architektury lokalnej]
+- Wojciech Seńko ( DB engineer, Fulstack dev.) [ zaprojektowanie bazy, segment cloudinary, wstępne testowe dane, przygotownanie gotowego komponentu]
+- Semion Lisichik ( Backend dev., Test dev.) [logika statystyk, testy jednostkowe i E2E, dokumentacja, rywalizacja]
+- Antoni Szymański ( Frontend dev.) [ większość frontu od strony UI i UX, przygotowanie mniejszego komponentu, mock upy]
+- Jakub Dąbrowski (Frontend dev.) [ większość frontu od strony logiki i funckjonowania, rozbudowanie logowania, ekrany]
+- Joanna Dagil ( ML eng.) [ przygotowanie modeli, testy modeli, pomoc przy architekturze ML 
+- Stanisław Mierzejewski ( ML eng.) [rozwinięcie datasetu, przygotowanie wyzwań, dokumentacja pdf]
+
+
 
 ## ✨ Główne funkcjonalności
 
