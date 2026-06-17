@@ -193,20 +193,20 @@ private loadProfile(): void {
   
 private loadWeeklyActivity(): void {
     this.loadingChart = true;
-    
-    this.api.getWeeklyActivity()
-      .pipe(finalize(() => this.loadingChart = false))
-      .subscribe({
-        next: (data) => {
-          this.weeklyChartData = data;
-          const max = Math.max(...data.map(d => (d.workouts_count || 0) + (d.meals_count || 0)));
-          this.maxActivityCount = max > 0 ? max : 1;
-        },
-        error: () => { 
-          this.weeklyChartData = []; 
-          this.loadingChart = false;
-        }
-      });
+    this.api.getWeeklyActivity().subscribe({
+      next: (data) => {
+        console.log("Dane z API dla wykresu:", data); 
+        this.weeklyChartData = data;
+        const max = Math.max(...data.map(d => (d.workouts_count || 0) + (d.meals_count || 0)));
+        this.maxActivityCount = max > 0 ? max : 1;
+        this.loadingChart = false;
+      },
+      error: (err) => { 
+        console.error("Błąd pobierania wykresu:", err);
+        this.weeklyChartData = []; 
+        this.loadingChart = false;
+      }
+    });
 }
 
   getDayLabel(dateStr: string): string {
