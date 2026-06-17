@@ -88,7 +88,6 @@
         </div>
 
         <div class="hero-card quests-card">
-          <div *ngIf="loadingQuests" class="card-skeleton"></div>
           <div *ngIf="!loadingQuests">
             <div class="card-label">Dziś ukończono</div>
             <div class="card-value-big">{{ completedQuests.length }}<span class="card-denom">/{{ quests.length }}</span></div>
