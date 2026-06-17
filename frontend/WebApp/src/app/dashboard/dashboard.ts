@@ -191,7 +191,6 @@ private loadWeeklyActivity(): void {
     this.loadingChart = true;
     this.api.getWeeklyActivity().subscribe({
       next: (data) => {
-        console.log("Dane otrzymane:", data);
         this.weeklyChartData = data;
 
         const max = Math.max(...data.map(d => 
