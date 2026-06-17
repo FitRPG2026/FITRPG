@@ -107,14 +107,14 @@
             <div class="bar-group" *ngFor="let day of weeklyChartData">
               <div class="bar-track" style="display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;">
                 <div class="bar-fill" 
-                     *ngIf="day.meals_count > 0"
-                     [style.height.%]="(day.meals_count / maxActivityCount) * 100" 
-                     style="background-color: #2ecc71; width: 100%; border-radius: 4px 4px 0 0;">
+                  *ngIf="day.meals_count > 0"
+                  [style.height.%]="(day.meals_count / maxActivityCount) * 100" 
+                  style="background-color: #2ecc71; width: 100%; border-radius: 4px 4px 0 0;">
                 </div>
                 <div class="bar-fill" 
-                     *ngIf="day.workouts_count > 0"
-                     [style.height.%]="(day.workouts_count / maxActivityCount) * 100" 
-                     style="background-color: #3498db; width: 100%; border-radius: 0 0 4px 4px;">
+                   *ngIf="day.workouts_count > 0"
+                   [style.height.%]="(day.workouts_count / maxActivityCount) * 100" 
+                   style="background-color: #3498db; width: 100%; border-radius: 0 0 4px 4px;">
                 </div>
               </div>
               <div class="bar-day">{{ getDayLabel(day.date) }}</div>
