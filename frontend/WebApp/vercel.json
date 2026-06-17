@@ -1,5 +1,4 @@
 {
-  "outputDirectory": "frontend/WebApp/dist/my-login-app",
   "rewrites": [
     {
       "source": "/(.*)",
