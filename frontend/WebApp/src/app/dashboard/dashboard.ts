@@ -121,22 +121,23 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    // Ładujemy profil jako priorytet
+    setTimeout(() => {
+      this.loadWeeklyActivity();
+    }, 150);
+
     this.api.getProfile().subscribe({
       next: (p) => {
         this.profile = this.withLevelProgress(p);
         this.loadingProfile = false;
-        // Dopiero gdy mamy profil, ładujemy resztę zależną od profilu
+        
+        // Ładujemy resztę rzeczy zależnych od profilu
         this.loadSettings();
-        this.loadWeeklyActivity();
         this.loadWorkoutsDerived();
         this.loadQuests();
         this.loadChallenges();
-
       },
       error: () => { 
         this.loadingProfile = false; 
-        // Opcjonalnie: przekierowanie do login, jeśli token wygasł
       }
     });
   }
