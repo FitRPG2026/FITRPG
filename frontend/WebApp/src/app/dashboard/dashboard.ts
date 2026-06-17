@@ -121,20 +121,15 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    setTimeout(() => {
-      this.loadWeeklyActivity();
-    }, 150);
-
     this.api.getProfile().subscribe({
       next: (p) => {
         this.profile = this.withLevelProgress(p);
         this.loadingProfile = false;
-        
-        // Ładujemy resztę rzeczy zależnych od profilu
+
         this.loadSettings();
-        this.loadWorkoutsDerived();
-        this.loadQuests();
-        this.loadChallenges();
+        
+
+        this.setTab('dashboard');
       },
       error: () => { 
         this.loadingProfile = false; 
