@@ -195,11 +195,15 @@ private loadWeeklyActivity(): void {
     this.loadingChart = true;
     this.api.getWeeklyActivity().subscribe({
       next: (data) => {
-        console.log("Dane z API dla wykresu:", data); 
+        console.log("Dane otrzymane:", data);
         this.weeklyChartData = data;
-        const max = Math.max(...data.map(d => (d.workouts_count || 0) + (d.meals_count || 0)));
-        this.maxActivityCount = max > 0 ? max : 1;
-        this.loadingChart = false;
+
+        const max = Math.max(...data.map(d => 
+        (Number(d.workouts_count) || 0) + (Number(d.meals_count) || 0)
+          ));
+  
+          this.maxActivityCount = max > 0 ? max : 1;
+          this.loadingChart = false;
       },
       error: (err) => { 
         console.error("Błąd pobierania wykresu:", err);
