@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core'; 
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -112,6 +112,7 @@ export class DashboardComponent implements OnInit {
     private api: ApiService,
     private notificationService: NotificationService,
     private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -125,18 +126,17 @@ export class DashboardComponent implements OnInit {
       next: (p) => {
         this.profile = this.withLevelProgress(p);
         this.loadingProfile = false;
-
         this.loadSettings();
-        
-
-        this.setTab('dashboard');
+        this.loadWeeklyActivity(); // Wywołujemy standardowo
+        this.loadWorkoutsDerived();
+        this.loadQuests();
+        this.loadChallenges();
       },
       error: () => { 
         this.loadingProfile = false; 
       }
     });
   }
-
   // Przełączenie zakładki dociąga świeże dane, by stany (ukończone questy,
   // punkty, aktywność) nie wymagały ręcznego odświeżenia ekranu (Dev-86).
   setTab(tab: Tab) {
@@ -200,11 +200,13 @@ private loadWeeklyActivity(): void {
   
           this.maxActivityCount = max > 0 ? max : 1;
           this.loadingChart = false;
+          this.cdr.detectChanges();
       },
       error: (err) => { 
         console.error("Błąd pobierania wykresu:", err);
         this.weeklyChartData = []; 
         this.loadingChart = false;
+        this.cdr.detectChanges();
       }
     });
 }
