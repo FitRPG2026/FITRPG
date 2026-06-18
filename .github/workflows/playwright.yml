@@ -38,6 +38,7 @@ jobs:
   e2e-tests:
     name: Frontend Playwright
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Pobranie kodu
         uses: actions/checkout@v4
@@ -51,9 +52,17 @@ jobs:
         working-directory: ./e2e
         run: npm ci
         
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('e2e/package-lock.json') }}
+
       - name: Instalacja przeglądarek Playwright
+        if: steps.pw-cache.outputs.cache-hit != 'true'
         working-directory: ./e2e
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium
         
       - name: Uruchomienie testów
         working-directory: ./e2e

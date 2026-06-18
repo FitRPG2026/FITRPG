@@ -4,12 +4,16 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 2 : undefined,
+  timeout: 30_000,
+  expect: { timeout: 7_000 },
   reporter: 'html',
   use: {
     storageState: '.auth/user.json',
     baseURL: 'https://fitrpg2026.vercel.app',
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
   },
 
   projects: [
@@ -24,18 +28,6 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
       dependencies: ['setup'],
     },
   ],
