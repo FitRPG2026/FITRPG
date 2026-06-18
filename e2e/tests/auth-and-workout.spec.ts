@@ -43,14 +43,66 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
     await expect(wf.getByText(/czas trwania musi być większy od 0/i)).toBeVisible();
   });
 
+  test('A3: Wejście do profilu po logowaniu', async ({ page }) => {
+    await page.getByRole('button', { name: /profil/i }).click();
+    await expect(page.getByRole('heading', { name: /profil/i })).toBeVisible();
+    await expect(page.getByText(/poziom/i).first()).toBeVisible();
+    await expect(page.getByText(/xp łącznie/i)).toBeVisible();
+  });
+
+  test('A4: Sprawdzenie poprawności danych w profilu', async ({ page }) => {
+    await page.getByRole('button', { name: /profil/i }).click();
+    await expect(page.getByText(/poziom\s*\d+/i).first()).toBeVisible();
+    await expect(page.getByText(/xp łącznie/i)).toBeVisible();
+  });
+
+  test('B4: Trening z notatkami pojawia się w historii', async ({ page }) => {
+    await page.getByRole('button', { name: /trening/i }).click();
+    const wf = page.locator('app-workout-form');
+    const tytul = 'Notatki ' + Date.now();
+    await wf.getByPlaceholder('np. Klatka piersiowa').fill(tytul);
+    await wf.locator('select.form-select').selectOption('general');
+    await wf.locator('input[type="number"]').first().fill('45');
+    await wf.getByPlaceholder('Jak minął trening?').fill('Test notatki');
+    await wf.getByRole('button', { name: /zapisz trening/i }).click();
+    await expect(wf.getByText(/trening zapisany/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('app-progress').getByText(tytul)).toBeVisible({ timeout: 15_000 });
+  });
+
+  test('B5: Trening typu Cardio pojawia się w historii', async ({ page }) => {
+    await page.getByRole('button', { name: /trening/i }).click();
+    const wf = page.locator('app-workout-form');
+    const tytul = 'Cardio ' + Date.now();
+    await wf.getByPlaceholder('np. Klatka piersiowa').fill(tytul);
+    await wf.locator('select.form-select').selectOption('cardio');
+    await wf.locator('input[type="number"]').first().fill('60');
+    await wf.getByRole('button', { name: /zapisz trening/i }).click();
+    await expect(wf.getByText(/trening zapisany/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('app-progress').getByText(tytul)).toBeVisible({ timeout: 15_000 });
+  });
+
+  test('D1: Dodawanie treningu z bardzo długim tytułem', async ({ page }) => {
+    await page.getByRole('button', { name: /trening/i }).click();
+    const wf = page.locator('app-workout-form');
+    await wf.getByPlaceholder('np. Klatka piersiowa').fill('A'.repeat(200));
+    await wf.locator('select.form-select').selectOption('general');
+    await wf.locator('input[type="number"]').first().fill('30');
+    await wf.getByRole('button', { name: /zapisz trening/i }).click();
+    await expect(wf.getByText(/trening zapisany/i)).toBeVisible({ timeout: 15_000 });
+  });
+
+  test('D2: Dodawanie treningu z minimalnym czasem trwania', async ({ page }) => {
+    await page.getByRole('button', { name: /trening/i }).click();
+    const wf = page.locator('app-workout-form');
+    await wf.getByPlaceholder('np. Klatka piersiowa').fill('Trening 1 minuta');
+    await wf.locator('select.form-select').selectOption('general');
+    await wf.locator('input[type="number"]').first().fill('1');
+    await wf.getByRole('button', { name: /zapisz trening/i }).click();
+    await expect(wf.getByText(/trening zapisany/i)).toBeVisible({ timeout: 15_000 });
+  });
+
   // --- POMINIĘTE: oczekiwany tekst/zachowanie niezweryfikowane w realnej aplikacji ---
-  test.skip('A3: Wejście do profilu po logowaniu', async () => {});
-  test.skip('A4: Poprawność danych w profilu', async () => {});
-  test.skip('B4: Trening z notatkami (zależne od listy historii)', async () => {});
-  test.skip('B5: Trening typu Cardio (zależne od listy historii)', async () => {});
   test.skip('C1: Przyrost XP po dodaniu treningu', async () => {});
-  test.skip('D1: Bardzo długi tytuł', async () => {});
-  test.skip('D2: Minimalny czas trwania', async () => {});
 });
 
 // --- TEST BEZ AUTORYZACJI ---
