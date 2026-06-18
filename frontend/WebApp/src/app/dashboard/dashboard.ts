@@ -253,9 +253,8 @@ private loadSettings(): void {
           return of([] as WorkoutData[]);
         }),
         finalize(() => {
-          // GWARANCJA 1: Wykonuje się zawsze po zakończeniu Observable
           this.loadingStats = false;
-          //this.loadingActivity = false;
+          this.cdr.detectChanges(); 
         })
       )
       .subscribe({
@@ -266,33 +265,31 @@ private loadSettings(): void {
       });
 
     // GWARANCJA 2: "Opcja Nuklearna"
-    // Jeżeli RxJS z jakiegoś powodu zostanie zamrożony, ten zegar wymusi
-    // wyłączenie kółka ładowania równo po 1.5 sekundy.
     setTimeout(() => {
       this.loadingStats = false;
-      //this.loadingActivity = false;
-      this.loadingProfile = false; // Profil gasimy przy okazji
+      this.loadingProfile = false; 
+      this.cdr.detectChanges(); 
     }, 1500);
   }
 
 
 
-  // 2. Metoda przeliczająca - BEZ wywołań settimeoutów czy innych pułapek
   private recomputeDerived(): void {
     try {
       const streak = this.profile?.current_streak_days ?? 0;
       const safeWorkouts = this.lastWorkouts || [];
       
       this.stats = buildStats(safeWorkouts, streak);
-      //this.weeklyActivity = buildWeeklyActivity(safeWorkouts);
     } catch (e) {
       console.error("Błąd w recomputeDerived:", e);
     } finally {
       this.loadingStats = false;
-      //this.loadingActivity = false;
-      this.isRefreshing = false; // Reset flagi pętli
+      this.isRefreshing = false; 
       console.log("[DEBUG] Loadery wyłączone na sztywno.");
+      
+      this.cdr.detectChanges(); 
     }
+  }
   }
 
   // 3. Dodaj flagę do klasy
