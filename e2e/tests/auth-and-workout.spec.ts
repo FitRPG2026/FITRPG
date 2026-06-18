@@ -66,6 +66,12 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
     await wf.getByPlaceholder('Jak minął trening?').fill('Test notatki');
     await wf.getByRole('button', { name: /zapisz trening/i }).click();
     await expect(wf.getByText(/trening zapisany/i)).toBeVisible({ timeout: 15_000 });
+
+    // Historia ładuje się raz — po zapisie trzeba przeładować, by zobaczyć nowy wpis.
+    await page.reload();
+    await expect(page.getByRole('heading', { name: /witaj z powrotem/i }))
+      .toBeVisible({ timeout: 30_000 });
+    await page.getByRole('button', { name: /trening/i }).click();
     await expect(page.locator('app-progress').getByText(tytul)).toBeVisible({ timeout: 15_000 });
   });
 
@@ -78,6 +84,11 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
     await wf.locator('input[type="number"]').first().fill('60');
     await wf.getByRole('button', { name: /zapisz trening/i }).click();
     await expect(wf.getByText(/trening zapisany/i)).toBeVisible({ timeout: 15_000 });
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: /witaj z powrotem/i }))
+      .toBeVisible({ timeout: 30_000 });
+    await page.getByRole('button', { name: /trening/i }).click();
     await expect(page.locator('app-progress').getByText(tytul)).toBeVisible({ timeout: 15_000 });
   });
 
