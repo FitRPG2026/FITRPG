@@ -129,6 +129,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  getDayLabel(dateStr: string): string {
+    const d = new Date(dateStr);
+    const days = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
+    return days[d.getDay()];
+  }
+
   private loadProfile(): void {
     this.api.getProfile().pipe(timeout(15000), catchError(() => of(null))).subscribe({
       next: (p) => {
@@ -250,7 +256,20 @@ export class DashboardComponent implements OnInit {
   saveProfile(): void {
     if (this.savingProfile) return;
     this.savingProfile = true;
-    this.api.updateProfile(this.editProfile).subscribe({
+    
+    // Rzutowanie na typ oczekiwany przez API, eliminując null/undefined
+    const payload = {
+      username: this.editProfile.username || '',
+      display_name: this.editProfile.display_name || '',
+      birth_date: this.editProfile.birth_date || undefined,
+      sex: this.editProfile.sex || undefined,
+      height_cm: this.editProfile.height_cm,
+      weight_kg: this.editProfile.weight_kg,
+      goal: this.editProfile.goal || undefined,
+      activity_level: this.editProfile.activity_level || undefined,
+    };
+
+    this.api.updateProfile(payload as any).subscribe({
       next: (p) => {
         this.profile = this.withLevelProgress(p);
         this.editProfile = { ...this.profile };
