@@ -4,7 +4,9 @@ test.describe('Zarządzanie treningami i profilem (Zalogowany użytkownik)', () 
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    //await page.waitForLoadState('networkidle');
+    // Wait for a real element instead of networkidle (which can hang forever).
+    await expect(page.getByRole('heading', { name: /witaj z powrotem/i })).toBeVisible();
   });
 
   // --- GRUPA A: PROFIL ---
