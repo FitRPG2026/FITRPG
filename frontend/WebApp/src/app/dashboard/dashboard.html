@@ -31,6 +31,10 @@
         <span class="nav-label">Questy</span>
         <span class="nav-badge" *ngIf="pendingQuests.length > 0">{{ pendingQuests.length }}</span>
       </button>
+      <button class="nav-item" [class.active]="activeTab === 'leaderboard'" (click)="setTab('leaderboard')">
+        <span class="nav-icon">🏅</span>
+        <span class="nav-label">Ranking</span>
+      </button>
       <button class="nav-item" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
         <span class="nav-icon">🏆</span>
         <span class="nav-label">Wyzwania</span>
@@ -222,7 +226,65 @@
         </div>
       </div>
     </div>
+    <div class="tab-content" *ngIf="activeTab === 'leaderboard'">
+      <div class="dashboard-grid single-col">
+        
+        <div class="profile-panel animate-fade-in">
+          <div class="panel-header">
+            <h2>🏆 Ranking Graczy FITRPG</h2>
+          </div>
 
+          <div class="stats-loading" *ngIf="loadingLeaderboard">
+            <span class="btn-spinner blue"></span>
+            <p>Pobieranie tabeli wyników...</p>
+          </div>
+
+          <div class="msg msg-error" *ngIf="leaderboardError">{{ leaderboardError }}</div>
+
+          <div class="leaderboard-wrapper" *ngIf="!loadingLeaderboard && leaderboardData">
+            
+            <div class="podium-container">
+              
+              <div class="podium-item place-2" *ngIf="leaderboardData.top_3[1]">
+                <span class="podium-name">{{ leaderboardData.top_3[1].display_name || leaderboardData.top_3[1].username || 'Gracz 2' }}</span>
+                <div class="podium-block">2</div>
+                <span class="podium-xp">{{ leaderboardData.top_3[1].total_exp }} EXP</span>
+              </div>
+
+              <div class="podium-item place-1" *ngIf="leaderboardData.top_3[0]">
+                <span class="crown">👑</span>
+                <span class="podium-name">{{ leaderboardData.top_3[0].display_name || leaderboardData.top_3[0].username || 'Lider' }}</span>
+                <div class="podium-block">1</div>
+                <span class="podium-xp">{{ leaderboardData.top_3[0].total_exp }} EXP</span>
+              </div>
+
+              <div class="podium-item place-3" *ngIf="leaderboardData.top_3[2]">
+                <span class="podium-name">{{ leaderboardData.top_3[2].display_name || leaderboardData.top_3[2].username || 'Gracz 3' }}</span>
+                <div class="podium-block">3</div>
+                <span class="podium-xp">{{ leaderboardData.top_3[2].total_exp }} EXP</span>
+              </div>
+
+            </div>
+
+            <div class="user-ranking-banner" *ngIf="leaderboardData.current_user_stats">
+              <div class="user-ranking-title">
+                Twoja pozycja: <span class="highlight-rank">#{{ leaderboardData.current_user_stats.current_rank }}</span> z {{ leaderboardData.current_user_stats.total_players }} graczy
+              </div>
+              
+              <div class="user-ranking-motivation" *ngIf="leaderboardData.current_user_stats.points_to_next_place > 0">
+                Brakuje Ci <span class="xp-needed">{{ leaderboardData.current_user_stats.points_to_next_place }} EXP</span>, aby dogonić gracza <strong>{{ leaderboardData.current_user_stats.next_player_name }}</strong>!
+              </div>
+              
+              <div class="user-ranking-motivation gold" *ngIf="leaderboardData.current_user_stats.points_to_next_place === 0">
+                🌌 Jesteś na pierwszym miejscu! Twoja dominacja jest niezagrożona.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
     <div class="tab-content" *ngIf="activeTab === 'achievements'">
       <div class="page-header">
         <h1>🏆 Wyzwania</h1>

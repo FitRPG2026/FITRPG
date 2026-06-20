@@ -193,6 +193,26 @@ export interface UserSettingsData {
   profile_public: boolean;
 }
 
+export interface LeaderboardEntry {
+  user_id: number;
+  display_name: string | null;
+  username: string | null;
+  total_exp: number;
+  rank: number;
+}
+
+export interface UserRankStats {
+  current_rank: number;
+  total_players: number;
+  points_to_next_place: number;
+  next_player_name: string | null;
+}
+
+export interface LeaderboardResponse {
+  top_3: LeaderboardEntry[];
+  current_user_stats: UserRankStats | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly baseUrl = `${environment.apiUrl}/api`;
@@ -272,4 +292,17 @@ export class ApiService {
       .get<Achievement[]>(`${this.baseUrl}/achievements`, { headers: this.headers() })
       .pipe(catchError(() => of<Achievement[]>([])));
   } 
+
+  getLeaderboard(): Observable<LeaderboardResponse | null> {
+    const headers = this.headers();
+    
+    return this.http
+      .get<LeaderboardResponse>(`${this.baseUrl}/leaderboard`, { headers })
+      .pipe(
+        catchError((error) => {
+          console.error('HTTP error in getLeaderboard:', error);
+          return of(null);
+        })
+      );
+  }
 }
