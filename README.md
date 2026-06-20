@@ -62,8 +62,7 @@ Zainstalowany Docker oraz Docker Compose.
 
 
 
-## 🚀 Uruchomienie ( wersji lokalnej):
-* git clone [https://github.com/MD04-CFC/FITRPG.git](https://github.com/MD04-CFC/FITRPG.git)
+## 🚀 Uruchomienie ( wersji lokalnej, po sklonowaniu, branch 1405):
 * cd FITRPG
 * docker-compose up --build
 * http://localhost:4200
