@@ -15,7 +15,7 @@ Przygotowana przez:
 - Semion Lisichik ( Backend dev., Test dev.) [logika statystyk, testy jednostkowe i E2E, dokumentacja, rywalizacja]
 - Antoni Szymański ( Frontend dev.) [ większość frontu od strony UI i UX, przygotowanie mniejszego komponentu, mock upy]
 - Jakub Dąbrowski (Frontend dev.) [ większość frontu od strony logiki i funckjonowania, rozbudowanie logowania, ekrany]
-- Joanna Dagil ( ML eng.) [ przygotowanie modeli, testy modeli, pomoc przy architekturze ML 
+- Joanna Dagil ( ML eng.) [ przygotowanie modeli, testy modeli, pomoc przy architekturze ML, poprawki testów]
 - Stanisław Mierzejewski ( ML eng.) [rozwinięcie datasetu, przygotowanie wyzwań, dokumentacja pdf]
 
 
