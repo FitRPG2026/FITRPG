@@ -31,6 +31,10 @@
         <span class="nav-label">Questy</span>
         <span class="nav-badge" *ngIf="pendingQuests.length > 0">{{ pendingQuests.length }}</span>
       </button>
+      <button class="nav-item" [class.active]="activeTab === 'leaderboard'" (click)="setTab('leaderboard')">
+        <span class="nav-icon">🏅</span>
+        <span class="nav-label">Ranking</span>
+      </button>
       <button class="nav-item" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
         <span class="nav-icon">🏆</span>
         <span class="nav-label">Wyzwania</span>
@@ -88,7 +92,6 @@
         </div>
 
         <div class="hero-card quests-card">
-          <div *ngIf="loadingQuests" class="card-skeleton"></div>
           <div *ngIf="!loadingQuests">
             <div class="card-label">Dziś ukończono</div>
             <div class="card-value-big">{{ completedQuests.length }}<span class="card-denom">/{{ quests.length }}</span></div>
@@ -99,38 +102,37 @@
 
       <div class="bottom-row">
         <div class="panel activity-panel">
-          <div class="panel-header"><h2>Aktywność tygodniowa</h2></div>
-          
-          <div *ngIf="loadingChart" class="panel-skeleton"></div>
-          
-          <div *ngIf="!loadingChart" class="activity-chart">
-            <div class="bar-group" *ngFor="let day of weeklyChartData">
-              <div class="bar-track" style="display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;">
-                <div class="bar-fill" 
-                     *ngIf="day.meals_count > 0"
-                     [style.height.%]="(day.meals_count / maxActivityCount) * 100" 
-                     style="background-color: #2ecc71; width: 100%; border-radius: 4px 4px 0 0;">
-                </div>
-                <div class="bar-fill" 
-                     *ngIf="day.workouts_count > 0"
-                     [style.height.%]="(day.workouts_count / maxActivityCount) * 100" 
-                     style="background-color: #3498db; width: 100%; border-radius: 0 0 4px 4px;">
-                </div>
-              </div>
-              <div class="bar-day">{{ getDayLabel(day.date) }}</div>
-            </div>
-          </div>
-
-          <div *ngIf="!loadingChart" class="chart-legend" style="display: flex; gap: 16px; justify-content: center; margin-top: 15px; font-size: 13px; font-weight: 500; color: #7f8c8d;">
-            <div style="display: flex; align-items: center;">
-              <span style="display: inline-block; width: 12px; height: 12px; background: #3498db; margin-right: 6px; border-radius: 3px;"></span> Treningi
-            </div>
-            <div style="display: flex; align-items: center;">
-              <span style="display: inline-block; width: 12px; height: 12px; background: #2ecc71; margin-right: 6px; border-radius: 3px;"></span> Posiłki
-            </div>
-          </div>
+  <div class="panel-header"><h2>Aktywność tygodniowa</h2></div>
+  
+  <div class="activity-chart">
+    <div class="bar-group" *ngFor="let day of weeklyChartData">
+      <div class="bar-track" style="display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; height: 100px;">
+        
+        <div class="bar-fill" 
+             [style.height.%]="(day.meals_count / maxActivityCount) * 100" 
+             style="background-color: #2ecc71; width: 100%; border-radius: 4px 4px 0 0;">
         </div>
-  <!-- 
+        
+        <div class="bar-fill" 
+             [style.height.%]="(day.workouts_count / maxActivityCount) * 100" 
+             style="background-color: #3498db; width: 100%; border-radius: 0 0 4px 4px;">
+        </div>
+
+      </div>
+      <div class="bar-day">{{ getDayLabel(day.date) }}</div>
+    </div>
+  </div>
+
+  <div class="chart-legend" style="display: flex; gap: 16px; justify-content: center; margin-top: 15px; font-size: 13px; font-weight: 500; color: #7f8c8d;">
+    <div style="display: flex; align-items: center;">
+      <span style="display: inline-block; width: 12px; height: 12px; background: #3498db; margin-right: 6px; border-radius: 3px;"></span> Treningi
+    </div>
+    <div style="display: flex; align-items: center;">
+      <span style="display: inline-block; width: 12px; height: 12px; background: #2ecc71; margin-right: 6px; border-radius: 3px;"></span> Posiłki
+    </div>
+  </div>
+</div>
+  
           <div class="panel stats-panel">
             <div class="panel-header"><h2>Atrybuty</h2></div>
             <div *ngIf="loadingStats" class="panel-skeleton"></div>
@@ -146,7 +148,7 @@
                 <div class="stat-value" [style.color]="stat.color">{{ stat.value }}</div>
               </div>
             </div>
-          </div> -->
+          </div> 
         </div>
       </div>
 
@@ -224,7 +226,65 @@
         </div>
       </div>
     </div>
+    <div class="tab-content" *ngIf="activeTab === 'leaderboard'">
+      <div class="dashboard-grid single-col">
+        
+        <div class="profile-panel animate-fade-in">
+          <div class="panel-header">
+            <h2>🏆 Ranking Graczy FITRPG</h2>
+          </div>
 
+          <div class="stats-loading" *ngIf="loadingLeaderboard">
+            <span class="btn-spinner blue"></span>
+            <p>Pobieranie tabeli wyników...</p>
+          </div>
+
+          <div class="msg msg-error" *ngIf="leaderboardError">{{ leaderboardError }}</div>
+
+          <div class="leaderboard-wrapper" *ngIf="!loadingLeaderboard && leaderboardData">
+            
+            <div class="podium-container">
+              
+              <div class="podium-item place-2" *ngIf="leaderboardData.top_3[1]">
+                <span class="podium-name">{{ leaderboardData.top_3[1].display_name || leaderboardData.top_3[1].username || 'Gracz 2' }}</span>
+                <div class="podium-block">2</div>
+                <span class="podium-xp">{{ leaderboardData.top_3[1].total_exp }} EXP</span>
+              </div>
+
+              <div class="podium-item place-1" *ngIf="leaderboardData.top_3[0]">
+                <span class="crown">👑</span>
+                <span class="podium-name">{{ leaderboardData.top_3[0].display_name || leaderboardData.top_3[0].username || 'Lider' }}</span>
+                <div class="podium-block">1</div>
+                <span class="podium-xp">{{ leaderboardData.top_3[0].total_exp }} EXP</span>
+              </div>
+
+              <div class="podium-item place-3" *ngIf="leaderboardData.top_3[2]">
+                <span class="podium-name">{{ leaderboardData.top_3[2].display_name || leaderboardData.top_3[2].username || 'Gracz 3' }}</span>
+                <div class="podium-block">3</div>
+                <span class="podium-xp">{{ leaderboardData.top_3[2].total_exp }} EXP</span>
+              </div>
+
+            </div>
+
+            <div class="user-ranking-banner" *ngIf="leaderboardData.current_user_stats">
+              <div class="user-ranking-title">
+                Twoja pozycja: <span class="highlight-rank">#{{ leaderboardData.current_user_stats.current_rank }}</span> z {{ leaderboardData.current_user_stats.total_players }} graczy
+              </div>
+              
+              <div class="user-ranking-motivation" *ngIf="leaderboardData.current_user_stats.points_to_next_place > 0">
+                Brakuje Ci <span class="xp-needed">{{ leaderboardData.current_user_stats.points_to_next_place }} EXP</span>, aby dogonić gracza <strong>{{ leaderboardData.current_user_stats.next_player_name }}</strong>!
+              </div>
+              
+              <div class="user-ranking-motivation gold" *ngIf="leaderboardData.current_user_stats.points_to_next_place === 0">
+                🌌 Jesteś na pierwszym miejscu! Twoja dominacja jest niezagrożona.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
     <div class="tab-content" *ngIf="activeTab === 'achievements'">
       <div class="page-header">
         <h1>🏆 Wyzwania</h1>

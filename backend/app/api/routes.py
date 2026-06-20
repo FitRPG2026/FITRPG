@@ -33,6 +33,9 @@ from ..schemas import (
     LogWorkoutRequest, WorkoutLoggedResponse,
     LogMealRequest, MealLoggedResponse, MealStatusResponse,
     ErrorResponse,
+    LeaderboardEntry,
+    LeaderboardResponse,
+    UserRankStats,
 )
 
 router = APIRouter()
@@ -710,8 +713,72 @@ async def get_game_content(
 
     return GameContentResponse(quests=quests, challenges=challenges)
 
+# ─── Leaderboards ─────────────────────────────────────────────────────────────────
 
+@router.get("/leaderboard", response_model=LeaderboardResponse)
+async def get_leaderboard(
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    print(f"Current user: {current_user}")
 
+    query = text("""
+        SELECT 
+            upg.user_id, 
+            upr.display_name, 
+            upr.username, 
+            upg.total_exp,
+            DENSE_RANK() OVER (ORDER BY upg.total_exp DESC) as rank
+        FROM user_progress upg
+        LEFT JOIN user_profiles upr ON upg.user_id = upr.user_id
+        ORDER BY upg.total_exp DESC
+    """)
+    
+    result = await db.execute(query)
+    rows = result.mappings().all()
+    
+    top_3_entries = []
+    for row in rows[:3]:
+        top_3_entries.append(LeaderboardEntry(
+            user_id=row["user_id"],
+            display_name=row["display_name"],
+            username=row["username"],
+            total_exp=row["total_exp"],
+            rank=row["rank"]
+        ))
+        
+    current_user_stats = None
+    total_players = len(rows)
+    
+    if isinstance(current_user, dict):
+        current_id = current_user.get("user_id", current_user.get("id"))
+    else:
+        current_id = getattr(current_user, "user_id", getattr(current_user, "id", None))
+    
+    user_index = next((index for (index, d) in enumerate(rows) if d["user_id"] == current_id), None)
+    
+    if user_index is not None:
+        current_row = rows[user_index]
+        
+        if user_index == 0:
+            points_to_next = 0
+            next_player = None
+        else:
+            player_above = rows[user_index - 1]
+            points_to_next = player_above["total_exp"] - current_row["total_exp"]
+            next_player = player_above["display_name"] or player_above["username"] or "Anonimowy Gracz"
+            
+        current_user_stats = UserRankStats(
+            current_rank=current_row["rank"],
+            total_players=total_players,
+            points_to_next_place=points_to_next,
+            next_player_name=next_player
+        )
+        
+    return LeaderboardResponse(
+        top_3=top_3_entries,
+        current_user_stats=current_user_stats
+    )
 
 # # ─── Workouts ─────────────────────────────────────────────────────────────────
 
