@@ -378,7 +378,28 @@ class UserChallengeResponse(BaseModel):
 class GameContentResponse(BaseModel):
     quests: List[UserQuestResponse]
     challenges: List[UserChallengeResponse]
-    
+
+# ─────────────────────────────────────────────
+# LEADERBOARD / RANKING
+# ─────────────────────────────────────────────
+
+class LeaderboardEntry(BaseModel):
+    user_id: int
+    display_name: Optional[str] = None
+    username: Optional[str] = None
+    total_exp: int
+    rank: int
+
+class UserRankStats(BaseModel):
+    current_rank: int
+    total_players: int
+    points_to_next_place: int
+    next_player_name: Optional[str] = None
+
+class LeaderboardResponse(BaseModel):
+    top_3: List[LeaderboardEntry]
+    current_user_stats: Optional[UserRankStats] = None
+
 
 # ─────────────────────────────────────────────
 # ERROR

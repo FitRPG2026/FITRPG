@@ -14,6 +14,7 @@ import {
   UserChallenge,
   WeeklyActivity,
   WeeklyActivityChartData,
+  LeaderboardResponse,
 } from '../services/api.service';
 import { computeLevelProgress } from '../services/level.util';
 import { buildStats } from '../services/stats.util';
@@ -26,7 +27,7 @@ import { ProgressComponent } from '../components/progress/progress';
 import { timeout, catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile';
+type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'profile' | 'leaderboard';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,7 +38,7 @@ type Tab = 'dashboard' | 'quests' | 'achievements' | 'stats' | 'training' | 'pro
     ToastContainerComponent,
     WorkoutFormComponent,
     MealFormComponent,
-    ProgressComponent
+    ProgressComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
@@ -59,6 +60,10 @@ export class DashboardComponent implements OnInit {
   loadingChallenges = true;
   loadingActivity = true;
   loadingChart = true;
+
+  leaderboardData: LeaderboardResponse | null = null;
+  loadingLeaderboard: boolean = false;
+  leaderboardError: string = '';
 
   private lastWorkouts: WorkoutData[] = [];
   profile: UserProfileData | null = null;
@@ -102,6 +107,7 @@ export class DashboardComponent implements OnInit {
         this.loadWorkoutsDerived();
         this.loadQuests();
         this.loadChallenges();
+        this.loadLeaderboard();
       },
       error: () => { this.loadingProfile = false; }
     });
@@ -126,7 +132,40 @@ export class DashboardComponent implements OnInit {
         this.loadProfile();
         this.loadWorkoutsDerived();
         break;
+      case 'leaderboard':
+        this.loadLeaderboard();
+        break;
     }
+  }
+
+  private loadLeaderboard(): void {
+    this.loadingLeaderboard = true;
+    this.leaderboardError = '';
+    this.leaderboardData = null;
+
+    this.api.getLeaderboard().subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          if (res && res.top_3) {
+            this.leaderboardData = res;
+          } else {
+            this.leaderboardData = { top_3: [], current_user_stats: null };
+            this.leaderboardError = 'Nie udało się załadować rankingu graczy.';
+          }
+          this.loadingLeaderboard = false;
+          this.cdr.detectChanges();
+        }, 0);
+      },
+      error: (err) => {
+        console.error('Leaderboard error:', err);
+        setTimeout(() => {
+          this.leaderboardError = 'Wystąpił błąd podczas komunikacji z serwerem.';
+          this.loadingLeaderboard = false;
+          this.leaderboardData = { top_3: [], current_user_stats: null };
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    });
   }
 
   getDayLabel(dateStr: string): string {
